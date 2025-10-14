@@ -5,11 +5,6 @@ import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA', 'Insufficient Information'];
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
