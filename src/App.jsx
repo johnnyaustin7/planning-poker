@@ -5,13 +5,7 @@ import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA', 'Insufficient Information'];
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
   authDomain: "pointing-poker-b7a24.firebaseapp.com",
   databaseURL: "https://pointing-poker-b7a24-default-rtdb.firebaseio.com",
@@ -20,9 +14,6 @@ const firebaseConfig = {
   messagingSenderId: "149415726941",
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
