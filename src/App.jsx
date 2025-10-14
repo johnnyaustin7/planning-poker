@@ -1,4 +1,17 @@
-import React, { useState, useEffect } from 'react';
+const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };  // Timer for moderator
+  useEffect(() => {
+    if (!isModerator) return;
+    
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - resetTime) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isModerator, resetTime]);import React, { useState, useEffect } from 'react';
 import { Users, Eye, EyeOff, RotateCcw, Copy, Check } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update } from 'firebase/database';
@@ -33,6 +46,9 @@ export default function App() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [resetTime, setResetTime] = useState(Date.now());
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
@@ -141,10 +157,27 @@ export default function App() {
   const handleReveal = async () => {
     const sessionRef = ref(db, `sessions/${sessionId}`);
     await update(sessionRef, { revealed: !revealed });
+    
+    // Check for consensus when revealing
+    if (!revealed) {
+      const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+      const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
+      
+      if (votes.length > 1) {
+        const uniqueVotes = new Set(votes);
+        if (uniqueVotes.size === 1) {
+          // Consensus reached - trigger confetti!
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 4000);
+        }
+      }
+    }
   };
 
   const handleReset = async () => {
     setSelectedPoint(null);
+    setResetTime(Date.now());
+    setElapsedTime(0);
     
     const updates = {};
     participants.forEach(p => {
@@ -205,7 +238,41 @@ export default function App() {
       Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev
     );
     
-    return { average: avg.toFixed(1), closest };
+    // Check for consensus
+    const allVotes = participants
+      .filter(p => !p.isModerator && !p.isObserver)
+      .map(p => p.points)
+      .filter(p => p !== null);
+    
+    const uniqueVotes = new Set(allVotes);
+    const consensus = uniqueVotes.size === 1 && allVotes.length > 1;
+    
+    // Calculate range and spread
+    const min = Math.min(...numericVotes);
+    const max = Math.max(...numericVotes);
+    const range = numericVotes.length > 1 ? { min, max } : null;
+    const spread = max - min;
+    
+    // Determine spread type: tight (0-2), moderate (3-5), wide (6+)
+    let spreadType = 'tight';
+    if (spread > 5) spreadType = 'wide';
+    else if (spread > 2) spreadType = 'moderate';
+    
+    // Find outliers (values more than 2 Fibonacci steps away from average)
+    const avgIndex = FIBONACCI.findIndex(f => f === closest);
+    const outliers = numericVotes.filter(vote => {
+      const voteIndex = FIBONACCI.findIndex(f => f === vote);
+      return Math.abs(voteIndex - avgIndex) > 2;
+    });
+    
+    return { 
+      average: avg.toFixed(1), 
+      closest,
+      consensus,
+      range,
+      spreadType,
+      outliers: outliers.length > 0 ? outliers : null
+    };
   };
 
   if (!sessionId) {
@@ -339,6 +406,44 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-4">
+      {/* Confetti Effect */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-fall"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-10%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${3 + Math.random() * 2}s`
+              }}
+            >
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)],
+                  transform: `rotate(${Math.random() * 360}deg)`
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes fall {
+          to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+        .animate-fall {
+          animation: fall linear forwards;
+        }
+      `}</style>
+      
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -416,7 +521,10 @@ export default function App() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">Votes</h2>
                 {isModerator && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
+                    <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded font-mono">
+                      ⏱️ {formatTime(elapsedTime)}
+                    </div>
                     <button
                       onClick={handleReveal}
                       disabled={!allVoted}
@@ -446,6 +554,11 @@ export default function App() {
                                    participant.points !== undefined && 
                                    participant.points !== '';
                   
+                  // Check if this vote is an outlier
+                  const isOutlier = revealed && stats && stats.outliers && 
+                                   typeof participant.points === 'number' &&
+                                   stats.outliers.includes(participant.points);
+                  
                   return (
                     <div
                       key={participant.id}
@@ -454,6 +567,8 @@ export default function App() {
                           ? 'bg-orange-50 border-orange-200'
                           : participant.isObserver
                           ? 'bg-purple-50 border-purple-200'
+                          : isOutlier
+                          ? 'bg-red-50 border-red-300 border-dashed'
                           : 'bg-gray-50 border-gray-200'
                       }`}
                     >
@@ -461,6 +576,7 @@ export default function App() {
                         {participant.name}
                         {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
                         {participant.isObserver && <span className="text-xs block text-purple-600">Observer</span>}
+                        {isOutlier && <span className="text-xs block text-red-600">Outlier</span>}
                       </p>
                       {!participant.isModerator && !participant.isObserver && (
                         <div className={`text-2xl font-bold ${
@@ -490,14 +606,42 @@ export default function App() {
                 </div>
                 {revealed && stats && (
                   <>
-                    <div className="bg-green-50 rounded-lg p-4">
+                    <div className={`rounded-lg p-4 ${
+                      stats.spreadType === 'tight' ? 'bg-green-50' :
+                      stats.spreadType === 'moderate' ? 'bg-yellow-50' :
+                      'bg-red-50'
+                    }`}>
                       <p className="text-sm text-gray-600 mb-1">Average</p>
-                      <p className="text-2xl font-bold text-green-600">{stats.average}</p>
+                      <p className={`text-2xl font-bold ${
+                        stats.spreadType === 'tight' ? 'text-green-600' :
+                        stats.spreadType === 'moderate' ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>{stats.average}</p>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <p className="text-sm text-gray-600 mb-1">Closest Fibonacci</p>
                       <p className="text-2xl font-bold text-orange-600">{stats.closest}</p>
                     </div>
+                    {stats.consensus && (
+                      <div className="bg-green-100 rounded-lg p-4 border-2 border-green-400">
+                        <p className="text-sm text-green-700 mb-1">🎉 Status</p>
+                        <p className="text-lg font-bold text-green-700">Consensus!</p>
+                      </div>
+                    )}
+                    {stats.range && (
+                      <div className={`rounded-lg p-4 ${
+                        stats.spreadType === 'tight' ? 'bg-green-50' :
+                        stats.spreadType === 'moderate' ? 'bg-yellow-50' :
+                        'bg-red-50'
+                      }`}>
+                        <p className="text-sm text-gray-600 mb-1">Range</p>
+                        <p className={`text-lg font-bold ${
+                          stats.spreadType === 'tight' ? 'text-green-700' :
+                          stats.spreadType === 'moderate' ? 'text-yellow-700' :
+                          'text-red-700'
+                        }`}>{stats.range.min} - {stats.range.max}</p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
