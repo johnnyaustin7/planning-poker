@@ -54,13 +54,31 @@ export default function App() {
     const unsubscribe = onValue(sessionRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setParticipants(Object.values(data.participants || {}));
-        setRevealed(data.revealed || false);
+        const newParticipants = Object.values(data.participants || {});
+        const wasRevealed = revealed;
+        const newRevealed = data.revealed || false;
+        
+        setParticipants(newParticipants);
+        setRevealed(newRevealed);
+        
+        // Check for consensus when revealed state changes from false to true
+        if (!wasRevealed && newRevealed) {
+          const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
+          const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
+          
+          if (votes.length > 1) {
+            const uniqueVotes = new Set(votes);
+            if (uniqueVotes.size === 1) {
+              setShowConfetti(true);
+              setTimeout(() => setShowConfetti(false), 4000);
+            }
+          }
+        }
       }
     });
 
     return () => unsubscribe();
-  }, [sessionId, hasJoined]);
+  }, [sessionId, hasJoined, revealed]);
 
   useEffect(() => {
     if (sessionId) {
@@ -154,19 +172,6 @@ export default function App() {
   const handleReveal = async () => {
     const sessionRef = ref(db, `sessions/${sessionId}`);
     await update(sessionRef, { revealed: !revealed });
-    
-    if (!revealed) {
-      const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
-      const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
-      
-      if (votes.length > 1) {
-        const uniqueVotes = new Set(votes);
-        if (uniqueVotes.size === 1) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 4000);
-        }
-      }
-    }
   };
 
   const handleReset = async () => {
