@@ -340,11 +340,9 @@ export default function App() {
                       <div className={`text-2xl font-bold ${
                         participant.points !== null ? 'text-teal-600' : 'text-gray-400'
                       }`}>
-                        {revealed && participant.points !== null
-                          ? participant.points
-                          : participant.points !== null
-                          ? '✓'
-                          : '—'}
+                        {revealed
+                          ? (participant.points !== null ? participant.points : '—')
+                          : (participant.points !== null ? '✓' : '—')}
                       </div>
                     )}
                   </div>
