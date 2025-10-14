@@ -30,6 +30,8 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [showCopied, setShowCopied] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
 
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
@@ -140,6 +142,35 @@ export default function App() {
     navigator.clipboard.writeText(sessionId);
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
+  };
+
+  const handleStartEditName = () => {
+    setEditedName(userName);
+    setIsEditingName(true);
+  };
+
+  const handleSaveName = async () => {
+    if (editedName.trim() && editedName.trim() !== userName) {
+      const newName = editedName.trim();
+      setUserName(newName);
+      
+      const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await update(participantRef, { name: newName });
+    }
+    setIsEditingName(false);
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setEditedName('');
+  };
+
+  const handleNameKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSaveName();
+    } else if (e.key === 'Escape') {
+      handleCancelEditName();
+    }
   };
 
   const calculateAverage = () => {
@@ -298,7 +329,31 @@ export default function App() {
               </div>
             </div>
           </div>
-          <p className="text-gray-600">Welcome, <span className="font-semibold text-teal-600">{userName}</span>{isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}!</p>
+          <p className="text-gray-600">
+            Welcome, 
+            {isEditingName ? (
+              <span className="inline-flex items-center gap-2 ml-1">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={handleNameKeyPress}
+                  onBlur={handleSaveName}
+                  className="px-2 py-1 border border-teal-500 rounded focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                  autoFocus
+                />
+              </span>
+            ) : (
+              <span 
+                className="font-semibold text-teal-600 cursor-pointer hover:underline ml-1"
+                onClick={handleStartEditName}
+                title="Click to edit name"
+              >
+                {userName}
+              </span>
+            )}
+            {isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}!
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-6">
