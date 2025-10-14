@@ -21,6 +21,7 @@ const db = getDatabase(app);
 export default function App() {
   const [userName, setUserName] = useState('');
   const [isModerator, setIsModerator] = useState(false);
+  const [isObserver, setIsObserver] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [sessionId, setSessionId] = useState('');
   const [sessionIdInput, setSessionIdInput] = useState('');
@@ -58,7 +59,22 @@ export default function App() {
   }, [sessionId]);
 
   const generateSessionId = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    // List of 6-letter words that are easy to remember and spell
+    const words = [
+      'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
+      'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
+      'PLANET', 'RABBIT', 'SILVER', 'TIGER', 'VIOLET', 'WIZARD',
+      'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
+      'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
+      'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
+      'SADDLE', 'TIMBER', 'UNICORN', 'VELVET', 'WALNUT', 'ZIPPER',
+      'ARTIST', 'BOTTLE', 'COFFEE', 'DESERT', 'ELEVEN', 'FLOWER',
+      'GOLDEN', 'HOCKEY', 'IGUANA', 'JOSTLE', 'KERNEL', 'LOBSTER',
+      'METEOR', 'NEEDLE', 'OYSTER', 'PIRATE', 'QUIVER', 'RAISIN',
+      'SALMON', 'TEMPLE', 'UMPIRE', 'VALLEY', 'WAFFLE', 'YOGURT'
+    ];
+    
+    return words[Math.floor(Math.random() * words.length)];
   };
 
   const handleCreateSession = () => {
@@ -90,7 +106,8 @@ export default function App() {
         id: userId,
         name: userName.trim(),
         points: null,
-        isModerator: isModerator
+        isModerator: isModerator,
+        isObserver: isObserver
       };
 
       const participantRef = ref(db, `sessions/${sessionId}/participants/${userId}`);
@@ -175,7 +192,7 @@ export default function App() {
 
   const calculateAverage = () => {
     const numericVotes = participants
-      .filter(p => !p.isModerator)
+      .filter(p => !p.isModerator && !p.isObserver)
       .map(p => p.points)
       .filter(p => p !== null && p !== '?' && p !== 'No QA' && typeof p === 'number');
     
@@ -220,7 +237,7 @@ export default function App() {
                 value={sessionIdInput}
                 onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
-                placeholder="Enter Session ID"
+                placeholder="Enter Session ID (e.g., ROCKET)"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
                 maxLength={6}
               />
@@ -278,15 +295,30 @@ export default function App() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
               autoFocus
             />
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isObserver}
+                  onChange={(e) => {
+                    setIsObserver(e.target.checked);
+                    if (e.target.checked) setIsModerator(false);
+                  }}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-gray-700">Observer</span>
+              </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isModerator}
-                  onChange={(e) => setIsModerator(e.target.checked)}
+                  onChange={(e) => {
+                    setIsModerator(e.target.checked);
+                    if (e.target.checked) setIsObserver(false);
+                  }}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">Join as Moderator (non-voting)</span>
+                <span className="text-gray-700">Moderator</span>
               </label>
             </div>
             <button
@@ -302,7 +334,7 @@ export default function App() {
   }
 
   const stats = calculateAverage();
-  const votingParticipants = participants.filter(p => !p.isModerator);
+  const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
   const allVoted = votingParticipants.every(p => p.points !== null) && votingParticipants.length > 0;
 
   return (
@@ -352,13 +384,14 @@ export default function App() {
                 {userName}
               </span>
             )}
-            {isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}!
+            {isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}
+            {isObserver && <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded">Observer</span>}!
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
-            {!isModerator && (
+            {!isModerator && !isObserver && (
               <div className="bg-white rounded-lg shadow-xl p-6">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Your Estimate</h2>
                 <div className="grid grid-cols-6 gap-3">
@@ -379,7 +412,7 @@ export default function App() {
               </div>
             )}
 
-            <div className={`bg-white rounded-lg shadow-xl p-6 ${!isModerator ? 'mt-6' : ''}`}>
+            <div className={`bg-white rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">Votes</h2>
                 {isModerator && (
@@ -418,15 +451,18 @@ export default function App() {
                       key={participant.id}
                       className={`rounded-lg p-4 text-center border-2 ${
                         participant.isModerator 
-                          ? 'bg-orange-50 border-orange-200' 
+                          ? 'bg-orange-50 border-orange-200'
+                          : participant.isObserver
+                          ? 'bg-purple-50 border-purple-200'
                           : 'bg-gray-50 border-gray-200'
                       }`}
                     >
                       <p className="font-semibold text-gray-800 mb-2 truncate">
                         {participant.name}
                         {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
+                        {participant.isObserver && <span className="text-xs block text-purple-600">Observer</span>}
                       </p>
-                      {!participant.isModerator && (
+                      {!participant.isModerator && !participant.isObserver && (
                         <div className={`text-2xl font-bold ${
                           hasVoted ? 'text-blue-700' : 'text-gray-400'
                         }`}>
