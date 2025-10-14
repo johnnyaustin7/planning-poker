@@ -323,30 +323,37 @@ export default function App() {
                 )}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {participants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className={`rounded-lg p-4 text-center border-2 ${
-                      participant.isModerator 
-                        ? 'bg-orange-50 border-orange-200' 
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <p className="font-semibold text-gray-800 mb-2 truncate">
-                      {participant.name}
-                      {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
-                    </p>
-                    {!participant.isModerator && (
-                      <div className={`text-2xl font-bold ${
-                        participant.points !== null ? 'text-teal-600' : 'text-gray-400'
-                      }`}>
-                        {revealed
-                          ? (participant.points !== null ? participant.points : '—')
-                          : (participant.points !== null ? '✓' : '—')}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {participants.map((participant) => {
+                  // Check if points is truly set (not null, undefined, or empty string)
+                  const hasVoted = participant.points !== null && 
+                                   participant.points !== undefined && 
+                                   participant.points !== '';
+                  
+                  return (
+                    <div
+                      key={participant.id}
+                      className={`rounded-lg p-4 text-center border-2 ${
+                        participant.isModerator 
+                          ? 'bg-orange-50 border-orange-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <p className="font-semibold text-gray-800 mb-2 truncate">
+                        {participant.name}
+                        {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
+                      </p>
+                      {!participant.isModerator && (
+                        <div className={`text-2xl font-bold ${
+                          hasVoted ? 'text-teal-600' : 'text-gray-400'
+                        }`}>
+                          {revealed
+                            ? (hasVoted ? participant.points : '—')
+                            : (hasVoted ? '✓' : '—')}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
