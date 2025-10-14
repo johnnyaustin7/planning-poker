@@ -1,17 +1,4 @@
-const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };  // Timer for moderator
-  useEffect(() => {
-    if (!isModerator) return;
-    
-    const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - resetTime) / 1000));
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [isModerator, resetTime]);import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Eye, EyeOff, RotateCcw, Copy, Check } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update } from 'firebase/database';
@@ -50,6 +37,15 @@ export default function App() {
   const [resetTime, setResetTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
 
+  // Check URL for session parameter on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionParam = urlParams.get('session');
+    if (sessionParam) {
+      setSessionId(sessionParam.toUpperCase());
+    }
+  }, []);
+
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
 
@@ -74,8 +70,18 @@ export default function App() {
     }
   }, [sessionId]);
 
+  // Timer for moderator - only runs after user has joined
+  useEffect(() => {
+    if (!hasJoined || !isModerator) return;
+    
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((Date.now() - resetTime) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [hasJoined, isModerator, resetTime]);
+
   const generateSessionId = () => {
-    // List of 6-letter words that are easy to remember and spell
     const words = [
       'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
       'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
@@ -103,15 +109,6 @@ export default function App() {
       setSessionId(sessionIdInput.toUpperCase());
     }
   };
-
-  // Check URL for session parameter on load
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionParam = urlParams.get('session');
-    if (sessionParam) {
-      setSessionId(sessionParam.toUpperCase());
-    }
-  }, []);
 
   const handleJoin = async () => {
     if (userName.trim() && sessionId) {
@@ -158,7 +155,6 @@ export default function App() {
     const sessionRef = ref(db, `sessions/${sessionId}`);
     await update(sessionRef, { revealed: !revealed });
     
-    // Check for consensus when revealing
     if (!revealed) {
       const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
       const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
@@ -166,7 +162,6 @@ export default function App() {
       if (votes.length > 1) {
         const uniqueVotes = new Set(votes);
         if (uniqueVotes.size === 1) {
-          // Consensus reached - trigger confetti!
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 4000);
         }
@@ -244,7 +239,6 @@ export default function App() {
       Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev
     );
     
-    // Check for consensus
     const allVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
       .map(p => p.points)
@@ -253,18 +247,15 @@ export default function App() {
     const uniqueVotes = new Set(allVotes);
     const consensus = uniqueVotes.size === 1 && allVotes.length > 1;
     
-    // Calculate range and spread
     const min = Math.min(...numericVotes);
     const max = Math.max(...numericVotes);
     const range = numericVotes.length > 1 ? { min, max } : null;
     const spread = max - min;
     
-    // Determine spread type: tight (0-2), moderate (3-5), wide (6+)
     let spreadType = 'tight';
     if (spread > 5) spreadType = 'wide';
     else if (spread > 2) spreadType = 'moderate';
     
-    // Find outliers (values more than 2 Fibonacci steps away from average)
     const avgIndex = FIBONACCI.findIndex(f => f === closest);
     const outliers = numericVotes.filter(vote => {
       const voteIndex = FIBONACCI.findIndex(f => f === vote);
@@ -353,7 +344,7 @@ export default function App() {
                 <img 
                   src={qrCodeUrl} 
                   alt="QR Code to join session" 
-                  className="border-2 border-teal-200 rounded-lg"
+                  className="border-2 border-blue-200 rounded-lg"
                 />
               </div>
             )}
@@ -412,7 +403,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-4">
-      {/* Confetti Effect */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -555,12 +545,10 @@ export default function App() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {participants.map((participant) => {
-                  // Check if points is truly set (not null, undefined, or empty string)
                   const hasVoted = participant.points !== null && 
                                    participant.points !== undefined && 
                                    participant.points !== '';
                   
-                  // Check if this vote is an outlier
                   const isOutlier = revealed && stats && stats.outliers && 
                                    typeof participant.points === 'number' &&
                                    stats.outliers.includes(participant.points);
