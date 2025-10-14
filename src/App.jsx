@@ -29,6 +29,7 @@ export default function App() {
   const [revealed, setRevealed] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [showCopied, setShowCopied] = useState(false);
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
@@ -46,6 +47,14 @@ export default function App() {
     return () => unsubscribe();
   }, [sessionId, hasJoined]);
 
+  useEffect(() => {
+    if (sessionId) {
+      const currentUrl = window.location.origin + window.location.pathname + '?session=' + sessionId;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
+      setQrCodeUrl(qrUrl);
+    }
+  }, [sessionId]);
+
   const generateSessionId = () => {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   };
@@ -60,6 +69,15 @@ export default function App() {
       setSessionId(sessionIdInput.toUpperCase());
     }
   };
+
+  // Check URL for session parameter on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionParam = urlParams.get('session');
+    if (sessionParam) {
+      setSessionId(sessionParam.toUpperCase());
+    }
+  }, []);
 
   const handleJoin = async () => {
     if (userName.trim() && sessionId) {
@@ -206,7 +224,18 @@ export default function App() {
                 {showCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-gray-600" />}
               </button>
             </div>
-            <p className="text-sm text-gray-500">Share this ID with your team</p>
+            <p className="text-sm text-gray-500 mb-4">Share this ID with your team</p>
+            
+            {qrCodeUrl && (
+              <div className="mb-4 flex flex-col items-center">
+                <p className="text-sm text-gray-600 mb-2">Or scan QR code to join:</p>
+                <img 
+                  src={qrCodeUrl} 
+                  alt="QR Code to join session" 
+                  className="border-2 border-teal-200 rounded-lg"
+                />
+              </div>
+            )}
           </div>
           <div>
             <input
