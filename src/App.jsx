@@ -5,7 +5,12 @@ import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA', 'Insufficient Information'];
 
+<<<<<<< HEAD
 const FIREBASE_CONFIG = {
+=======
+// Your web app's Firebase configuration
+const firebaseConfig = {
+>>>>>>> 19dbce49fc4fee7161c8166fedcd850ddd90d68f
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
   authDomain: "pointing-poker-b7a24.firebaseapp.com",
   databaseURL: "https://pointing-poker-b7a24-default-rtdb.firebaseio.com",
@@ -24,6 +29,7 @@ export default function App() {
   const [isModerator, setIsModerator] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [sessionId, setSessionId] = useState('');
+  const [sessionIdInput, setSessionIdInput] = useState('');
   const [participants, setParticipants] = useState([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -57,8 +63,8 @@ export default function App() {
   };
 
   const handleJoinSession = () => {
-    if (sessionId.trim()) {
-      setSessionId(sessionId.toUpperCase());
+    if (sessionIdInput.trim()) {
+      setSessionId(sessionIdInput.toUpperCase());
     }
   };
 
@@ -84,7 +90,11 @@ export default function App() {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       if (!sessionId) {
-        handleCreateSession();
+        if (sessionIdInput.trim()) {
+          handleJoinSession();
+        } else {
+          handleCreateSession();
+        }
       } else if (!hasJoined) {
         handleJoin();
       }
@@ -125,7 +135,7 @@ export default function App() {
     const numericVotes = participants
       .filter(p => !p.isModerator)
       .map(p => p.points)
-      .filter(p => p !== null && p !== '?' && p !== 'No QA' && p !== 'Insufficient Information' && typeof p === 'number');
+      .filter(p => p !== null && p !== '?' && p !== 'No QA' && typeof p === 'number');
     
     if (numericVotes.length === 0) return null;
     
@@ -166,8 +176,8 @@ export default function App() {
             <div>
               <input
                 type="text"
-                value={sessionId}
-                onChange={(e) => setSessionId(e.target.value.toUpperCase())}
+                value={sessionIdInput}
+                onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter Session ID"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
@@ -175,7 +185,7 @@ export default function App() {
               />
               <button
                 onClick={handleJoinSession}
-                disabled={!sessionId.trim()}
+                disabled={!sessionIdInput.trim()}
                 className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Join Existing Session
