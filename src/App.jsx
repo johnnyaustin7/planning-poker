@@ -194,6 +194,12 @@ export default function App() {
     setTimeout(() => setShowCopied(false), 2000);
   };
 
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleStartEditName = () => {
     setEditedName(userName);
     setIsEditingName(true);
