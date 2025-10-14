@@ -144,7 +144,7 @@ export default function App() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Planning Poker</h1>
@@ -153,7 +153,7 @@ export default function App() {
           <div className="space-y-4">
             <button
               onClick={handleCreateSession}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors"
             >
               Create New Session
             </button>
@@ -172,13 +172,13 @@ export default function App() {
                 onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter Session ID"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none mb-3"
                 maxLength={6}
               />
               <button
                 onClick={handleJoinSession}
                 disabled={!sessionIdInput.trim()}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="w-full bg-orange-600 text-white py-3 rounded-lg font-semibold hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Join Existing Session
               </button>
@@ -191,13 +191,13 @@ export default function App() {
 
   if (!hasJoined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">Planning Poker</h1>
             <div className="flex items-center justify-center gap-2 mb-2">
               <p className="text-gray-600">Session ID:</p>
-              <code className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-mono text-lg font-bold">{sessionId}</code>
+              <code className="bg-teal-100 text-teal-800 px-3 py-1 rounded font-mono text-lg font-bold">{sessionId}</code>
               <button
                 onClick={copySessionId}
                 className="p-2 hover:bg-gray-100 rounded transition-colors"
@@ -215,7 +215,7 @@ export default function App() {
               onChange={(e) => setUserName(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Your name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none mb-4"
               autoFocus
             />
             <div className="mb-4">
@@ -224,14 +224,14 @@ export default function App() {
                   type="checkbox"
                   checked={isModerator}
                   onChange={(e) => setIsModerator(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="w-4 h-4 text-teal-600 rounded focus:ring-2 focus:ring-teal-500"
                 />
                 <span className="text-gray-700">Join as Moderator (non-voting)</span>
               </label>
             </div>
             <button
               onClick={handleJoin}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors"
             >
               Join Session
             </button>
@@ -246,21 +246,21 @@ export default function App() {
   const allVoted = votingParticipants.every(p => p.points !== null) && votingParticipants.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-800">Planning Poker</h1>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-blue-100 px-3 py-2 rounded">
+              <div className="flex items-center gap-2 bg-teal-100 px-3 py-2 rounded">
                 <span className="text-sm text-gray-600">Session:</span>
-                <code className="font-mono font-bold text-blue-800">{sessionId}</code>
+                <code className="font-mono font-bold text-teal-800">{sessionId}</code>
                 <button
                   onClick={copySessionId}
-                  className="p-1 hover:bg-blue-200 rounded transition-colors"
+                  className="p-1 hover:bg-teal-200 rounded transition-colors"
                   title="Copy Session ID"
                 >
-                  {showCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className="text-blue-600" />}
+                  {showCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className="text-teal-600" />}
                 </button>
               </div>
               <div className="flex items-center gap-2 text-gray-600">
@@ -269,7 +269,7 @@ export default function App() {
               </div>
             </div>
           </div>
-          <p className="text-gray-600">Welcome, <span className="font-semibold text-blue-600">{userName}</span>{isModerator && <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded">Moderator</span>}!</p>
+          <p className="text-gray-600">Welcome, <span className="font-semibold text-teal-600">{userName}</span>{isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}!</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-6">
@@ -284,7 +284,7 @@ export default function App() {
                       onClick={() => handleSelectPoint(point)}
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
-                          ? 'bg-blue-600 text-white scale-105 shadow-lg'
+                          ? 'bg-teal-600 text-white scale-105 shadow-lg'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                       }`}
                     >
@@ -305,7 +305,7 @@ export default function App() {
                       disabled={!allVoted}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
                         allVoted
-                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          ? 'bg-teal-600 text-white hover:bg-teal-700'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >
@@ -328,17 +328,17 @@ export default function App() {
                     key={participant.id}
                     className={`rounded-lg p-4 text-center border-2 ${
                       participant.isModerator 
-                        ? 'bg-purple-50 border-purple-200' 
+                        ? 'bg-orange-50 border-orange-200' 
                         : 'bg-gray-50 border-gray-200'
                     }`}
                   >
                     <p className="font-semibold text-gray-800 mb-2 truncate">
                       {participant.name}
-                      {participant.isModerator && <span className="text-xs block text-purple-600">Moderator</span>}
+                      {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
                     </p>
                     {!participant.isModerator && (
                       <div className={`text-2xl font-bold ${
-                        participant.points !== null ? 'text-blue-600' : 'text-gray-400'
+                        participant.points !== null ? 'text-teal-600' : 'text-gray-400'
                       }`}>
                         {revealed && participant.points !== null
                           ? participant.points
@@ -357,9 +357,9 @@ export default function App() {
             <div className="bg-white rounded-lg shadow-xl p-6 sticky top-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
               <div className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-4">
+                <div className="bg-teal-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600 mb-1">Voted</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                  <p className="text-2xl font-bold text-teal-600">
                     {votingParticipants.filter(p => p.points !== null).length} / {votingParticipants.length}
                   </p>
                 </div>
@@ -369,9 +369,9 @@ export default function App() {
                       <p className="text-sm text-gray-600 mb-1">Average</p>
                       <p className="text-2xl font-bold text-green-600">{stats.average}</p>
                     </div>
-                    <div className="bg-purple-50 rounded-lg p-4">
+                    <div className="bg-orange-50 rounded-lg p-4">
                       <p className="text-sm text-gray-600 mb-1">Closest Fibonacci</p>
-                      <p className="text-2xl font-bold text-purple-600">{stats.closest}</p>
+                      <p className="text-2xl font-bold text-orange-600">{stats.closest}</p>
                     </div>
                   </>
                 )}
