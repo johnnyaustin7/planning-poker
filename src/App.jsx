@@ -5,12 +5,9 @@ import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA', 'Insufficient Information'];
 
-<<<<<<< HEAD
-const FIREBASE_CONFIG = {
-=======
 // Your web app's Firebase configuration
 const firebaseConfig = {
->>>>>>> 19dbce49fc4fee7161c8166fedcd850ddd90d68f
+
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
   authDomain: "pointing-poker-b7a24.firebaseapp.com",
   databaseURL: "https://pointing-poker-b7a24-default-rtdb.firebaseio.com",
