@@ -3,11 +3,9 @@ import { Users, Eye, EyeOff, RotateCcw, Copy, Check } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
-const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA', 'Insufficient Information'];
+const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-
+const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
   authDomain: "pointing-poker-b7a24.firebaseapp.com",
   databaseURL: "https://pointing-poker-b7a24-default-rtdb.firebaseio.com",
@@ -17,7 +15,6 @@ const firebaseConfig = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-// Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
 const db = getDatabase(app);
 
@@ -33,7 +30,6 @@ export default function App() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [showCopied, setShowCopied] = useState(false);
 
-  // Listen to session data
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
 
@@ -146,7 +142,6 @@ export default function App() {
     return { average: avg.toFixed(1), closest };
   };
 
-  // Session selection screen
   if (!sessionId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -194,7 +189,6 @@ export default function App() {
     );
   }
 
-  // User join screen
   if (!hasJoined) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
