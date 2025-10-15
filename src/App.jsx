@@ -215,8 +215,11 @@ export default function App() {
     const newScale = votingScale === 'fibonacci' ? 'tshirt' : 'fibonacci';
     console.log('Switching to:', newScale);
     
+    // Update local state immediately for responsive UI
+    setVotingScale(newScale);
+    
     try {
-      // Update session scale
+      // Update session scale in Firebase
       const sessionRef = ref(db, `sessions/${sessionId}`);
       await update(sessionRef, { votingScale: newScale });
       console.log('Firebase updated');
