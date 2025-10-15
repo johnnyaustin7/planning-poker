@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight } from 'lucide-react';
+import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
+const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', 'No QA'];
+
+// T-Shirt to Fibonacci mapping for calculations
+const TSHIRT_TO_FIBONACCI = {
+  'XS': 1,
+  'S': 2,
+  'M': 3,
+  'L': 5,
+  'XL': 8,
+  'XXL': 13,
+  '?': '?',
+  'No QA': 'No QA'
+};
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
@@ -36,6 +49,7 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [resetTime, setResetTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [votingScale, setVotingScale] = useState('fibonacci');
 
   // Check URL for session parameter on load
   useEffect(() => {
@@ -188,6 +202,20 @@ export default function App() {
     await update(ref(db), updates);
   };
 
+  const toggleVotingScale = async () => {
+    const newScale = votingScale === 'fibonacci' ? 'tshirt' : 'fibonacci';
+    const sessionRef = ref(db, `sessions/${sessionId}`);
+    await update(sessionRef, { votingScale: newScale });
+    
+    // Clear all votes when switching scales
+    const updates = {};
+    participants.forEach(p => {
+      updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+    });
+    await update(ref(db), updates);
+    setSelectedPoint(null);
+  };
+
   const copySessionId = () => {
     navigator.clipboard.writeText(sessionId);
     setShowCopied(true);
@@ -230,9 +258,17 @@ export default function App() {
   };
 
   const calculateAverage = () => {
+    const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
+    
+    // Convert T-shirt sizes to Fibonacci for calculations
     const numericVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
-      .map(p => p.points)
+      .map(p => {
+        if (votingScale === 'tshirt' && p.points && typeof p.points === 'string') {
+          return TSHIRT_TO_FIBONACCI[p.points];
+        }
+        return p.points;
+      })
       .filter(p => p !== null && p !== '?' && p !== 'No QA' && typeof p === 'number');
     
     if (numericVotes.length === 0) return null;
@@ -240,9 +276,17 @@ export default function App() {
     const sum = numericVotes.reduce((acc, val) => acc + val, 0);
     const avg = sum / numericVotes.length;
     
-    const closest = FIBONACCI.filter(f => typeof f === 'number').reduce((prev, curr) =>
+    const fibonacciScale = FIBONACCI.filter(f => typeof f === 'number');
+    const closest = fibonacciScale.reduce((prev, curr) =>
       Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev
     );
+    
+    // For display, show T-shirt equivalent if in T-shirt mode
+    let displayClosest = closest;
+    if (votingScale === 'tshirt') {
+      const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === closest);
+      displayClosest = tshirtEntry ? tshirtEntry[0] : closest;
+    }
     
     const allVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
@@ -261,15 +305,15 @@ export default function App() {
     if (spread > 5) spreadType = 'wide';
     else if (spread > 2) spreadType = 'moderate';
     
-    const avgIndex = FIBONACCI.findIndex(f => f === closest);
+    const avgIndex = fibonacciScale.findIndex(f => f === closest);
     const outliers = numericVotes.filter(vote => {
-      const voteIndex = FIBONACCI.findIndex(f => f === vote);
+      const voteIndex = fibonacciScale.findIndex(f => f === vote);
       return Math.abs(voteIndex - avgIndex) > 2;
     });
     
     return { 
       average: avg.toFixed(1), 
-      closest,
+      closest: displayClosest,
       consensus,
       range,
       spreadType,
@@ -499,9 +543,14 @@ export default function App() {
           <div className="md:col-span-2">
             {!isModerator && !isObserver && (
               <div className="bg-white rounded-lg shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Your Estimate</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">Select Your Estimate</h2>
+                  <span className="text-sm text-gray-500 font-medium">
+                    {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+                  </span>
+                </div>
                 <div className="grid grid-cols-6 gap-3">
-                  {FIBONACCI.map((point) => (
+                  {(votingScale === 'fibonacci' ? FIBONACCI : TSHIRT).map((point) => (
                     <button
                       key={point}
                       onClick={() => handleSelectPoint(point)}
@@ -523,6 +572,14 @@ export default function App() {
                 <h2 className="text-xl font-semibold text-gray-800">Votes</h2>
                 {isModerator && (
                   <div className="flex gap-2 items-center">
+                    <button
+                      onClick={toggleVotingScale}
+                      className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+                      title="Switch voting scale"
+                    >
+                      <RefreshCw size={16} />
+                      {votingScale === 'fibonacci' ? 'Switch to T-Shirt' : 'Switch to Fibonacci'}
+                    </button>
                     <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded font-mono">
                       ⏱️ {formatTime(elapsedTime)}
                     </div>
