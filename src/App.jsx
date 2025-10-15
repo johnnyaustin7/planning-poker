@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue, set, update } from 'firebase/database';
+import { getDatabase, ref, onValue, set, update, get } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
 const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', 'No QA'];
@@ -154,6 +154,19 @@ export default function App() {
     if (userName.trim() && sessionId) {
       const userId = Date.now().toString();
       setCurrentUserId(userId);
+      
+      // Check if session exists, if not initialize it
+      const sessionRef = ref(db, `sessions/${sessionId}`);
+      const sessionSnapshot = await get(sessionRef);
+      
+      if (!sessionSnapshot.exists()) {
+        // Initialize new session
+        await set(sessionRef, {
+          votingScale: 'fibonacci',
+          revealed: false,
+          participants: {}
+        });
+      }
       
       const newParticipant = {
         id: userId,
