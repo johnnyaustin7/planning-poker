@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw } from 'lucide-react';
+import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update, get } from 'firebase/database';
 
@@ -51,6 +51,7 @@ export default function App() {
   const [resetTime, setResetTime] = useState(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
   const [votingScale, setVotingScale] = useState('fibonacci');
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     console.log('🔍 URL check running');
@@ -66,6 +67,12 @@ export default function App() {
     if (savedName) {
       console.log('Loaded saved name:', savedName);
       setUserName(savedName);
+    }
+    
+    // Load dark mode preference from localStorage
+    const savedDarkMode = localStorage.getItem('planningPokerDarkMode');
+    if (savedDarkMode === 'true') {
+      setDarkMode(true);
     }
   }, []);
 
@@ -315,6 +322,12 @@ export default function App() {
     }
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('planningPokerDarkMode', newDarkMode.toString());
+  };
+
   const calculateAverage = () => {
     const numericVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
@@ -377,11 +390,22 @@ export default function App() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Planning Poker</h1>
-            <p className="text-gray-600">Create a new session or join an existing one</p>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-lg transition-colors ${
+                  darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title="Toggle dark mode"
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+            </div>
+            <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Create a new session or join an existing one</p>
           </div>
           <div className="space-y-4">
             <button
@@ -392,10 +416,10 @@ export default function App() {
             </button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+                <div className={`w-full border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">OR</span>
+                <span className={`px-2 ${darkMode ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>OR</span>
               </div>
             </div>
             <div>
@@ -405,7 +429,11 @@ export default function App() {
                 onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
                 onKeyPress={handleKeyPress}
                 placeholder="Enter Session ID (e.g., ROCKET)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3"
+                className={`w-full px-4 py-3 border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3`}
                 maxLength={6}
               />
               <button
@@ -424,30 +452,41 @@ export default function App() {
 
   if (!hasJoined) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Planning Poker</h1>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <p className="text-gray-600">Session ID:</p>
-              <code className="bg-blue-100 text-blue-800 px-3 py-1 rounded font-mono text-lg font-bold">{sessionId}</code>
+            <div className="flex items-center justify-between mb-2">
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
               <button
-                onClick={copySessionId}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title="Copy Session ID"
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-lg transition-colors ${
+                  darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title="Toggle dark mode"
               >
-                {showCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className="text-gray-600" />}
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             </div>
-            <p className="text-sm text-gray-500 mb-4">Share this ID with your team</p>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Session ID:</p>
+              <code className={`${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'} px-3 py-1 rounded font-mono text-lg font-bold`}>{sessionId}</code>
+              <button
+                onClick={copySessionId}
+                className={`p-2 rounded transition-colors ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                title="Copy Session ID"
+              >
+                {showCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />}
+              </button>
+            </div>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-4`}>Share this ID with your team</p>
             
             {qrCodeUrl && (
               <div className="mb-4 flex flex-col items-center">
-                <p className="text-sm text-gray-600 mb-2">Or scan QR code to join:</p>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-2`}>Or scan QR code to join:</p>
                 <img 
                   src={qrCodeUrl} 
                   alt="QR Code to join session" 
-                  className="border-2 border-blue-200 rounded-lg"
+                  className={`border-2 ${darkMode ? 'border-blue-700' : 'border-blue-200'} rounded-lg`}
                 />
               </div>
             )}
@@ -459,7 +498,11 @@ export default function App() {
               onChange={(e) => setUserName(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Your name"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
+              className={`w-full px-4 py-3 border ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900'
+              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4`}
               autoFocus
             />
             <div className="mb-4 space-y-2">
@@ -473,7 +516,7 @@ export default function App() {
                   }}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">Observer</span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Observer</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -485,7 +528,7 @@ export default function App() {
                   }}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-gray-700">Moderator</span>
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Moderator</span>
               </label>
             </div>
             <button
@@ -508,7 +551,7 @@ export default function App() {
   console.log('Rendering main view, votingScale:', votingScale, 'scale:', currentScale);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-4">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} p-4`}>
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -547,28 +590,37 @@ export default function App() {
       `}</style>
       
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-6 mb-6">
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mb-6`}>
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-800">Planning Poker</h1>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-blue-100 px-3 py-2 rounded">
-                <span className="text-sm text-gray-600">Session:</span>
-                <code className="font-mono font-bold text-blue-800">{sessionId}</code>
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-lg transition-colors ${
+                  darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                title="Toggle dark mode"
+              >
+                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-3 py-2 rounded`}>
+                <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Session:</span>
+                <code className={`font-mono font-bold ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
                 <button
                   onClick={copySessionId}
-                  className="p-1 hover:bg-blue-200 rounded transition-colors"
+                  className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
                   title="Copy Session ID"
                 >
-                  {showCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className="text-blue-600" />}
+                  {showCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className={darkMode ? 'text-blue-400' : 'text-blue-600'} />}
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <Users size={20} />
                 <span className="font-semibold">{participants.length} participants</span>
               </div>
             </div>
           </div>
-          <p className="text-gray-600">
+          <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
             Welcome, 
             {isEditingName ? (
               <span className="inline-flex items-center gap-2 ml-1">
@@ -578,13 +630,17 @@ export default function App() {
                   onChange={(e) => setEditedName(e.target.value)}
                   onKeyDown={handleNameKeyPress}
                   onBlur={handleSaveName}
-                  className="px-2 py-1 border border-blue-500 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                  className={`px-2 py-1 border ${
+                    darkMode 
+                      ? 'bg-gray-700 border-blue-500 text-white' 
+                      : 'border-blue-500'
+                  } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none`}
                   autoFocus
                 />
               </span>
             ) : (
               <span 
-                className="font-semibold text-blue-700 cursor-pointer hover:underline ml-1"
+                className={`font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-700'} cursor-pointer hover:underline ml-1`}
                 onClick={handleStartEditName}
                 title="Click to edit name"
               >
@@ -599,10 +655,10 @@ export default function App() {
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
             {!isModerator && !isObserver && (
-              <div className="bg-white rounded-lg shadow-xl p-6">
+              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">Select Your Estimate</h2>
-                  <span className="text-sm text-gray-500 font-medium">
+                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
+                  <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
                   </span>
                 </div>
@@ -615,6 +671,8 @@ export default function App() {
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
                           ? 'bg-blue-700 text-white scale-105 shadow-lg'
+                          : darkMode
+                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                       } ${revealed ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
@@ -625,9 +683,9 @@ export default function App() {
               </div>
             )}
 
-            <div className={`bg-white rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">Votes</h2>
+                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
                 {isModerator && (
                   <div className="flex gap-2 items-center">
                     <button
@@ -638,7 +696,7 @@ export default function App() {
                       <RefreshCw size={16} />
                       {votingScale === 'fibonacci' ? 'Switch to T-Shirt' : 'Switch to Fibonacci'}
                     </button>
-                    <div className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded font-mono">
+                    <div className={`text-sm ${darkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 bg-gray-100'} px-3 py-2 rounded font-mono`}>
                       ⏱️ {formatTime(elapsedTime)}
                     </div>
                     <button
@@ -688,23 +746,23 @@ export default function App() {
                       key={participant.id}
                       className={`rounded-lg p-4 text-center border-2 ${
                         participant.isModerator 
-                          ? 'bg-orange-50 border-orange-200'
+                          ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
                           : participant.isObserver
-                          ? 'bg-purple-50 border-purple-200'
+                          ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                           : isOutlier
-                          ? 'bg-red-50 border-red-300 border-dashed'
-                          : 'bg-gray-50 border-gray-200'
+                          ? darkMode ? 'bg-red-900 border-red-700 border-dashed' : 'bg-red-50 border-red-300 border-dashed'
+                          : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
                       }`}
                     >
-                      <p className="font-semibold text-gray-800 mb-2 truncate">
+                      <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-2 truncate`}>
                         {participant.name}
-                        {participant.isModerator && <span className="text-xs block text-orange-600">Moderator</span>}
-                        {participant.isObserver && <span className="text-xs block text-purple-600">Observer</span>}
-                        {isOutlier && <span className="text-xs block text-red-600">Outlier</span>}
+                        {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
+                        {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                        {isOutlier && <span className={`text-xs block ${darkMode ? 'text-red-400' : 'text-red-600'}`}>Outlier</span>}
                       </p>
                       {!participant.isModerator && !participant.isObserver && (
                         <div className={`text-2xl font-bold ${
-                          hasVoted ? 'text-blue-700' : 'text-gray-400'
+                          hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-700' : darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           {revealed
                             ? (hasVoted ? participant.points : '—')
@@ -719,52 +777,52 @@ export default function App() {
           </div>
 
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-xl p-6 sticky top-4">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 sticky top-4`}>
+              <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Statistics</h2>
               <div className="space-y-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 mb-1">Voted</p>
-                  <p className="text-2xl font-bold text-blue-700">
+                <div className={darkMode ? 'bg-blue-900 rounded-lg p-4' : 'bg-blue-50 rounded-lg p-4'}>
+                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Voted</p>
+                  <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
                     {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
                   </p>
                 </div>
                 {revealed && stats && (
                   <>
                     <div className={`rounded-lg p-4 ${
-                      stats.spreadType === 'tight' ? 'bg-green-50' :
-                      stats.spreadType === 'moderate' ? 'bg-yellow-50' :
-                      'bg-red-50'
+                      stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
+                      stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
+                      darkMode ? 'bg-red-900' : 'bg-red-50'
                     }`}>
-                      <p className="text-sm text-gray-600 mb-1">Average</p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Average</p>
                       <p className={`text-2xl font-bold ${
-                        stats.spreadType === 'tight' ? 'text-green-600' :
-                        stats.spreadType === 'moderate' ? 'text-yellow-600' :
-                        'text-red-600'
+                        stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
+                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
+                        darkMode ? 'text-red-400' : 'text-red-600'
                       }`}>{stats.average}</p>
                     </div>
-                    <div className="bg-orange-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-1">
+                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-4' : 'bg-orange-50 rounded-lg p-4'}>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
                         Closest {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt'}
                       </p>
-                      <p className="text-2xl font-bold text-orange-600">{stats.closest}</p>
+                      <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>{stats.closest}</p>
                     </div>
                     {stats.consensus && (
-                      <div className="bg-green-100 rounded-lg p-4 border-2 border-green-400">
-                        <p className="text-sm text-green-700 mb-1">🎉 Status</p>
-                        <p className="text-lg font-bold text-green-700">Consensus!</p>
+                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-4 border-2 ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
+                        <p className={`text-sm ${darkMode ? 'text-green-400' : 'text-green-700'} mb-1`}>🎉 Status</p>
+                        <p className={`text-lg font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>Consensus!</p>
                       </div>
                     )}
                     {stats.range && (
                       <div className={`rounded-lg p-4 ${
-                        stats.spreadType === 'tight' ? 'bg-green-50' :
-                        stats.spreadType === 'moderate' ? 'bg-yellow-50' :
-                        'bg-red-50'
+                        stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
+                        stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
+                        darkMode ? 'bg-red-900' : 'bg-red-50'
                       }`}>
-                        <p className="text-sm text-gray-600 mb-1">Range</p>
+                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Range</p>
                         <p className={`text-lg font-bold ${
-                          stats.spreadType === 'tight' ? 'text-green-700' :
-                          stats.spreadType === 'moderate' ? 'text-yellow-700' :
-                          'text-red-700'
+                          stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-700' :
+                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-700' :
+                          darkMode ? 'text-red-400' : 'text-red-700'
                         }`}>{stats.range.min} - {stats.range.max}</p>
                       </div>
                     )}
