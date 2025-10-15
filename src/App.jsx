@@ -6,7 +6,6 @@ import { getDatabase, ref, onValue, set, update, get } from 'firebase/database';
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
 const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', 'No QA'];
 
-// T-Shirt to Fibonacci mapping for calculations
 const TSHIRT_TO_FIBONACCI = {
   'XS': 1,
   'S': 2,
@@ -32,7 +31,8 @@ const app = initializeApp(FIREBASE_CONFIG);
 const db = getDatabase(app);
 
 export default function App() {
-  console.log('🚀 APP COMPONENT RENDERED - NEW VERSION');
+  console.log('🚀 APP RENDERED');
+  
   const [userName, setUserName] = useState('');
   const [isModerator, setIsModerator] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
@@ -52,9 +52,8 @@ export default function App() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [votingScale, setVotingScale] = useState('fibonacci');
 
-  // Check URL for session parameter on load
   useEffect(() => {
-    console.log('🔍 URL check useEffect running');
+    console.log('🔍 URL check running');
     const urlParams = new URLSearchParams(window.location.search);
     const sessionParam = urlParams.get('session');
     if (sessionParam) {
@@ -64,32 +63,32 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    console.log('🔥 FIREBASE LISTENER EFFECT CALLED - sessionId:', sessionId);
+    console.log('🔥 Firebase listener effect - sessionId:', sessionId);
     if (!sessionId) {
-      console.log('❌ No sessionId, skipping listener setup');
+      console.log('❌ No sessionId yet');
       return;
     }
 
-    console.log('✅ Setting up Firebase listener for session:', sessionId);
-    const sessionRef = ref(db, `sessions/${sessionId}`);
-
-  useEffect(() => {
-    if (!sessionId || !hasJoined) return;
-
+    console.log('✅ Setting up listener for:', sessionId);
     const sessionRef = ref(db, `sessions/${sessionId}`);
     
     const unsubscribe = onValue(sessionRef, (snapshot) => {
+      console.log('🔔 Firebase callback triggered');
       const data = snapshot.val();
+      console.log('📦 Data:', data);
+      
       if (data) {
         const newParticipants = Object.values(data.participants || {});
-        const wasRevealed = revealed;
         const newRevealed = data.revealed || false;
+        const newVotingScale = data.votingScale || 'fibonacci';
+        
+        console.log('Setting votingScale to:', newVotingScale);
         
         setParticipants(newParticipants);
         setRevealed(newRevealed);
+        setVotingScale(newVotingScale);
         
-        // Check for consensus when revealed state changes from false to true
-        if (!wasRevealed && newRevealed) {
+        if (!revealed && newRevealed) {
           const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
           const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
           
@@ -104,8 +103,11 @@ export default function App() {
       }
     });
 
-    return () => unsubscribe();
-  }, [sessionId, hasJoined, revealed]);
+    return () => {
+      console.log('🧹 Cleanup listener');
+      unsubscribe();
+    };
+  }, [sessionId]);
 
   useEffect(() => {
     if (sessionId) {
@@ -115,7 +117,6 @@ export default function App() {
     }
   }, [sessionId]);
 
-  // Timer for moderator - only runs after user has joined
   useEffect(() => {
     if (!hasJoined || !isModerator) return;
     
@@ -134,23 +135,17 @@ export default function App() {
       'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
       'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
       'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
-      'SADDLE', 'TIMBER', 'UNICORN', 'VELVET', 'WALNUT', 'ZIPPER',
-      'ARTIST', 'BOTTLE', 'COFFEE', 'DESERT', 'ELEVEN', 'FLOWER',
-      'GOLDEN', 'HOCKEY', 'IGUANA', 'JOSTLE', 'KERNEL', 'LOBSTER',
-      'METEOR', 'NEEDLE', 'OYSTER', 'PIRATE', 'QUIVER', 'RAISIN',
-      'SALMON', 'TEMPLE', 'UMPIRE', 'VALLEY', 'WAFFLE', 'YOGURT'
+      'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER'
     ];
-    
     return words[Math.floor(Math.random() * words.length)];
   };
 
-  const handleCreateSession = () => {
+  const handleCreateSession = async () => {
     const newSessionId = generateSessionId();
     setSessionId(newSessionId);
     
-    // Initialize session with default voting scale
     const sessionRef = ref(db, `sessions/${newSessionId}`);
-    set(sessionRef, { 
+    await set(sessionRef, { 
       votingScale: 'fibonacci',
       revealed: false,
       participants: {}
@@ -168,12 +163,10 @@ export default function App() {
       const userId = Date.now().toString();
       setCurrentUserId(userId);
       
-      // Check if session exists, if not initialize it
       const sessionRef = ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await get(sessionRef);
       
       if (!sessionSnapshot.exists()) {
-        // Initialize new session
         await set(sessionRef, {
           votingScale: 'fibonacci',
           revealed: false,
@@ -212,7 +205,6 @@ export default function App() {
 
   const handleSelectPoint = async (point) => {
     setSelectedPoint(point);
-    
     const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
     await update(participantRef, { points: point });
   };
@@ -237,34 +229,25 @@ export default function App() {
   };
 
   const toggleVotingScale = async () => {
-    console.log('Toggle clicked, current scale:', votingScale);
+    console.log('Toggle clicked');
     const newScale = votingScale === 'fibonacci' ? 'tshirt' : 'fibonacci';
     console.log('Switching to:', newScale);
     
-    // Update local state immediately for responsive UI
     setVotingScale(newScale);
     
-    try {
-      // Update session scale in Firebase
-      const sessionRef = ref(db, `sessions/${sessionId}`);
-      await update(sessionRef, { votingScale: newScale });
-      console.log('Firebase updated');
-      
-      // Clear all votes when switching scales
-      const voteUpdates = {};
-      participants.forEach(p => {
-        voteUpdates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
-      });
-      
-      if (Object.keys(voteUpdates).length > 0) {
-        await update(ref(db), voteUpdates);
-        console.log('Votes cleared');
-      }
-      
-      setSelectedPoint(null);
-    } catch (error) {
-      console.error('Error toggling scale:', error);
+    const sessionRef = ref(db, `sessions/${sessionId}`);
+    await update(sessionRef, { votingScale: newScale });
+    
+    const voteUpdates = {};
+    participants.forEach(p => {
+      voteUpdates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+    });
+    
+    if (Object.keys(voteUpdates).length > 0) {
+      await update(ref(db), voteUpdates);
     }
+    
+    setSelectedPoint(null);
   };
 
   const copySessionId = () => {
@@ -309,9 +292,6 @@ export default function App() {
   };
 
   const calculateAverage = () => {
-    const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
-    
-    // Convert T-shirt sizes to Fibonacci for calculations
     const numericVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
       .map(p => {
@@ -332,7 +312,6 @@ export default function App() {
       Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev
     );
     
-    // For display, show T-shirt equivalent if in T-shirt mode
     let displayClosest = closest;
     if (votingScale === 'tshirt') {
       const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === closest);
@@ -499,7 +478,10 @@ export default function App() {
 
   const stats = calculateAverage();
   const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
-  const allVoted = votingParticipants.every(p => p.points !== null) && votingParticipants.length > 0;
+  const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
+  const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
+  
+  console.log('Rendering main view, votingScale:', votingScale, 'scale:', currentScale);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 p-4">
@@ -601,23 +583,19 @@ export default function App() {
                   </span>
                 </div>
                 <div className="grid grid-cols-6 gap-3">
-                  {(() => {
-                    const scale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
-                    console.log('Rendering voting cards, scale:', votingScale, 'values:', scale);
-                    return scale.map((point) => (
-                      <button
-                        key={point}
-                        onClick={() => handleSelectPoint(point)}
-                        className={`aspect-square rounded-lg font-bold text-xl transition-all ${
-                          selectedPoint === point
-                            ? 'bg-blue-700 text-white scale-105 shadow-lg'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                        }`}
-                      >
-                        {point}
-                      </button>
-                    ));
-                  })()}
+                  {currentScale.map((point) => (
+                    <button
+                      key={point}
+                      onClick={() => handleSelectPoint(point)}
+                      className={`aspect-square rounded-lg font-bold text-xl transition-all ${
+                        selectedPoint === point
+                          ? 'bg-blue-700 text-white scale-105 shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                      }`}
+                    >
+                      {point}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
