@@ -60,6 +60,13 @@ export default function App() {
       console.log('Found session in URL:', sessionParam);
       setSessionId(sessionParam.toUpperCase());
     }
+    
+    // Load saved name from localStorage
+    const savedName = localStorage.getItem('planningPokerUserName');
+    if (savedName) {
+      console.log('Loaded saved name:', savedName);
+      setUserName(savedName);
+    }
   }, []);
 
   useEffect(() => {
@@ -160,6 +167,9 @@ export default function App() {
 
   const handleJoin = async () => {
     if (userName.trim() && sessionId) {
+      // Save name to localStorage for future sessions
+      localStorage.setItem('planningPokerUserName', userName.trim());
+      
       const userId = Date.now().toString();
       setCurrentUserId(userId);
       
@@ -251,7 +261,8 @@ export default function App() {
   };
 
   const copySessionId = () => {
-    navigator.clipboard.writeText(sessionId);
+    const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
+    navigator.clipboard.writeText(sessionUrl);
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
   };
@@ -271,6 +282,9 @@ export default function App() {
     if (editedName.trim() && editedName.trim() !== userName) {
       const newName = editedName.trim();
       setUserName(newName);
+      
+      // Update localStorage with new name
+      localStorage.setItem('planningPokerUserName', newName);
       
       const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       await update(participantRef, { name: newName });
