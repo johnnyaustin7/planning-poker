@@ -211,17 +211,31 @@ export default function App() {
   };
 
   const toggleVotingScale = async () => {
+    console.log('Toggle clicked, current scale:', votingScale);
     const newScale = votingScale === 'fibonacci' ? 'tshirt' : 'fibonacci';
-    const sessionRef = ref(db, `sessions/${sessionId}`);
-    await update(sessionRef, { votingScale: newScale });
+    console.log('Switching to:', newScale);
     
-    // Clear all votes when switching scales
-    const updates = {};
-    participants.forEach(p => {
-      updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
-    });
-    await update(ref(db), updates);
-    setSelectedPoint(null);
+    try {
+      // Update session scale
+      const sessionRef = ref(db, `sessions/${sessionId}`);
+      await update(sessionRef, { votingScale: newScale });
+      console.log('Firebase updated');
+      
+      // Clear all votes when switching scales
+      const voteUpdates = {};
+      participants.forEach(p => {
+        voteUpdates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+      });
+      
+      if (Object.keys(voteUpdates).length > 0) {
+        await update(ref(db), voteUpdates);
+        console.log('Votes cleared');
+      }
+      
+      setSelectedPoint(null);
+    } catch (error) {
+      console.error('Error toggling scale:', error);
+    }
   };
 
   const copySessionId = () => {
