@@ -54,12 +54,24 @@ export default function App() {
 
   // Check URL for session parameter on load
   useEffect(() => {
+    console.log('🔍 URL check useEffect running');
     const urlParams = new URLSearchParams(window.location.search);
     const sessionParam = urlParams.get('session');
     if (sessionParam) {
+      console.log('Found session in URL:', sessionParam);
       setSessionId(sessionParam.toUpperCase());
     }
   }, []);
+
+  useEffect(() => {
+    console.log('🔥 FIREBASE LISTENER EFFECT CALLED - sessionId:', sessionId);
+    if (!sessionId) {
+      console.log('❌ No sessionId, skipping listener setup');
+      return;
+    }
+
+    console.log('✅ Setting up Firebase listener for session:', sessionId);
+    const sessionRef = ref(db, `sessions/${sessionId}`);
 
   useEffect(() => {
     if (!sessionId || !hasJoined) return;
