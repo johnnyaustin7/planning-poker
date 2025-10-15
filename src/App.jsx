@@ -95,12 +95,9 @@ export default function App() {
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
         
-        // Check if current user's vote was cleared (reset happened)
-        if (currentUserId) {
-          const currentParticipant = newParticipants.find(p => p.id === currentUserId);
-          if (currentParticipant && currentParticipant.points === null) {
-            setSelectedPoint(null);
-          }
+        // Sync local selectedPoint with Firebase data
+        if (currentUserId && data.participants && data.participants[currentUserId]) {
+          setSelectedPoint(data.participants[currentUserId].points);
         }
         
         if (!revealed && newRevealed) {
@@ -122,7 +119,7 @@ export default function App() {
       console.log('🧹 Cleanup listener');
       unsubscribe();
     };
-  }, [sessionId, currentUserId]);
+  }, [sessionId, currentUserId, revealed]);
 
   useEffect(() => {
     if (sessionId) {
@@ -222,9 +219,14 @@ export default function App() {
   };
 
   const handleSelectPoint = async (point) => {
-    setSelectedPoint(point);
+    if (!currentUserId || revealed) return;
+    
+    // If clicking the same card, unselect it (set to null)
+    const newPoint = selectedPoint === point ? null : point;
+    setSelectedPoint(newPoint);
+    
     const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-    await update(participantRef, { points: point });
+    await update(participantRef, { points: newPoint });
   };
 
   const handleReveal = async () => {
@@ -609,11 +611,12 @@ export default function App() {
                     <button
                       key={point}
                       onClick={() => handleSelectPoint(point)}
+                      disabled={revealed}
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
                           ? 'bg-blue-700 text-white scale-105 shadow-lg'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      }`}
+                      } ${revealed ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {point}
                     </button>
