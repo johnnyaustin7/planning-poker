@@ -277,6 +277,12 @@ export default function App() {
     setSelectedPoint(null);
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('planningPokerDarkMode', newDarkMode.toString());
+  };
+
   const copySessionId = () => {
     const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
     navigator.clipboard.writeText(sessionUrl);
@@ -320,12 +326,6 @@ export default function App() {
     } else if (e.key === 'Escape') {
       handleCancelEditName();
     }
-  };
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('planningPokerDarkMode', newDarkMode.toString());
   };
 
   const calculateAverage = () => {
