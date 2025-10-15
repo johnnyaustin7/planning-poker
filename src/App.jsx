@@ -4,7 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update, get } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
-const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?', 'No QA'];
+const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?'];
 
 const TSHIRT_TO_FIBONACCI = {
   'XS': 1,
