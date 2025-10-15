@@ -588,19 +588,23 @@ export default function App() {
                   </span>
                 </div>
                 <div className="grid grid-cols-6 gap-3">
-                  {(votingScale === 'fibonacci' ? FIBONACCI : TSHIRT).map((point) => (
-                    <button
-                      key={point}
-                      onClick={() => handleSelectPoint(point)}
-                      className={`aspect-square rounded-lg font-bold text-xl transition-all ${
-                        selectedPoint === point
-                          ? 'bg-blue-700 text-white scale-105 shadow-lg'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      }`}
-                    >
-                      {point}
-                    </button>
-                  ))}
+                  {(() => {
+                    const scale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
+                    console.log('Rendering voting cards, scale:', votingScale, 'values:', scale);
+                    return scale.map((point) => (
+                      <button
+                        key={point}
+                        onClick={() => handleSelectPoint(point)}
+                        className={`aspect-square rounded-lg font-bold text-xl transition-all ${
+                          selectedPoint === point
+                            ? 'bg-blue-700 text-white scale-105 shadow-lg'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                        }`}
+                      >
+                        {point}
+                      </button>
+                    ));
+                  })()}
                 </div>
               </div>
             )}
