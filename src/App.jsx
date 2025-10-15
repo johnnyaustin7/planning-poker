@@ -134,6 +134,14 @@ export default function App() {
   const handleCreateSession = () => {
     const newSessionId = generateSessionId();
     setSessionId(newSessionId);
+    
+    // Initialize session with default voting scale
+    const sessionRef = ref(db, `sessions/${newSessionId}`);
+    set(sessionRef, { 
+      votingScale: 'fibonacci',
+      revealed: false,
+      participants: {}
+    });
   };
 
   const handleJoinSession = () => {
@@ -685,7 +693,9 @@ export default function App() {
                       }`}>{stats.average}</p>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-1">Closest Fibonacci</p>
+                      <p className="text-sm text-gray-600 mb-1">
+                        Closest {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt'}
+                      </p>
                       <p className="text-2xl font-bold text-orange-600">{stats.closest}</p>
                     </div>
                     {stats.consensus && (
