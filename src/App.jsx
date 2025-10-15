@@ -95,6 +95,14 @@ export default function App() {
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
         
+        // Check if current user's vote was cleared (reset happened)
+        if (currentUserId) {
+          const currentParticipant = newParticipants.find(p => p.id === currentUserId);
+          if (currentParticipant && currentParticipant.points === null) {
+            setSelectedPoint(null);
+          }
+        }
+        
         if (!revealed && newRevealed) {
           const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
           const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
@@ -114,7 +122,7 @@ export default function App() {
       console.log('🧹 Cleanup listener');
       unsubscribe();
     };
-  }, [sessionId]);
+  }, [sessionId, currentUserId]);
 
   useEffect(() => {
     if (sessionId) {
