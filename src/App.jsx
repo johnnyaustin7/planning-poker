@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, EyeOff, RotateCcw, Copy, Check } from 'lucide-react';
+import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 
@@ -538,13 +538,23 @@ export default function App() {
                       {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
                       {revealed ? 'Hide' : 'Reveal'}
                     </button>
-                    <button
-                      onClick={handleReset}
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
-                    >
-                      <RotateCcw size={18} />
-                      Reset
-                    </button>
+                    {revealed ? (
+                      <button
+                        onClick={handleReset}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                      >
+                        <ArrowRight size={18} />
+                        Next Story
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReset}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                      >
+                        <RotateCcw size={18} />
+                        Reset
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
