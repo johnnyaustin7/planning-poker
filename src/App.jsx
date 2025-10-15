@@ -32,6 +32,7 @@ const app = initializeApp(FIREBASE_CONFIG);
 const db = getDatabase(app);
 
 export default function App() {
+  console.log('🚀 APP COMPONENT RENDERED - NEW VERSION');
   const [userName, setUserName] = useState('');
   const [isModerator, setIsModerator] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
