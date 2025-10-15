@@ -610,7 +610,7 @@ export default function App() {
                 <div className="bg-blue-50 rounded-lg p-4">
                   <p className="text-sm text-gray-600 mb-1">Voted</p>
                   <p className="text-2xl font-bold text-blue-700">
-                    {votingParticipants.filter(p => p.points !== null).length} / {votingParticipants.length}
+                    {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
                   </p>
                 </div>
                 {revealed && stats && (
