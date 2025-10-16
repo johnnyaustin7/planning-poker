@@ -108,7 +108,16 @@ export default function App() {
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
         
-        if (currentUserId && data.participants && data.participants[currentUserId]) {
+        // Check if current user still exists in session
+        if (currentUserId && hasJoined) {
+          if (!data.participants || !data.participants[currentUserId]) {
+            // User was removed, redirect to join screen
+            setHasJoined(false);
+            setSelectedPoint(null);
+            alert('You have been removed from the session by the moderator.');
+            return;
+          }
+          
           setSelectedPoint(data.participants[currentUserId].points);
           setIsModerator(data.participants[currentUserId].isModerator || false);
           setIsObserver(data.participants[currentUserId].isObserver || false);
@@ -136,7 +145,7 @@ export default function App() {
     });
 
     return () => unsubscribe();
-  }, [sessionId, currentUserId, revealed, db, dbModule]);
+  }, [sessionId, currentUserId, revealed, db, dbModule, hasJoined]);
 
   useEffect(() => {
     if (sessionId) {
@@ -636,9 +645,9 @@ export default function App() {
       
       <div className="max-w-6xl mx-auto">
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mb-6`}>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -648,9 +657,9 @@ export default function App() {
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-3 py-2 rounded`}>
+              <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-3 py-2 rounded flex-1 sm:flex-initial`}>
                 <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Session:</span>
-                <code className={`font-mono font-bold ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
+                <code className={`font-mono font-bold text-sm sm:text-base ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
                 <button
                   onClick={copySessionId}
                   className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
@@ -661,7 +670,7 @@ export default function App() {
               </div>
               <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <Users size={20} />
-                <span className="font-semibold">{participants.length} participants</span>
+                <span className="font-semibold text-sm sm:text-base">{participants.length} participants</span>
               </div>
             </div>
           </div>
@@ -751,14 +760,13 @@ export default function App() {
                     <button
                       key={point}
                       onClick={() => handleSelectPoint(point)}
-                      disabled={revealed}
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
                           ? 'bg-blue-700 text-white scale-105 shadow-lg'
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      } ${revealed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      }`}
                     >
                       {point}
                     </button>
