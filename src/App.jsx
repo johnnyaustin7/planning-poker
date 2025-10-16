@@ -157,6 +157,27 @@ export default function App() {
   }, [sessionId]);
 
   useEffect(() => {
+    if (!hasJoined || !currentUserId || !db || !dbModule || !sessionId) return;
+    
+    // Cleanup function to remove user when they leave
+    const handleBeforeUnload = async () => {
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await dbModule.remove(participantRef);
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also remove on component unmount
+      if (currentUserId && sessionId) {
+        const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+        dbModule.remove(participantRef);
+      }
+    };
+  }, [hasJoined, currentUserId, db, dbModule, sessionId]);
+
+  useEffect(() => {
     if (!hasJoined || !isModerator) return;
     
     const interval = setInterval(() => {
@@ -202,12 +223,31 @@ export default function App() {
     if (userName.trim() && sessionId && db && dbModule) {
       localStorage.setItem('planningPokerUserName', userName.trim());
       
-      const userId = Date.now().toString();
-      setCurrentUserId(userId);
-      setWasRemoved(false); // Clear the removal message
-      
+      // Check if user with same name already exists
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await dbModule.get(sessionRef);
+      
+      let userId = null;
+      
+      if (sessionSnapshot.exists() && sessionSnapshot.val().participants) {
+        // Look for existing user with same name
+        const existingUser = Object.entries(sessionSnapshot.val().participants).find(
+          ([id, participant]) => participant.name === userName.trim()
+        );
+        
+        if (existingUser) {
+          // Reuse existing user ID
+          userId = existingUser[0];
+        }
+      }
+      
+      // If no existing user found, create new ID
+      if (!userId) {
+        userId = Date.now().toString();
+      }
+      
+      setCurrentUserId(userId);
+      setWasRemoved(false);
       
       if (!sessionSnapshot.exists()) {
         await dbModule.set(sessionRef, {
@@ -543,7 +583,7 @@ export default function App() {
                   ⚠️ You have been removed from the session by the moderator.
                 </p>
                 <p className="text-red-600 text-xs mt-1">
-                  You may rejoin at any time.
+                  You can rejoin if you wish by entering your name below.
                 </p>
               </div>
             )}
@@ -616,6 +656,20 @@ export default function App() {
   const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
   const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
   const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
+
+  // Sort participants: moderators first, then voters, then observers, alphabetically within each group
+  const sortedParticipants = [...participants].sort((a, b) => {
+    // First by type
+    if (a.isModerator && !b.isModerator) return -1;
+    if (!a.isModerator && b.isModerator) return 1;
+    if (!a.isModerator && !a.isObserver && (b.isModerator || b.isObserver)) return -1;
+    if ((a.isModerator || a.isObserver) && !b.isModerator && !b.isObserver) return 1;
+    if (a.isObserver && !b.isObserver && !b.isModerator) return 1;
+    if (!a.isObserver && b.isObserver && !a.isModerator) return -1;
+    
+    // Then alphabetically by name
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} p-4`}>
@@ -715,47 +769,56 @@ export default function App() {
                 >
                   {userName}
                 </span>
-              )}
-              {isModerator && <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">Moderator</span>}
-              {isObserver && <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
-              {!isModerator && (
-                <span className="relative inline-block ml-2">
-                  <button
-                    onClick={() => setShowTypeMenu(!showTypeMenu)}
-                    className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
-                    title="Change user type"
-                  >
-                    <UserCog size={12} />
-                    <span className="hidden sm:inline">Change Type</span>
-                  </button>
-                  {showTypeMenu && (
-                    <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-10`}>
-                      <button
-                        onClick={() => changeUserType('voter')}
-                        disabled={!isObserver}
-                        className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                          !isObserver 
-                            ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                            : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        Switch to Voter
-                      </button>
-                      <button
-                        onClick={() => changeUserType('observer')}
-                        disabled={isObserver}
-                        className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                          isObserver 
-                            ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                            : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        Switch to Observer
-                      </button>
-                    </div>
-                  )}
-                </span>
               )}!
+              <div className="inline-flex items-center gap-2 ml-2">
+                {isModerator && <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">Moderator</span>}
+                {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
+                {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Voter</span>}
+                {!isModerator && (
+                  <span className="relative inline-block">
+                    <button
+                      onClick={() => setShowTypeMenu(!showTypeMenu)}
+                      className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
+                      title="Change user type"
+                    >
+                      <UserCog size={12} />
+                      <span className="hidden sm:inline">Change Type</span>
+                    </button>
+                    {showTypeMenu && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-10" 
+                          onClick={() => setShowTypeMenu(false)}
+                        />
+                        <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
+                          <button
+                            onClick={() => changeUserType('voter')}
+                            disabled={!isObserver}
+                            className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                              !isObserver 
+                                ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            Switch to Voter
+                          </button>
+                          <button
+                            onClick={() => changeUserType('observer')}
+                            disabled={isObserver}
+                            className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                              isObserver 
+                                ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            Switch to Observer
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -834,7 +897,7 @@ export default function App() {
                 )}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {participants.map((participant) => {
+                {sortedParticipants.map((participant) => {
                   const hasVoted = participant.points !== null && 
                                    participant.points !== undefined && 
                                    participant.points !== '';
