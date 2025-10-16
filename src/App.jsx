@@ -25,7 +25,7 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.2.0";
 
 let firebaseApp = null;
 let database = null;
