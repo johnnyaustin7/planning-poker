@@ -591,9 +591,9 @@ export default function App() {
       
       <div className="max-w-6xl mx-auto">
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mb-6`}>
-          <div className="flex items-center justify-between mb-4">
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h1 className={`text-2xl md:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -603,9 +603,12 @@ export default function App() {
               >
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
-              <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-3 py-2 rounded`}>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
+              <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-3 py-2 rounded w-fit`}>
                 <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Session:</span>
-                <code className={`font-mono font-bold ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
+                <code className={`font-mono font-bold text-sm ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
                 <button
                   onClick={copySessionId}
                   className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
@@ -614,13 +617,15 @@ export default function App() {
                   {showCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} className={darkMode ? 'text-blue-400' : 'text-blue-600'} />}
                 </button>
               </div>
+              
               <div className={`flex items-center gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                 <Users size={20} />
                 <span className="font-semibold">{participants.length} participants</span>
               </div>
             </div>
           </div>
-          <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>
+          
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-4`}>
             Welcome, 
             {isEditingName ? (
               <span className="inline-flex items-center gap-2 ml-1">
