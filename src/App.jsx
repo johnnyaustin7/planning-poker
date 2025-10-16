@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun, UserX, UserCog } from 'lucide-react';
+import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun, UserX, UserCog, History, Download, FileText } from 'lucide-react';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
 const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?'];
@@ -66,6 +66,9 @@ export default function App() {
   const [db, setDb] = useState(null);
   const [dbModule, setDbModule] = useState(null);
   const [wasRemoved, setWasRemoved] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState('');
+  const [sessionHistory, setSessionHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -110,6 +113,17 @@ export default function App() {
         setParticipants(newParticipants);
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
+        
+        // Load history
+        if (data.history) {
+          const historyArray = Object.values(data.history).sort((a, b) => b.timestamp - a.timestamp);
+          setSessionHistory(historyArray);
+        }
+        
+        // Load current ticket number
+        if (data.currentTicket) {
+          setTicketNumber(data.currentTicket);
+        }
         
         // Check if current user still exists in session
         if (currentUserId && hasJoined) {
@@ -306,15 +320,41 @@ export default function App() {
 
   const handleReset = async () => {
     if (!db || !dbModule) return;
+    
+    // Save current round to history if revealed and has votes
+    if (revealed && votingParticipants.length > 0) {
+      const votedParticipants = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '');
+      
+      if (votedParticipants.length > 0) {
+        const historyEntry = {
+          ticketId: ticketNumber || 'No ticket',
+          timestamp: Date.now(),
+          votes: votedParticipants.map(p => ({
+            name: p.name,
+            vote: p.points
+          })),
+          finalEstimate: stats?.closest || 'N/A',
+          duration: elapsedTime,
+          votingScale: votingScale,
+          participantCount: votedParticipants.length
+        };
+        
+        const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${Date.now()}`);
+        await dbModule.set(historyRef, historyEntry);
+      }
+    }
+    
     setSelectedPoint(null);
     setResetTime(Date.now());
     setElapsedTime(0);
+    setTicketNumber('');
     
     const updates = {};
     participants.forEach(p => {
       updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
     });
     updates[`sessions/${sessionId}/revealed`] = false;
+    updates[`sessions/${sessionId}/currentTicket`] = '';
     
     await dbModule.update(dbModule.ref(db), updates);
   };
@@ -378,6 +418,70 @@ export default function App() {
     navigator.clipboard.writeText(sessionUrl);
     setShowCopied(true);
     setTimeout(() => setShowCopied(false), 2000);
+  };
+
+  const updateTicketNumber = async (value) => {
+    setTicketNumber(value);
+    if (db && dbModule) {
+      const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+      await dbModule.update(sessionRef, { currentTicket: value });
+    }
+  };
+
+  const exportToCSV = () => {
+    if (sessionHistory.length === 0) {
+      alert('No history to export yet!');
+      return;
+    }
+
+    const headers = ['Ticket ID', 'Final Estimate', 'Participants', 'All Votes', 'Duration', 'Timestamp', 'Voting Scale'];
+    const rows = sessionHistory.map(entry => {
+      const votes = entry.votes.map(v => `${v.name}:${v.vote}`).join('; ');
+      const allVotes = entry.votes.map(v => v.vote).join(',');
+      const date = new Date(entry.timestamp).toLocaleString();
+      const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
+      
+      return [
+        entry.ticketId,
+        entry.finalEstimate,
+        entry.participantCount,
+        allVotes,
+        duration,
+        date,
+        entry.votingScale
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `planning-poker-${sessionId}-${Date.now()}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const copyHistoryToClipboard = () => {
+    if (sessionHistory.length === 0) {
+      alert('No history to copy yet!');
+      return;
+    }
+
+    const text = sessionHistory.map(entry => {
+      const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
+      const date = new Date(entry.timestamp).toLocaleString();
+      const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
+      
+      return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
+    }).join('\n');
+
+    navigator.clipboard.writeText(text);
+    alert('History copied to clipboard!');
   };
 
   const formatTime = (seconds) => {
@@ -866,10 +970,36 @@ export default function App() {
             )}
 
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
+                  {isModerator && ticketNumber && (
+                    <span className={`px-3 py-1 text-sm font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded`}>
+                      {ticketNumber}
+                    </span>
+                  )}
+                </div>
                 {isModerator && (
                   <div className="flex gap-2 items-center flex-wrap">
+                    <input
+                      type="text"
+                      value={ticketNumber}
+                      onChange={(e) => updateTicketNumber(e.target.value)}
+                      placeholder="Ticket # (optional)"
+                      className={`px-3 py-2 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-40`}
+                    />
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors"
+                      title="View history"
+                    >
+                      <History size={16} />
+                      History ({sessionHistory.length})
+                    </button>
                     <button
                       onClick={toggleVotingScale}
                       className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
@@ -1024,6 +1154,92 @@ export default function App() {
             </div>
           </div>
         </div>
+
+        {showHistory && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col`}>
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Session History
+                  </h2>
+                  <button
+                    onClick={() => setShowHistory(false)}
+                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={copyHistoryToClipboard}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    <FileText size={16} />
+                    Copy to Clipboard
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                {sessionHistory.length === 0 ? (
+                  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+                    No voting history yet. Complete a round to see it here!
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {sessionHistory.map((entry, index) => (
+                      <div
+                        key={entry.timestamp}
+                        className={`p-4 rounded-lg border ${
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                              {entry.ticketId}
+                            </h3>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {new Date(entry.timestamp).toLocaleString()} • Duration: {Math.floor(entry.duration / 60)}:{(entry.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          </div>
+                          <div className={`px-3 py-1 rounded font-bold text-lg ${
+                            darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {entry.finalEstimate}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {entry.votes.map((vote, vIndex) => (
+                            <span
+                              key={vIndex}
+                              className={`px-3 py-1 rounded text-sm ${
+                                darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              {vote.name}: <strong>{vote.vote}</strong>
+                            </span>
+                          ))}
+                        </div>
+                        <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {entry.participantCount} participants • {entry.votingScale}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       <footer className="mt-6 text-center">
