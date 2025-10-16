@@ -63,6 +63,7 @@ export default function App() {
   const [showTypeMenu, setShowTypeMenu] = useState(false);
   const [db, setDb] = useState(null);
   const [dbModule, setDbModule] = useState(null);
+  const [wasRemoved, setWasRemoved] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -114,9 +115,7 @@ export default function App() {
             // User was removed, redirect to join screen
             setHasJoined(false);
             setSelectedPoint(null);
-            setTimeout(() => {
-              alert('You have been removed from the session by the moderator. You can rejoin if you wish.');
-            }, 100);
+            setWasRemoved(true);
             return;
           }
           
@@ -205,6 +204,7 @@ export default function App() {
       
       const userId = Date.now().toString();
       setCurrentUserId(userId);
+      setWasRemoved(false); // Clear the removal message
       
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await dbModule.get(sessionRef);
@@ -536,6 +536,17 @@ export default function App() {
               </button>
             </div>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-4`}>Share this ID with your team</p>
+            
+            {wasRemoved && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                <p className="text-red-700 text-sm font-semibold">
+                  ⚠️ You have been removed from the session by the moderator.
+                </p>
+                <p className="text-red-600 text-xs mt-1">
+                  You can rejoin if you wish by entering your name below.
+                </p>
+              </div>
+            )}
             
             {qrCodeUrl && (
               <div className="mb-4 flex flex-col items-center">
