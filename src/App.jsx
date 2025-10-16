@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun, UserX, UserCog } from 'lucide-react';
+import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, onValue, set, update, get } from 'firebase/database';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
 const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?'];
@@ -25,22 +27,12 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-let firebaseApp = null;
-let database = null;
-
-const initializeFirebase = async () => {
-  if (firebaseApp) return { app: firebaseApp, db: database };
-  
-  const firebase = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-  const dbModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
-  
-  firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-  database = dbModule.getDatabase(firebaseApp);
-  
-  return { app: firebaseApp, db: database, dbModule };
-};
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getDatabase(app);
 
 export default function App() {
+  console.log('🚀 APP RENDERED');
+  
   const [userName, setUserName] = useState('');
   const [isModerator, setIsModerator] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
@@ -60,68 +52,63 @@ export default function App() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [votingScale, setVotingScale] = useState('fibonacci');
   const [darkMode, setDarkMode] = useState(false);
-  const [showTypeMenu, setShowTypeMenu] = useState(false);
-  const [db, setDb] = useState(null);
-  const [dbModule, setDbModule] = useState(null);
 
   useEffect(() => {
-    const init = async () => {
-      const { db: firebaseDb, dbModule: firebaseDbModule } = await initializeFirebase();
-      setDb(firebaseDb);
-      setDbModule(firebaseDbModule);
-    };
-    init();
-  }, []);
-
-  useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setDarkMode(prefersDark);
-  }, []);
-
-  useEffect(() => {
+    console.log('🔍 URL check running');
     const urlParams = new URLSearchParams(window.location.search);
     const sessionParam = urlParams.get('session');
     if (sessionParam) {
+      console.log('Found session in URL:', sessionParam);
       setSessionId(sessionParam.toUpperCase());
     }
     
+    // Load saved name from localStorage
     const savedName = localStorage.getItem('planningPokerUserName');
     if (savedName) {
+      console.log('Loaded saved name:', savedName);
       setUserName(savedName);
+    }
+    
+    // Load dark mode preference from localStorage
+    const savedDarkMode = localStorage.getItem('planningPokerDarkMode');
+    if (savedDarkMode === 'true') {
+      setDarkMode(true);
     }
   }, []);
 
   useEffect(() => {
-    if (!sessionId || !db || !dbModule) return;
+    console.log('🔥 Firebase listener effect - sessionId:', sessionId);
+    if (!sessionId) {
+      console.log('❌ No sessionId yet');
+      return;
+    }
 
-    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+    console.log('✅ Setting up listener for:', sessionId);
+    const sessionRef = ref(db, `sessions/${sessionId}`);
     
-    const unsubscribe = dbModule.onValue(sessionRef, (snapshot) => {
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      console.log('🔔 Firebase callback triggered');
       const data = snapshot.val();
+      console.log('📦 Data:', data);
       
       if (data) {
         const newParticipants = Object.values(data.participants || {});
         const newRevealed = data.revealed || false;
         const newVotingScale = data.votingScale || 'fibonacci';
         
+        console.log('Setting votingScale to:', newVotingScale);
+        
         setParticipants(newParticipants);
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
         
+        // Sync local selectedPoint with Firebase data
         if (currentUserId && data.participants && data.participants[currentUserId]) {
           setSelectedPoint(data.participants[currentUserId].points);
-          setIsModerator(data.participants[currentUserId].isModerator || false);
-          setIsObserver(data.participants[currentUserId].isObserver || false);
-        }
-        
-        const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
-        const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
-        
-        if (!newRevealed && allVoted && votingParticipants.length > 0) {
-          handleReveal();
         }
         
         if (!revealed && newRevealed) {
+          const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
           const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
           
           if (votes.length > 1) {
@@ -135,8 +122,11 @@ export default function App() {
       }
     });
 
-    return () => unsubscribe();
-  }, [sessionId, currentUserId, revealed, db, dbModule]);
+    return () => {
+      console.log('🧹 Cleanup listener');
+      unsubscribe();
+    };
+  }, [sessionId, currentUserId, revealed]);
 
   useEffect(() => {
     if (sessionId) {
@@ -170,12 +160,11 @@ export default function App() {
   };
 
   const handleCreateSession = async () => {
-    if (!db || !dbModule) return;
     const newSessionId = generateSessionId();
     setSessionId(newSessionId);
     
-    const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
-    await dbModule.set(sessionRef, { 
+    const sessionRef = ref(db, `sessions/${newSessionId}`);
+    await set(sessionRef, { 
       votingScale: 'fibonacci',
       revealed: false,
       participants: {}
@@ -189,17 +178,18 @@ export default function App() {
   };
 
   const handleJoin = async () => {
-    if (userName.trim() && sessionId && db && dbModule) {
+    if (userName.trim() && sessionId) {
+      // Save name to localStorage for future sessions
       localStorage.setItem('planningPokerUserName', userName.trim());
       
       const userId = Date.now().toString();
       setCurrentUserId(userId);
       
-      const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-      const sessionSnapshot = await dbModule.get(sessionRef);
+      const sessionRef = ref(db, `sessions/${sessionId}`);
+      const sessionSnapshot = await get(sessionRef);
       
       if (!sessionSnapshot.exists()) {
-        await dbModule.set(sessionRef, {
+        await set(sessionRef, {
           votingScale: 'fibonacci',
           revealed: false,
           participants: {}
@@ -214,8 +204,8 @@ export default function App() {
         isObserver: isObserver
       };
 
-      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${userId}`);
-      await dbModule.set(participantRef, newParticipant);
+      const participantRef = ref(db, `sessions/${sessionId}/participants/${userId}`);
+      await set(participantRef, newParticipant);
       
       setHasJoined(true);
     }
@@ -236,23 +226,22 @@ export default function App() {
   };
 
   const handleSelectPoint = async (point) => {
-    if (!currentUserId || revealed || isModerator || isObserver || !db || !dbModule) return;
+    if (!currentUserId) return;
     
+    // If clicking the same card, unselect it (set to null)
     const newPoint = selectedPoint === point ? null : point;
     setSelectedPoint(newPoint);
     
-    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-    await dbModule.update(participantRef, { points: newPoint });
+    const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+    await update(participantRef, { points: newPoint });
   };
 
   const handleReveal = async () => {
-    if (!db || !dbModule) return;
-    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-    await dbModule.update(sessionRef, { revealed: !revealed });
+    const sessionRef = ref(db, `sessions/${sessionId}`);
+    await update(sessionRef, { revealed: !revealed });
   };
 
   const handleReset = async () => {
-    if (!db || !dbModule) return;
     setSelectedPoint(null);
     setResetTime(Date.now());
     setElapsedTime(0);
@@ -263,16 +252,18 @@ export default function App() {
     });
     updates[`sessions/${sessionId}/revealed`] = false;
     
-    await dbModule.update(dbModule.ref(db), updates);
+    await update(ref(db), updates);
   };
 
   const toggleVotingScale = async () => {
-    if (!db || !dbModule) return;
+    console.log('Toggle clicked');
     const newScale = votingScale === 'fibonacci' ? 'tshirt' : 'fibonacci';
+    console.log('Switching to:', newScale);
+    
     setVotingScale(newScale);
     
-    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-    await dbModule.update(sessionRef, { votingScale: newScale });
+    const sessionRef = ref(db, `sessions/${sessionId}`);
+    await update(sessionRef, { votingScale: newScale });
     
     const voteUpdates = {};
     participants.forEach(p => {
@@ -280,44 +271,16 @@ export default function App() {
     });
     
     if (Object.keys(voteUpdates).length > 0) {
-      await dbModule.update(dbModule.ref(db), voteUpdates);
+      await update(ref(db), voteUpdates);
     }
     
     setSelectedPoint(null);
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  const removeUser = async (userId) => {
-    if (!isModerator || !db || !dbModule) return;
-    
-    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${userId}`);
-    await dbModule.remove(participantRef);
-  };
-
-  const changeUserType = async (newType) => {
-    if (!currentUserId || isModerator || !db || !dbModule) return;
-    
-    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-    
-    if (newType === 'voter') {
-      await dbModule.update(participantRef, { 
-        isObserver: false,
-        points: null
-      });
-      setIsObserver(false);
-    } else if (newType === 'observer') {
-      await dbModule.update(participantRef, { 
-        isObserver: true,
-        points: null
-      });
-      setIsObserver(true);
-      setSelectedPoint(null);
-    }
-    
-    setShowTypeMenu(false);
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('planningPokerDarkMode', newDarkMode.toString());
   };
 
   const copySessionId = () => {
@@ -339,13 +302,15 @@ export default function App() {
   };
 
   const handleSaveName = async () => {
-    if (editedName.trim() && editedName.trim() !== userName && editedName.trim().length <= 30 && db && dbModule) {
+    if (editedName.trim() && editedName.trim() !== userName) {
       const newName = editedName.trim();
       setUserName(newName);
+      
+      // Update localStorage with new name
       localStorage.setItem('planningPokerUserName', newName);
       
-      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-      await dbModule.update(participantRef, { name: newName });
+      const participantRef = ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await update(participantRef, { name: newName });
     }
     setIsEditingName(false);
   };
@@ -422,17 +387,6 @@ export default function App() {
       outliers: outliers.length > 0 ? outliers : null
     };
   };
-
-  if (!db || !dbModule) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!sessionId) {
     return (
@@ -544,7 +498,6 @@ export default function App() {
               onChange={(e) => setUserName(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Your name"
-              maxLength={30}
               className={`w-full px-4 py-3 border ${
                 darkMode 
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
@@ -594,6 +547,8 @@ export default function App() {
   const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
   const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
   const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
+  
+  console.log('Rendering main view, votingScale:', votingScale, 'scale:', currentScale);
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} p-4`}>
@@ -675,7 +630,6 @@ export default function App() {
                   onChange={(e) => setEditedName(e.target.value)}
                   onKeyDown={handleNameKeyPress}
                   onBlur={handleSaveName}
-                  maxLength={30}
                   className={`px-2 py-1 border ${
                     darkMode 
                       ? 'bg-gray-700 border-blue-500 text-white' 
@@ -694,45 +648,7 @@ export default function App() {
               </span>
             )}
             {isModerator && <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded">Moderator</span>}
-            {isObserver && <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded">Observer</span>}
-            {!isModerator && (
-              <span className="relative inline-block ml-2">
-                <button
-                  onClick={() => setShowTypeMenu(!showTypeMenu)}
-                  className={`px-2 py-1 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-sm rounded transition-colors flex items-center gap-1`}
-                  title="Change user type"
-                >
-                  <UserCog size={14} />
-                  Change Type
-                </button>
-                {showTypeMenu && (
-                  <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-10`}>
-                    <button
-                      onClick={() => changeUserType('voter')}
-                      disabled={!isObserver}
-                      className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                        !isObserver 
-                          ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                          : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Switch to Voter
-                    </button>
-                    <button
-                      onClick={() => changeUserType('observer')}
-                      disabled={isObserver}
-                      className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                        isObserver 
-                          ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                          : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Switch to Observer
-                    </button>
-                  </div>
-                )}
-              </span>
-            )}!
+            {isObserver && <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded">Observer</span>}!
           </p>
         </div>
 
@@ -751,14 +667,13 @@ export default function App() {
                     <button
                       key={point}
                       onClick={() => handleSelectPoint(point)}
-                      disabled={revealed}
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
                           ? 'bg-blue-700 text-white scale-105 shadow-lg'
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      } ${revealed ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      }`}
                     >
                       {point}
                     </button>
@@ -771,7 +686,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
                 {isModerator && (
-                  <div className="flex gap-2 items-center flex-wrap">
+                  <div className="flex gap-2 items-center">
                     <button
                       onClick={toggleVotingScale}
                       className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
@@ -785,7 +700,12 @@ export default function App() {
                     </div>
                     <button
                       onClick={handleReveal}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+                      disabled={!allVoted}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                        allVoted
+                          ? 'bg-blue-700 text-white hover:bg-blue-800'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
                     >
                       {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
                       {revealed ? 'Hide' : 'Reveal'}
@@ -823,7 +743,7 @@ export default function App() {
                   return (
                     <div
                       key={participant.id}
-                      className={`rounded-lg p-4 text-center border-2 relative ${
+                      className={`rounded-lg p-4 text-center border-2 ${
                         participant.isModerator 
                           ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
                           : participant.isObserver
@@ -833,22 +753,7 @@ export default function App() {
                           : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
                       }`}
                     >
-                      {isModerator && participant.id !== currentUserId && (
-                        <button
-                          onClick={() => removeUser(participant.id)}
-                          className={`absolute top-2 right-2 p-1 rounded ${
-                            darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-                          } text-white transition-colors`}
-                          title="Remove user"
-                        >
-                          <UserX size={14} />
-                        </button>
-                      )}
-                      <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-2 break-words ${
-                        participant.name.length > 15 ? 'text-sm leading-tight' : ''
-                      }`} style={{
-                        fontSize: participant.name.length > 20 ? '0.75rem' : undefined
-                      }}>
+                      <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-2 truncate`}>
                         {participant.name}
                         {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
                         {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
