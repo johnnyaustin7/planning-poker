@@ -543,7 +543,7 @@ export default function App() {
                   ⚠️ You have been removed from the session by the moderator.
                 </p>
                 <p className="text-red-600 text-xs mt-1">
-                  You can rejoin if you wish by entering your name below.
+                  You may rejoin at any time.
                 </p>
               </div>
             )}
