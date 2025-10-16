@@ -25,6 +25,8 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
+const APP_VERSION = "2.0.0";
+
 let firebaseApp = null;
 let database = null;
 
@@ -542,6 +544,11 @@ export default function App() {
               </button>
             </div>
           </div>
+          <div className="mt-6 text-center">
+            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Planning Poker v{APP_VERSION}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -646,6 +653,11 @@ export default function App() {
             >
               Join Session
             </button>
+          </div>
+          <div className="mt-6 text-center">
+            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              Planning Poker v{APP_VERSION}
+            </p>
           </div>
         </div>
       </div>
@@ -1013,6 +1025,12 @@ export default function App() {
           </div>
         </div>
       </div>
+      
+      <footer className="mt-6 text-center">
+        <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          Planning Poker v{APP_VERSION}
+        </p>
+      </footer>
     </div>
   );
 }
