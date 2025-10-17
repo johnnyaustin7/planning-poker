@@ -25,7 +25,7 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 
 let firebaseApp = null;
 let database = null;
@@ -69,6 +69,11 @@ export default function App() {
   const [ticketNumber, setTicketNumber] = useState('');
   const [sessionHistory, setSessionHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [shouldFlicker, setShouldFlicker] = useState(false);
+  const [editingHistoryId, setEditingHistoryId] = useState(null);
+  const [editingTicketValue, setEditingTicketValue] = useState('');
+  const [determinedPoints, setDeterminedPoints] = useState('');
+  const [isFirstRound, setIsFirstRound] = useState(true);
 
   useEffect(() => {
     const init = async () => {
@@ -125,6 +130,16 @@ export default function App() {
           setTicketNumber(data.currentTicket);
         }
         
+        // Load determined points
+        if (data.determinedPoints) {
+          setDeterminedPoints(data.determinedPoints);
+        }
+        
+        // Check if this is the first round
+        if (data.isFirstRound !== undefined) {
+          setIsFirstRound(data.isFirstRound);
+        }
+        
         // Check if current user still exists in session
         if (currentUserId && hasJoined) {
           if (!data.participants || !data.participants[currentUserId]) {
@@ -143,7 +158,24 @@ export default function App() {
         const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
         const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
         
-        if (!newRevealed && allVoted && votingParticipants.length > 0) {
+        // Check if 75% have voted and current user hasn't
+        if (currentUserId && hasJoined && !isModerator && !isObserver) {
+          const votedCount = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length;
+          const totalVoters = votingParticipants.length;
+          const currentUserVoted = data.participants[currentUserId]?.points !== null && 
+                                   data.participants[currentUserId]?.points !== undefined && 
+                                   data.participants[currentUserId]?.points !== '';
+          
+          if (totalVoters > 0 && votedCount / totalVoters >= 0.75 && !currentUserVoted) {
+            setShouldFlicker(true);
+          } else {
+            setShouldFlicker(false);
+          }
+        }
+        
+        // Only auto-reveal if not the first round
+        const checkIsFirstRound = data.isFirstRound !== undefined ? data.isFirstRound : true;
+        if (!newRevealed && allVoted && votingParticipants.length > 0 && !checkIsFirstRound) {
           handleReveal();
         }
         
@@ -225,7 +257,8 @@ export default function App() {
     await dbModule.set(sessionRef, { 
       votingScale: 'fibonacci',
       revealed: false,
-      participants: {}
+      participants: {},
+      isFirstRound: true
     });
   };
 
@@ -269,7 +302,8 @@ export default function App() {
         await dbModule.set(sessionRef, {
           votingScale: 'fibonacci',
           revealed: false,
-          participants: {}
+          participants: {},
+          isFirstRound: true
         });
       }
       
@@ -315,7 +349,14 @@ export default function App() {
   const handleReveal = async () => {
     if (!db || !dbModule) return;
     const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-    await dbModule.update(sessionRef, { revealed: !revealed });
+    const updates = { revealed: !revealed };
+    
+    // Mark that we're no longer on the first round after first reveal
+    if (isFirstRound && !revealed) {
+      updates.isFirstRound = false;
+    }
+    
+    await dbModule.update(sessionRef, updates);
   };
 
   const handleReset = async () => {
@@ -326,6 +367,8 @@ export default function App() {
       const votedParticipants = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '');
       
       if (votedParticipants.length > 0) {
+        const finalEstimate = determinedPoints || stats?.closest || 'N/A';
+        
         const historyEntry = {
           ticketId: ticketNumber || 'No ticket',
           timestamp: Date.now(),
@@ -333,7 +376,7 @@ export default function App() {
             name: p.name,
             vote: p.points
           })),
-          finalEstimate: stats?.closest || 'N/A',
+          finalEstimate: finalEstimate,
           duration: elapsedTime,
           votingScale: votingScale,
           participantCount: votedParticipants.length
@@ -348,6 +391,7 @@ export default function App() {
     setResetTime(Date.now());
     setElapsedTime(0);
     setTicketNumber('');
+    setDeterminedPoints('');
     
     const updates = {};
     participants.forEach(p => {
@@ -355,6 +399,7 @@ export default function App() {
     });
     updates[`sessions/${sessionId}/revealed`] = false;
     updates[`sessions/${sessionId}/currentTicket`] = '';
+    updates[`sessions/${sessionId}/determinedPoints`] = '';
     
     await dbModule.update(dbModule.ref(db), updates);
   };
@@ -428,13 +473,31 @@ export default function App() {
     }
   };
 
+  const updateDeterminedPoints = async (value) => {
+    setDeterminedPoints(value);
+    if (db && dbModule) {
+      const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+      await dbModule.update(sessionRef, { determinedPoints: value });
+    }
+  };
+
+  const updateHistoryTicket = async (timestamp, newTicketId) => {
+    if (!db || !dbModule) return;
+    
+    const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
+    await dbModule.update(historyRef, { ticketId: newTicketId });
+    
+    setEditingHistoryId(null);
+    setEditingTicketValue('');
+  };
+
   const exportToCSV = () => {
     if (sessionHistory.length === 0) {
       alert('No history to export yet!');
       return;
     }
 
-    const headers = ['Ticket ID', 'Final Estimate', 'Participants', 'All Votes', 'Duration', 'Timestamp', 'Voting Scale'];
+    const headers = ['Ticket ID', 'Final Estimate', 'Participants', 'All Votes', 'Duration', 'Timestamp'];
     const rows = sessionHistory.map(entry => {
       const votes = entry.votes.map(v => `${v.name}:${v.vote}`).join('; ');
       const allVotes = entry.votes.map(v => v.vote).join(',');
@@ -447,8 +510,7 @@ export default function App() {
         entry.participantCount,
         allVotes,
         duration,
-        date,
-        entry.votingScale
+        date
       ];
     });
 
@@ -824,6 +886,13 @@ export default function App() {
         .animate-fall {
           animation: fall linear forwards;
         }
+        @keyframes flicker {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .animate-flicker {
+          animation: flicker 0.5s ease-in-out infinite;
+        }
       `}</style>
       
       <div className="max-w-6xl mx-auto">
@@ -960,7 +1029,7 @@ export default function App() {
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      }`}
+                      } ${shouldFlicker ? 'animate-flicker' : ''}`}
                     >
                       {point}
                     </button>
@@ -991,6 +1060,17 @@ export default function App() {
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                           : 'bg-white border-gray-300 text-gray-900'
                       } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-40`}
+                    />
+                    <input
+                      type="text"
+                      value={determinedPoints}
+                      onChange={(e) => updateDeterminedPoints(e.target.value)}
+                      placeholder="Final points"
+                      className={`px-3 py-2 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-32`}
                     />
                     <button
                       onClick={() => setShowHistory(!showHistory)}
@@ -1207,10 +1287,40 @@ export default function App() {
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                              {entry.ticketId}
-                            </h3>
+                          <div className="flex-1">
+                            {editingHistoryId === entry.timestamp ? (
+                              <input
+                                type="text"
+                                value={editingTicketValue}
+                                onChange={(e) => setEditingTicketValue(e.target.value)}
+                                onBlur={() => updateHistoryTicket(entry.timestamp, editingTicketValue)}
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateHistoryTicket(entry.timestamp, editingTicketValue);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingHistoryId(null);
+                                    setEditingTicketValue('');
+                                  }
+                                }}
+                                className={`font-bold text-lg px-2 py-1 border ${
+                                  darkMode 
+                                    ? 'bg-gray-600 border-blue-500 text-white' 
+                                    : 'bg-white border-blue-500 text-gray-800'
+                                } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full`}
+                                autoFocus
+                              />
+                            ) : (
+                              <h3 
+                                className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'} cursor-pointer hover:text-blue-500`}
+                                onClick={() => {
+                                  setEditingHistoryId(entry.timestamp);
+                                  setEditingTicketValue(entry.ticketId);
+                                }}
+                                title="Click to edit"
+                              >
+                                {entry.ticketId}
+                              </h3>
+                            )}
                             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {new Date(entry.timestamp).toLocaleString()} • Duration: {Math.floor(entry.duration / 60)}:{(entry.duration % 60).toString().padStart(2, '0')}
                             </p>
