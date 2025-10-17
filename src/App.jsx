@@ -161,6 +161,11 @@ export default function App() {
         const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
         const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
         
+        // Stop timer when all votes are cast or revealed
+        if (allVoted || newRevealed) {
+          setTimerRunning(false);
+        }
+        
         // Check if 75% have voted and current user hasn't
         if (currentUserId && hasJoined && !isModerator && !isObserver) {
           const votedCount = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length;
@@ -229,14 +234,14 @@ export default function App() {
   }, [hasJoined, currentUserId, db, dbModule, sessionId]);
 
   useEffect(() => {
-    if (!hasJoined || !isModerator) return;
+    if (!hasJoined || !isModerator || !timerRunning) return;
     
     const interval = setInterval(() => {
       setElapsedTime(Math.floor((Date.now() - resetTime) / 1000));
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [hasJoined, isModerator, resetTime]);
+  }, [hasJoined, isModerator, resetTime, timerRunning]);
 
   const generateSessionId = () => {
     const words = [
@@ -395,6 +400,7 @@ export default function App() {
     setElapsedTime(0);
     setTicketNumber('');
     setDeterminedPoints('');
+    setTimerRunning(true);
     
     const updates = {};
     participants.forEach(p => {
@@ -492,6 +498,16 @@ export default function App() {
     
     setEditingHistoryId(null);
     setEditingTicketValue('');
+  };
+
+  const updateHistoryEstimate = async (timestamp, newEstimate) => {
+    if (!db || !dbModule) return;
+    
+    const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
+    await dbModule.update(historyRef, { finalEstimate: newEstimate });
+    
+    setEditingEstimateId(null);
+    setEditingEstimateValue('');
   };
 
   const exportToCSV = () => {
@@ -1045,7 +1061,7 @@ export default function App() {
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2 flex-1">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
-                  {isModerator && ticketNumber && (
+                  {ticketNumber && (
                     <span className={`px-3 py-1 text-sm font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded`}>
                       {ticketNumber}
                     </span>
@@ -1290,14 +1306,14 @@ export default function App() {
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
+                          <div className="flex-1 mr-4">
                             {editingHistoryId === entry.timestamp ? (
                               <input
                                 type="text"
                                 value={editingTicketValue}
                                 onChange={(e) => setEditingTicketValue(e.target.value)}
                                 onBlur={() => updateHistoryTicket(entry.timestamp, editingTicketValue)}
-                                onKeyPress={(e) => {
+                                onKeyDown={(e) => {
                                   if (e.key === 'Enter') {
                                     updateHistoryTicket(entry.timestamp, editingTicketValue);
                                   } else if (e.key === 'Escape') {
@@ -1319,7 +1335,7 @@ export default function App() {
                                   setEditingHistoryId(entry.timestamp);
                                   setEditingTicketValue(entry.ticketId);
                                 }}
-                                title="Click to edit"
+                                title="Click to edit ticket"
                               >
                                 {entry.ticketId}
                               </h3>
@@ -1328,11 +1344,41 @@ export default function App() {
                               {new Date(entry.timestamp).toLocaleString()} • Duration: {Math.floor(entry.duration / 60)}:{(entry.duration % 60).toString().padStart(2, '0')}
                             </p>
                           </div>
-                          <div className={`px-3 py-1 rounded font-bold text-lg ${
-                            darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                            {entry.finalEstimate}
-                          </div>
+                          {editingEstimateId === entry.timestamp ? (
+                            <input
+                              type="text"
+                              value={editingEstimateValue}
+                              onChange={(e) => setEditingEstimateValue(e.target.value)}
+                              onBlur={() => updateHistoryEstimate(entry.timestamp, editingEstimateValue)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateHistoryEstimate(entry.timestamp, editingEstimateValue);
+                                } else if (e.key === 'Escape') {
+                                  setEditingEstimateId(null);
+                                  setEditingEstimateValue('');
+                                }
+                              }}
+                              className={`font-bold text-lg px-2 py-1 border ${
+                                darkMode 
+                                  ? 'bg-gray-600 border-blue-500 text-white' 
+                                  : 'bg-white border-blue-500 text-gray-800'
+                              } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center w-20`}
+                              autoFocus
+                            />
+                          ) : (
+                            <div 
+                              className={`px-3 py-1 rounded font-bold text-lg cursor-pointer hover:ring-2 hover:ring-blue-500 ${
+                                darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
+                              }`}
+                              onClick={() => {
+                                setEditingEstimateId(entry.timestamp);
+                                setEditingEstimateValue(entry.finalEstimate);
+                              }}
+                              title="Click to edit estimate"
+                            >
+                              {entry.finalEstimate}
+                            </div>
+                          )}
                         </div>
                         <div className="flex flex-wrap gap-2 mt-3">
                           {entry.votes.map((vote, vIndex) => (
