@@ -25,9 +25,31 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.4.0";
+const APP_VERSION = "2.5.0";
 
 const RELEASE_NOTES = {
+  "2.5.0": {
+    date: "October 17, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added Vote Distribution Chart in statistics panel",
+      "Visual bar chart shows vote clustering and patterns",
+      "Helps identify consensus and outliers at a glance",
+      "Automatically sorts votes from lowest to highest",
+      "Animated bars with vote counts displayed"
+    ]
+  },
+  "2.4.1": {
+    date: "October 17, 2025",
+    type: "Patch Release",
+    changes: [
+      "Fixed Leave Session button - no longer shows 'removed by moderator' warning",
+      "Fixed ticket ID clearing - now syncs removal across all participants",
+      "Moved ticket display to 'Select Your Estimate' section header",
+      "Cleaned up duplicate ticket displays",
+      "Fixed beforeunload handler performance issue"
+    ]
+  },
   "2.4.0": {
     date: "October 17, 2025",
     type: "Minor Release",
@@ -784,13 +806,43 @@ export default function App() {
       return Math.abs(voteIndex - avgIndex) > 2;
     });
     
+    // Calculate vote distribution
+    const distribution = {};
+    allVotes.forEach(vote => {
+      distribution[vote] = (distribution[vote] || 0) + 1;
+    });
+    
+    // Sort distribution by vote value
+    const sortedDistribution = Object.entries(distribution).sort((a, b) => {
+      // Handle special cases (?, No QA)
+      if (a[0] === '?') return 1;
+      if (b[0] === '?') return 1;
+      if (a[0] === 'No QA') return 1;
+      if (b[0] === 'No QA') return 1;
+      
+      // Get numeric values for sorting
+      let aVal = a[0];
+      let bVal = b[0];
+      
+      if (votingScale === 'tshirt') {
+        aVal = TSHIRT_TO_FIBONACCI[a[0]] || 0;
+        bVal = TSHIRT_TO_FIBONACCI[b[0]] || 0;
+      }
+      
+      return Number(aVal) - Number(bVal);
+    });
+    
+    const maxCount = Math.max(...Object.values(distribution));
+    
     return { 
       average: avg.toFixed(1), 
       closest: displayClosest,
       consensus,
       range,
       spreadType,
-      outliers: outliers.length > 0 ? outliers : null
+      outliers: outliers.length > 0 ? outliers : null,
+      distribution: sortedDistribution,
+      maxCount
     };
   };
 
@@ -1534,6 +1586,31 @@ export default function App() {
                           stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-700' :
                           darkMode ? 'text-red-400' : 'text-red-700'
                         }`}>{stats.range.min} - {stats.range.max}</p>
+                      </div>
+                    )}
+                    {stats.distribution && stats.distribution.length > 0 && (
+                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
+                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-3 font-semibold`}>Vote Distribution</p>
+                        <div className="space-y-2">
+                          {stats.distribution.map(([vote, count]) => {
+                            const barWidth = (count / stats.maxCount) * 100;
+                            return (
+                              <div key={vote} className="flex items-center gap-2">
+                                <span className={`text-sm font-bold w-8 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                                  {vote}
+                                </span>
+                                <div className="flex-1 h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                                  <div 
+                                    className={`h-full ${darkMode ? 'bg-purple-500' : 'bg-purple-400'} transition-all duration-300 flex items-center justify-end pr-2`}
+                                    style={{ width: `${barWidth}%` }}
+                                  >
+                                    <span className="text-xs font-semibold text-white">{count}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </>
