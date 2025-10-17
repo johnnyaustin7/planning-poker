@@ -287,6 +287,7 @@ export default function App() {
           }
           
           setSelectedPoint(data.participants[currentUserId].points);
+          setSelectedConfidence(confidenceVotingEnabled ? data.participants[currentUserId].confidence : null);
           setIsModerator(data.participants[currentUserId].isModerator || false);
           setIsObserver(data.participants[currentUserId].isObserver || false);
         }
@@ -501,6 +502,13 @@ export default function App() {
     if (!confidenceVotingEnabled) {
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       await dbModule.update(participantRef, { points: newPoint });
+    } else if (newPoint !== null && selectedConfidence !== null) {
+      // If confidence voting is enabled and confidence is already selected, submit both
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await dbModule.update(participantRef, { 
+        points: newPoint,
+        confidence: selectedConfidence
+      });
     }
   };
 
