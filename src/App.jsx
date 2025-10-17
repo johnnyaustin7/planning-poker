@@ -307,29 +307,20 @@ export default function App() {
     if (!hasJoined || !currentUserId || !db || !dbModule || !sessionId) return;
     
     // Prevent accidental closes if moderator and voting is active
-    const handleBeforeUnload = async (e) => {
-      if (isModerator && !revealed && participants.some(p => p.points !== null)) {
+    const handleBeforeUnload = (e) => {
+      const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+      const hasVotes = votingParticipants.some(p => p.points !== null && p.points !== undefined && p.points !== '');
+      
+      if (isModerator && !revealed && hasVotes) {
         e.preventDefault();
         e.returnValue = 'Voting is in progress. Are you sure you want to leave?';
       }
-      
-      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-      await dbModule.remove(participantRef);
     };
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Also remove on component unmount
-      if (currentUserId && sessionId) {
-        const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-        dbModule.remove(participantRef);
-        
-        // Clear session storage on intentional unmount
-        localStorage.removeItem('planningPokerSessionId');
-        localStorage.removeItem('planningPokerUserId');
-      }
     };
   }, [hasJoined, currentUserId, db, dbModule, sessionId, isModerator, revealed, participants]);
 
