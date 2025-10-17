@@ -27,6 +27,65 @@ const FIREBASE_CONFIG = {
 
 const APP_VERSION = "2.3.0";
 
+const RELEASE_NOTES = {
+  "2.3.0": {
+    date: "October 17, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added flickering animation when 75% of voters have cast their vote",
+      "Made ticket names editable in session history",
+      "Added 'Final Estimate' field for moderators to set determined points",
+      "First round now requires manual reveal (prevents late joiners from seeing votes)",
+      "Timer now stops when all votes are cast or reveal is clicked",
+      "Final estimates in history are now editable",
+      "Ticket number now visible to all participants",
+      "Removed voting scale column from CSV export",
+      "Renamed 'Final points' to 'Final Estimate'"
+    ]
+  },
+  "2.2.0": {
+    date: "October 16, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added QR code generation for easy session joining",
+      "Implemented dark mode with system preference detection",
+      "Added T-shirt sizing scale (XS, S, M, L, XL, XXL)",
+      "Added ability to switch between Fibonacci and T-shirt sizing",
+      "Consensus detection with confetti animation",
+      "Added Observer role alongside Moderator and Voter",
+      "Users can switch between voter and observer roles",
+      "Click-outside-to-close for dropdowns and modals"
+    ]
+  },
+  "2.1.0": {
+    date: "October 16, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added ticket number input for moderators",
+      "Automatic voting history tracking",
+      "Session history viewer modal",
+      "CSV export functionality",
+      "Copy history to clipboard feature",
+      "Duration tracking per voting round",
+      "History persists in Firebase throughout session"
+    ]
+  },
+  "2.0.0": {
+    date: "October 16, 2025",
+    type: "Major Release",
+    changes: [
+      "Added version display on login and session screens",
+      "User cards now sorted by role and alphabetically",
+      "Added Voter badge display",
+      "Users auto-removed when closing tab/browser",
+      "Users can rejoin with same ID using same name",
+      "Moderators can remove users with X button",
+      "Removal notification when kicked by moderator",
+      "Mobile-responsive header layout"
+    ]
+  }
+};
+
 let firebaseApp = null;
 let database = null;
 
@@ -77,6 +136,7 @@ export default function App() {
   const [determinedPoints, setDeterminedPoints] = useState('');
   const [isFirstRound, setIsFirstRound] = useState(true);
   const [timerRunning, setTimerRunning] = useState(true);
+  const [showReleaseNotes, setShowReleaseNotes] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -730,7 +790,11 @@ export default function App() {
             </div>
           </div>
           <div className="mt-6 text-center">
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p 
+              className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+              onClick={() => setShowReleaseNotes(true)}
+              title="View release notes"
+            >
               Planning Poker v{APP_VERSION}
             </p>
           </div>
@@ -840,7 +904,11 @@ export default function App() {
             </button>
           </div>
           <div className="mt-6 text-center">
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p 
+              className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+              onClick={() => setShowReleaseNotes(true)}
+              title="View release notes"
+            >
               Planning Poker v{APP_VERSION}
             </p>
           </div>
@@ -1084,7 +1152,7 @@ export default function App() {
                       type="text"
                       value={determinedPoints}
                       onChange={(e) => updateDeterminedPoints(e.target.value)}
-                      placeholder="Final points"
+                      placeholder="Final Estimate"
                       className={`px-3 py-2 border ${
                         darkMode 
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
@@ -1406,10 +1474,75 @@ export default function App() {
       </div>
       
       <footer className="mt-6 text-center">
-        <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+        <p 
+          className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+          onClick={() => setShowReleaseNotes(true)}
+          title="View release notes"
+        >
           Planning Poker v{APP_VERSION}
         </p>
       </footer>
+
+      {showReleaseNotes && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowReleaseNotes(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10`}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Release Notes
+                </h2>
+                <button
+                  onClick={() => setShowReleaseNotes(false)}
+                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                  <div
+                    key={version}
+                    className={`p-4 rounded-lg border ${
+                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          Version {version}
+                        </h3>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {notes.date} • {notes.type}
+                        </p>
+                      </div>
+                      {version === APP_VERSION && (
+                        <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {notes.changes.map((change, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mr-2 mt-1">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
