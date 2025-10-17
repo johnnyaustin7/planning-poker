@@ -786,7 +786,7 @@ export default function App() {
     const allVotes = participants
       .filter(p => !p.isModerator && !p.isObserver)
       .map(p => p.points)
-      .filter(p => p !== null);
+      .filter(p => p !== null && p !== undefined && p !== '');
     
     const uniqueVotes = new Set(allVotes);
     const consensus = uniqueVotes.size === 1 && allVotes.length > 1;
