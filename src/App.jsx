@@ -151,6 +151,7 @@ export default function App() {
   const [isFirstRound, setIsFirstRound] = useState(true);
   const [timerRunning, setTimerRunning] = useState(true);
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -551,6 +552,23 @@ export default function App() {
     
     const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${userId}`);
     await dbModule.remove(participantRef);
+  };
+
+  const handleLeaveSession = async () => {
+    if (!db || !dbModule || !currentUserId) return;
+    
+    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+    await dbModule.remove(participantRef);
+    
+    // Clear session data
+    localStorage.removeItem('planningPokerSessionId');
+    localStorage.removeItem('planningPokerUserId');
+    
+    // Reset state
+    setHasJoined(false);
+    setSessionId('');
+    setSelectedPoint(null);
+    setShowLeaveConfirm(false);
   };
 
   const changeUserType = async (newType) => {
@@ -1183,6 +1201,17 @@ export default function App() {
                   <Users size={18} />
                   <span className="font-semibold">{participants.length}</span>
                 </div>
+                <button
+                  onClick={() => setShowLeaveConfirm(true)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                  title="Leave session"
+                >
+                  Leave Session
+                </button>
               </div>
             </div>
             <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base`}>
@@ -1272,9 +1301,19 @@ export default function App() {
               <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
-                  <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    {ticketNumber && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded font-semibold`}>
+                          {ticketNumber}
+                        </span>
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                   {currentScale.map((point) => (
@@ -1298,12 +1337,12 @@ export default function App() {
 
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
-                  {ticketNumber && (
+                  {!isModerator && !isObserver && ticketNumber && (
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                      <span className={`px-3 py-1 text-sm font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded font-semibold`}>
+                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+                      <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded font-semibold`}>
                         {ticketNumber}
                       </span>
                     </div>
@@ -1668,6 +1707,41 @@ export default function App() {
           Planning Poker v{APP_VERSION}
         </p>
       </footer>
+
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowLeaveConfirm(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Leave Session?
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+              Are you sure you want to leave this session? You'll be removed from the participant list.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLeaveConfirm(false)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  darkMode 
+                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLeaveSession}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Leave Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showReleaseNotes && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
