@@ -856,12 +856,11 @@ export default function App() {
     
     // Confidence-weighted average (if enabled)
     let weightedAvg = avg;
-    let weightedClosest = closest;
+    let totalWeight = 0;
     const confidenceWeights = { 'low': 0.5, 'medium': 1.0, 'high': 2.0 };
     
     if (confidenceVotingEnabled) {
       let totalWeightedPoints = 0;
-      let totalWeight = 0;
       
       votingParticipants.forEach(p => {
         const point = votingScale === 'tshirt' && p.points && typeof p.points === 'string' 
@@ -877,15 +876,6 @@ export default function App() {
       
       if (totalWeight > 0) {
         weightedAvg = totalWeightedPoints / totalWeight;
-        // Find closest for weighted average
-        weightedClosest = fibonacciScale.reduce((prev, curr) =>
-          Math.abs(curr - weightedAvg) < Math.abs(prev - weightedAvg) ? curr : prev
-        );
-        
-        if (votingScale === 'tshirt') {
-          const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === weightedClosest);
-          weightedClosest = tshirtEntry ? tshirtEntry[0] : weightedClosest;
-        }
       }
     }
     
@@ -895,9 +885,23 @@ export default function App() {
     );
     
     let displayClosest = closest;
+    let weightedClosest = null;
+    
     if (votingScale === 'tshirt') {
       const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === closest);
       displayClosest = tshirtEntry ? tshirtEntry[0] : closest;
+    }
+    
+    // Calculate weighted closest separately if confidence voting enabled
+    if (confidenceVotingEnabled && totalWeight > 0) {
+      weightedClosest = fibonacciScale.reduce((prev, curr) =>
+        Math.abs(curr - weightedAvg) < Math.abs(prev - weightedAvg) ? curr : prev
+      );
+      
+      if (votingScale === 'tshirt') {
+        const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === weightedClosest);
+        weightedClosest = tshirtEntry ? tshirtEntry[0] : weightedClosest;
+      }
     }
     
     const allVotes = participants
@@ -1780,58 +1784,39 @@ export default function App() {
                       </p>
                     </div>
                     {stats.consensus && (
-                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-4 border-2 ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-green-400' : 'text-green-700'} mb-1`}>🎉 Status</p>
-                        <p className={`text-lg font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>Consensus!</p>
+                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
+                        <p className={`text-xs text-center font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>🎉 Consensus!</p>
                       </div>
                     )}
                     {stats.range && (
-                      <div className={`rounded-lg p-4 ${
-                        stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
-                        stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
-                        darkMode ? 'bg-red-900' : 'bg-red-50'
-                      }`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Range</p>
-                        <p className={`text-lg font-bold ${
-                          stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-700' :
-                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-700' :
-                          darkMode ? 'text-red-400' : 'text-red-700'
-                        }`}>{stats.range.min} - {stats.range.max}</p>
+                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Range: <span className="font-bold">{stats.range.min} - {stats.range.max}</span></p>
                       </div>
                     )}
                     {confidenceVotingEnabled && stats.confidenceBreakdown && (
-                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2 font-semibold`}>Confidence Breakdown</p>
-                        <div className="space-y-1 text-sm">
-                          <div className="flex justify-between">
-                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🟢 High:</span>
-                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.high}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🟡 Medium:</span>
-                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.medium}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🔴 Low:</span>
-                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.low}</span>
-                          </div>
+                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1 font-semibold`}>Confidence</p>
+                        <div className="flex justify-between text-xs">
+                          <span>🟢 {stats.confidenceBreakdown.high}</span>
+                          <span>🟡 {stats.confidenceBreakdown.medium}</span>
+                          <span>🔴 {stats.confidenceBreakdown.low}</span>
                         </div>
                       </div>
                     )}
                     {stats.distribution && stats.distribution.length > 0 && (
-                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-3 font-semibold`}>Vote Distribution</p>
-                        <div className="space-y-2">
+                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
+                        <div className="space-y-1">
                           {stats.distribution.map(([vote, count]) => {
                             const barWidth = (count / stats.maxCount) * 100;
                             return (
-                              <div key={vote} className="flex items-center gap-2">
-                                <span className={`text-sm font-bold w-8 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                              <div key={vote} className="flex items-center gap-1">
+                                <span className={`text-xs font-bold w-6 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
                                   {vote}
                                 </span>
-                                <div className="flex-1 h-6 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                                <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
                                   <div 
-                                    className={`h-full ${darkMode ? 'bg-purple-500' : 'bg-purple-400'} transition-all duration-300 flex items-center justify-end pr-2`}
+                                    className={`h-full ${darkMode ? 'bg-purple-500' : 'bg-purple-400'} transition-all duration-300 flex items-center justify-end pr-1`}
                                     style={{ width: `${barWidth}%` }}
                                   >
                                     <span className="text-xs font-semibold text-white">{count}</span>
