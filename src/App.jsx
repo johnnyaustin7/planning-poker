@@ -72,8 +72,11 @@ export default function App() {
   const [shouldFlicker, setShouldFlicker] = useState(false);
   const [editingHistoryId, setEditingHistoryId] = useState(null);
   const [editingTicketValue, setEditingTicketValue] = useState('');
+  const [editingEstimateId, setEditingEstimateId] = useState(null);
+  const [editingEstimateValue, setEditingEstimateValue] = useState('');
   const [determinedPoints, setDeterminedPoints] = useState('');
   const [isFirstRound, setIsFirstRound] = useState(true);
+  const [timerRunning, setTimerRunning] = useState(true);
 
   useEffect(() => {
     const init = async () => {
