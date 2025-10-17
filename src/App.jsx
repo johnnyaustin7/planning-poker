@@ -233,10 +233,12 @@ export default function App() {
         // Check if current user still exists in session
         if (currentUserId && hasJoined) {
           if (!data.participants || !data.participants[currentUserId]) {
-            // User was removed, redirect to join screen
+            // User was removed - only show warning if wasRemoved flag wasn't manually cleared
+            if (!wasRemoved) {
+              setWasRemoved(true);
+            }
             setHasJoined(false);
             setSelectedPoint(null);
-            setWasRemoved(true);
             return;
           }
           
@@ -564,11 +566,13 @@ export default function App() {
     localStorage.removeItem('planningPokerSessionId');
     localStorage.removeItem('planningPokerUserId');
     
-    // Reset state
+    // Reset state - don't show "was removed" warning
     setHasJoined(false);
     setSessionId('');
     setSelectedPoint(null);
     setShowLeaveConfirm(false);
+    setWasRemoved(false);
+    setCurrentUserId(null);
   };
 
   const changeUserType = async (newType) => {
@@ -1337,17 +1341,7 @@ export default function App() {
 
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
-                  {!isModerator && !isObserver && ticketNumber && (
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                      <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded font-semibold`}>
-                        {ticketNumber}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
                 {isModerator && (
                   <div className="flex gap-2 items-center flex-wrap">
                     <input
