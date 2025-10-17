@@ -216,8 +216,10 @@ export default function App() {
         }
         
         // Load current ticket number
-        if (data.currentTicket) {
+        if (data.currentTicket !== undefined) {
           setTicketNumber(data.currentTicket);
+        } else {
+          setTicketNumber('');
         }
         
         // Load determined points
