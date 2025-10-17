@@ -25,9 +25,22 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.3.0";
+const APP_VERSION = "2.4.0";
 
 const RELEASE_NOTES = {
+  "2.4.0": {
+    date: "October 17, 2025",
+    type: "Minor Release",
+    changes: [
+      "Enhanced average display with consensus strength indicators (tight/moderate/wide)",
+      "Renamed 'Closest' to 'Suggested Estimate' with improved prominence",
+      "Added session persistence - automatically resume session on page refresh",
+      "Updated tooltip from 'Copy Session ID' to 'Copy Session Link'",
+      "Optimized voting cards for mobile - 4 columns on small screens, 6 on desktop",
+      "Added warning to prevent accidental close during active voting (moderators)",
+      "Added haptic feedback on mobile devices for votes, reveals, resets, and consensus"
+    ]
+  },
   "2.3.0": {
     date: "October 17, 2025",
     type: "Minor Release",
@@ -164,6 +177,18 @@ export default function App() {
     if (savedName) {
       setUserName(savedName);
     }
+    
+    // Try to resume previous session
+    const savedSessionId = localStorage.getItem('planningPokerSessionId');
+    const savedUserId = localStorage.getItem('planningPokerUserId');
+    
+    if (savedSessionId && !sessionParam) {
+      setSessionId(savedSessionId);
+    }
+    
+    if (savedUserId) {
+      setCurrentUserId(savedUserId);
+    }
   }, []);
 
   useEffect(() => {
@@ -256,6 +281,11 @@ export default function App() {
             if (uniqueVotes.size === 1) {
               setShowConfetti(true);
               setTimeout(() => setShowConfetti(false), 4000);
+              
+              // Haptic feedback for consensus
+              if (navigator.vibrate) {
+                navigator.vibrate([50, 100, 50, 100, 50]);
+              }
             }
           }
         }
@@ -276,8 +306,13 @@ export default function App() {
   useEffect(() => {
     if (!hasJoined || !currentUserId || !db || !dbModule || !sessionId) return;
     
-    // Cleanup function to remove user when they leave
-    const handleBeforeUnload = async () => {
+    // Prevent accidental closes if moderator and voting is active
+    const handleBeforeUnload = async (e) => {
+      if (isModerator && !revealed && participants.some(p => p.points !== null)) {
+        e.preventDefault();
+        e.returnValue = 'Voting is in progress. Are you sure you want to leave?';
+      }
+      
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       await dbModule.remove(participantRef);
     };
@@ -290,9 +325,13 @@ export default function App() {
       if (currentUserId && sessionId) {
         const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
         dbModule.remove(participantRef);
+        
+        // Clear session storage on intentional unmount
+        localStorage.removeItem('planningPokerSessionId');
+        localStorage.removeItem('planningPokerUserId');
       }
     };
-  }, [hasJoined, currentUserId, db, dbModule, sessionId]);
+  }, [hasJoined, currentUserId, db, dbModule, sessionId, isModerator, revealed, participants]);
 
   useEffect(() => {
     if (!hasJoined || !isModerator || !timerRunning) return;
@@ -340,6 +379,7 @@ export default function App() {
   const handleJoin = async () => {
     if (userName.trim() && sessionId && db && dbModule) {
       localStorage.setItem('planningPokerUserName', userName.trim());
+      localStorage.setItem('planningPokerSessionId', sessionId);
       
       // Check if user with same name already exists
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
@@ -359,12 +399,13 @@ export default function App() {
         }
       }
       
-      // If no existing user found, create new ID
+      // If no existing user found, create new ID or use saved one
       if (!userId) {
-        userId = Date.now().toString();
+        userId = currentUserId || Date.now().toString();
       }
       
       setCurrentUserId(userId);
+      localStorage.setItem('planningPokerUserId', userId);
       setWasRemoved(false);
       
       if (!sessionSnapshot.exists()) {
@@ -408,6 +449,11 @@ export default function App() {
   const handleSelectPoint = async (point) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
     
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
     const newPoint = selectedPoint === point ? null : point;
     setSelectedPoint(newPoint);
     
@@ -417,6 +463,12 @@ export default function App() {
 
   const handleReveal = async () => {
     if (!db || !dbModule) return;
+    
+    // Haptic feedback for reveal
+    if (navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+    
     const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
     const updates = { revealed: !revealed };
     
@@ -430,6 +482,11 @@ export default function App() {
 
   const handleReset = async () => {
     if (!db || !dbModule) return;
+    
+    // Haptic feedback for reset
+    if (navigator.vibrate) {
+      navigator.vibrate([10, 50, 10]);
+    }
     
     // Save current round to history if revealed and has votes
     if (revealed && votingParticipants.length > 0) {
@@ -1228,7 +1285,7 @@ export default function App() {
                     {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
                   </span>
                 </div>
-                <div className="grid grid-cols-6 gap-3">
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                   {currentScale.map((point) => (
                     <button
                       key={point}
@@ -1411,12 +1468,24 @@ export default function App() {
                         stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
                         darkMode ? 'text-red-400' : 'text-red-600'
                       }`}>{stats.average}</p>
+                      <p className={`text-xs mt-1 ${
+                        stats.spreadType === 'tight' ? darkMode ? 'text-green-300' : 'text-green-700' :
+                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-300' : 'text-yellow-700' :
+                        darkMode ? 'text-red-300' : 'text-red-700'
+                      }`}>
+                        {stats.spreadType === 'tight' ? '✓ Tight consensus' : 
+                         stats.spreadType === 'moderate' ? '~ Moderate spread' : 
+                         '⚠ Wide spread'}
+                      </p>
                     </div>
                     <div className={darkMode ? 'bg-orange-900 rounded-lg p-4' : 'bg-orange-50 rounded-lg p-4'}>
                       <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
-                        Closest {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt'}
+                        Suggested Estimate
                       </p>
-                      <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>{stats.closest}</p>
+                      <p className={`text-3xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>{stats.closest}</p>
+                      <p className={`text-xs mt-1 ${darkMode ? 'text-orange-300' : 'text-orange-700'}`}>
+                        Closest {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt'} value
+                      </p>
                     </div>
                     {stats.consensus && (
                       <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-4 border-2 ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
