@@ -856,6 +856,7 @@ export default function App() {
     
     // Confidence-weighted average (if enabled)
     let weightedAvg = avg;
+    let weightedClosest = closest;
     const confidenceWeights = { 'low': 0.5, 'medium': 1.0, 'high': 2.0 };
     
     if (confidenceVotingEnabled) {
@@ -876,6 +877,15 @@ export default function App() {
       
       if (totalWeight > 0) {
         weightedAvg = totalWeightedPoints / totalWeight;
+        // Find closest for weighted average
+        weightedClosest = fibonacciScale.reduce((prev, curr) =>
+          Math.abs(curr - weightedAvg) < Math.abs(prev - weightedAvg) ? curr : prev
+        );
+        
+        if (votingScale === 'tshirt') {
+          const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === weightedClosest);
+          weightedClosest = tshirtEntry ? tshirtEntry[0] : weightedClosest;
+        }
       }
     }
     
@@ -955,6 +965,7 @@ export default function App() {
     return { 
       average: avg.toFixed(1),
       weightedAverage: confidenceVotingEnabled ? weightedAvg.toFixed(1) : null,
+      weightedClosest: confidenceVotingEnabled ? weightedClosest : null,
       closest: displayClosest,
       consensus,
       range,
@@ -1717,56 +1728,55 @@ export default function App() {
           </div>
 
           <div className="md:col-span-1">
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 sticky top-4`}>
-              <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Statistics</h2>
-              <div className="space-y-4">
-                <div className={darkMode ? 'bg-blue-900 rounded-lg p-4' : 'bg-blue-50 rounded-lg p-4'}>
-                  <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Voted</p>
-                  <p className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 sticky top-4`}>
+              <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Statistics</h2>
+              <div className="space-y-3">
+                <div className={darkMode ? 'bg-blue-900 rounded-lg p-3' : 'bg-blue-50 rounded-lg p-3'}>
+                  <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Voted</p>
+                  <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
                     {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
                   </p>
                 </div>
                 {revealed && stats && (
                   <>
-                    <div className={`rounded-lg p-4 ${
+                    <div className={`rounded-lg p-3 ${
                       stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
                       stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
                       darkMode ? 'bg-red-900' : 'bg-red-50'
                     }`}>
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
-                        {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Average' : 'Average'}
+                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
+                        {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
                       </p>
-                      <p className={`text-2xl font-bold ${
-                        stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
-                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
-                        darkMode ? 'text-red-400' : 'text-red-600'
-                      }`}>{stats.average}</p>
-                      <p className={`text-xs mt-1 ${
-                        stats.spreadType === 'tight' ? darkMode ? 'text-green-300' : 'text-green-700' :
-                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-300' : 'text-yellow-700' :
-                        darkMode ? 'text-red-300' : 'text-red-700'
-                      }`}>
-                        {stats.spreadType === 'tight' ? '✓ Tight consensus' : 
-                         stats.spreadType === 'moderate' ? '~ Moderate spread' : 
-                         '⚠ Wide spread'}
-                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <p className={`text-xl font-bold ${
+                          stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
+                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
+                          darkMode ? 'text-red-400' : 'text-red-600'
+                        }`}>{stats.average}</p>
+                        <span className={`text-xs ${
+                          stats.spreadType === 'tight' ? darkMode ? 'text-green-300' : 'text-green-700' :
+                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-300' : 'text-yellow-700' :
+                          darkMode ? 'text-red-300' : 'text-red-700'
+                        }`}>
+                          {stats.spreadType === 'tight' ? '✓' : stats.spreadType === 'moderate' ? '~' : '⚠'}
+                        </span>
+                      </div>
                     </div>
                     {confidenceVotingEnabled && stats.weightedAverage && (
-                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
-                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Confidence-Weighted</p>
-                        <p className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.weightedAverage}</p>
-                        <p className={`text-xs mt-1 ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>
-                          Based on voter confidence
-                        </p>
+                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.weightedAverage}</p>
+                          <span className={`text-xs ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>→ {stats.weightedClosest}</span>
+                        </div>
                       </div>
                     )}
-                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-4' : 'bg-orange-50 rounded-lg p-4'}>
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
-                        Suggested Estimate
+                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-3' : 'bg-orange-50 rounded-lg p-3'}>
+                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
+                        Suggested
                       </p>
-                      <p className={`text-3xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>{stats.closest}</p>
-                      <p className={`text-xs mt-1 ${darkMode ? 'text-orange-300' : 'text-orange-700'}`}>
-                        Closest {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt'} value
+                      <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                        {confidenceVotingEnabled && stats.weightedClosest ? stats.weightedClosest : stats.closest}
                       </p>
                     </div>
                     {stats.consensus && (
