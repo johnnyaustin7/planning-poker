@@ -1751,28 +1751,18 @@ export default function App() {
                       <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
                         {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
                       </p>
-                      <div className="flex items-baseline gap-2">
-                        <p className={`text-xl font-bold ${
-                          stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
-                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
-                          darkMode ? 'text-red-400' : 'text-red-600'
-                        }`}>{stats.average}</p>
-                        <span className={`text-xs ${
-                          stats.spreadType === 'tight' ? darkMode ? 'text-green-300' : 'text-green-700' :
-                          stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-300' : 'text-yellow-700' :
-                          darkMode ? 'text-red-300' : 'text-red-700'
-                        }`}>
-                          {stats.spreadType === 'tight' ? '✓' : stats.spreadType === 'moderate' ? '~' : '⚠'}
-                        </span>
-                      </div>
+                      <p className={`text-xl font-bold ${
+                        stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
+                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
+                        darkMode ? 'text-red-400' : 'text-red-600'
+                      }`}>{stats.average}</p>
                     </div>
                     {confidenceVotingEnabled && stats.weightedAverage && (
                       <div className={`rounded-lg p-3 ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
-                        <div className="flex items-baseline gap-2">
-                          <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.weightedAverage}</p>
-                          <span className={`text-xs ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>→ {stats.weightedClosest}</span>
-                        </div>
+                        <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                          {stats.weightedAverage} → {stats.weightedClosest}
+                        </p>
                       </div>
                     )}
                     <div className={darkMode ? 'bg-orange-900 rounded-lg p-3' : 'bg-orange-50 rounded-lg p-3'}>
@@ -1795,8 +1785,8 @@ export default function App() {
                     )}
                     {confidenceVotingEnabled && stats.confidenceBreakdown && (
                       <div className={`rounded-lg p-2 ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1 font-semibold`}>Confidence</p>
-                        <div className="flex justify-between text-xs">
+                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Confidence</p>
+                        <div className={`flex justify-between text-xs font-bold ${darkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                           <span>🟢 {stats.confidenceBreakdown.high}</span>
                           <span>🟡 {stats.confidenceBreakdown.medium}</span>
                           <span>🔴 {stats.confidenceBreakdown.low}</span>
