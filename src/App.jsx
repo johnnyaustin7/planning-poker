@@ -25,9 +25,22 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.5.0";
+const APP_VERSION = "2.6.0";
 
 const RELEASE_NOTES = {
+  "2.6.0": {
+    date: "October 17, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added Confidence-Weighted Voting system (moderator can enable/disable)",
+      "Voters can indicate High/Medium/Low confidence in their estimates",
+      "Weighted average calculation gives more weight to high-confidence votes",
+      "Shows both traditional and confidence-weighted averages when enabled",
+      "Confidence indicators displayed on participant cards after reveal",
+      "Confidence breakdown in statistics panel",
+      "Setting persists throughout session"
+    ]
+  },
   "2.5.0": {
     date: "October 17, 2025",
     type: "Minor Release",
@@ -174,6 +187,8 @@ export default function App() {
   const [timerRunning, setTimerRunning] = useState(true);
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [selectedConfidence, setSelectedConfidence] = useState(null);
+  const [confidenceVotingEnabled, setConfidenceVotingEnabled] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -230,6 +245,11 @@ export default function App() {
         setParticipants(newParticipants);
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
+        
+        // Load confidence voting setting
+        if (data.confidenceVotingEnabled !== undefined) {
+          setConfidenceVotingEnabled(data.confidenceVotingEnabled);
+        }
         
         // Load history
         if (data.history) {
@@ -384,7 +404,8 @@ export default function App() {
       votingScale: 'fibonacci',
       revealed: false,
       participants: {},
-      isFirstRound: true
+      isFirstRound: true,
+      confidenceVotingEnabled: false
     });
   };
 
@@ -431,7 +452,8 @@ export default function App() {
           votingScale: 'fibonacci',
           revealed: false,
           participants: {},
-          isFirstRound: true
+          isFirstRound: true,
+          confidenceVotingEnabled: false
         });
       }
       
@@ -475,8 +497,52 @@ export default function App() {
     const newPoint = selectedPoint === point ? null : point;
     setSelectedPoint(newPoint);
     
+    // If confidence voting is disabled, submit immediately
+    if (!confidenceVotingEnabled) {
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await dbModule.update(participantRef, { points: newPoint });
+    }
+  };
+
+  const handleSelectConfidence = async (confidence) => {
+    if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
+    
+    setSelectedConfidence(confidence);
+    
+    // Auto-submit if both point and confidence are selected
+    if (selectedPoint !== null) {
+      // Haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+      
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      const updates = { 
+        points: selectedPoint,
+        confidence: confidence
+      };
+      
+      await dbModule.update(participantRef, updates);
+    }
+  };
+
+  const handleSubmitVote = async () => {
+    if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
+    if (selectedPoint === null || (confidenceVotingEnabled && selectedConfidence === null)) return;
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
     const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-    await dbModule.update(participantRef, { points: newPoint });
+    const updates = { points: selectedPoint };
+    
+    if (confidenceVotingEnabled) {
+      updates.confidence = selectedConfidence;
+    }
+    
+    await dbModule.update(participantRef, updates);
   };
 
   const handleReveal = async () => {
@@ -532,6 +598,7 @@ export default function App() {
     }
     
     setSelectedPoint(null);
+    setSelectedConfidence(null);
     setResetTime(Date.now());
     setElapsedTime(0);
     setTicketNumber('');
@@ -541,6 +608,9 @@ export default function App() {
     const updates = {};
     participants.forEach(p => {
       updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+      if (confidenceVotingEnabled) {
+        updates[`sessions/${sessionId}/participants/${p.id}/confidence`] = null;
+      }
     });
     updates[`sessions/${sessionId}/revealed`] = false;
     updates[`sessions/${sessionId}/currentTicket`] = '';
@@ -567,6 +637,16 @@ export default function App() {
     }
     
     setSelectedPoint(null);
+  };
+
+  const toggleConfidenceVoting = async () => {
+    if (!isModerator || !db || !dbModule) return;
+    
+    const newValue = !confidenceVotingEnabled;
+    setConfidenceVotingEnabled(newValue);
+    
+    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+    await dbModule.update(sessionRef, { confidenceVotingEnabled: newValue });
   };
 
   const toggleDarkMode = () => {
@@ -757,8 +837,9 @@ export default function App() {
   };
 
   const calculateAverage = () => {
-    const numericVotes = participants
-      .filter(p => !p.isModerator && !p.isObserver)
+    const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+    
+    const numericVotes = votingParticipants
       .map(p => {
         if (votingScale === 'tshirt' && p.points && typeof p.points === 'string') {
           return TSHIRT_TO_FIBONACCI[p.points];
@@ -769,12 +850,38 @@ export default function App() {
     
     if (numericVotes.length === 0) return null;
     
+    // Traditional average
     const sum = numericVotes.reduce((acc, val) => acc + val, 0);
     const avg = sum / numericVotes.length;
     
+    // Confidence-weighted average (if enabled)
+    let weightedAvg = avg;
+    const confidenceWeights = { 'low': 0.5, 'medium': 1.0, 'high': 2.0 };
+    
+    if (confidenceVotingEnabled) {
+      let totalWeightedPoints = 0;
+      let totalWeight = 0;
+      
+      votingParticipants.forEach(p => {
+        const point = votingScale === 'tshirt' && p.points && typeof p.points === 'string' 
+          ? TSHIRT_TO_FIBONACCI[p.points] 
+          : p.points;
+        
+        if (point !== null && point !== '?' && point !== 'No QA' && typeof point === 'number') {
+          const weight = confidenceWeights[p.confidence] || 1.0;
+          totalWeightedPoints += point * weight;
+          totalWeight += weight;
+        }
+      });
+      
+      if (totalWeight > 0) {
+        weightedAvg = totalWeightedPoints / totalWeight;
+      }
+    }
+    
     const fibonacciScale = FIBONACCI.filter(f => typeof f === 'number');
     const closest = fibonacciScale.reduce((prev, curr) =>
-      Math.abs(curr - avg) < Math.abs(prev - avg) ? curr : prev
+      Math.abs(curr - weightedAvg) < Math.abs(prev - weightedAvg) ? curr : prev
     );
     
     let displayClosest = closest;
@@ -834,15 +941,28 @@ export default function App() {
     
     const maxCount = Math.max(...Object.values(distribution));
     
+    // Confidence breakdown
+    let confidenceBreakdown = null;
+    if (confidenceVotingEnabled) {
+      const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+      confidenceBreakdown = {
+        high: votingParticipants.filter(p => p.confidence === 'high').length,
+        medium: votingParticipants.filter(p => p.confidence === 'medium').length,
+        low: votingParticipants.filter(p => p.confidence === 'low').length
+      };
+    }
+    
     return { 
-      average: avg.toFixed(1), 
+      average: avg.toFixed(1),
+      weightedAverage: confidenceVotingEnabled ? weightedAvg.toFixed(1) : null,
       closest: displayClosest,
       consensus,
       range,
       spreadType,
       outliers: outliers.length > 0 ? outliers : null,
       distribution: sortedDistribution,
-      maxCount
+      maxCount,
+      confidenceBreakdown
     };
   };
 
@@ -1384,12 +1504,61 @@ export default function App() {
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      } ${shouldFlicker ? 'animate-flicker' : ''}`}
+                      } ${shouldFlicker && !selectedPoint ? 'animate-flicker' : ''}`}
                     >
                       {point}
                     </button>
                   ))}
                 </div>
+                
+                {confidenceVotingEnabled && (
+                  <div className="mt-6">
+                    <label className={`block text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>
+                      How confident are you?
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => handleSelectConfidence('high')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'high'
+                            ? 'bg-green-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        🟢 High
+                      </button>
+                      <button
+                        onClick={() => handleSelectConfidence('medium')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'medium'
+                            ? 'bg-yellow-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        🟡 Medium
+                      </button>
+                      <button
+                        onClick={() => handleSelectConfidence('low')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'low'
+                            ? 'bg-red-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        🔴 Low
+                      </button>
+                    </div>
+                    <p className={`text-xs mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      High: Very familiar • Medium: Some uncertainty • Low: Just guessing
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1435,6 +1604,17 @@ export default function App() {
                     >
                       <RefreshCw size={16} />
                       {votingScale === 'fibonacci' ? 'Switch to T-Shirt' : 'Switch to Fibonacci'}
+                    </button>
+                    <button
+                      onClick={toggleConfidenceVoting}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        confidenceVotingEnabled
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-gray-400 text-white hover:bg-gray-500'
+                      }`}
+                      title="Toggle confidence voting"
+                    >
+                      {confidenceVotingEnabled ? '✓ Confidence: ON' : 'Confidence: OFF'}
                     </button>
                     <div className={`text-sm ${darkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 bg-gray-100'} px-3 py-2 rounded font-mono`}>
                       ⏱️ {formatTime(elapsedTime)}
@@ -1515,7 +1695,17 @@ export default function App() {
                           hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-700' : darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           {revealed
-                            ? (hasVoted ? participant.points : '—')
+                            ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span>{hasVoted ? participant.points : '—'}</span>
+                                {hasVoted && confidenceVotingEnabled && participant.confidence && (
+                                  <span className="text-xs">
+                                    {participant.confidence === 'high' ? '🟢' : 
+                                     participant.confidence === 'medium' ? '🟡' : '🔴'}
+                                  </span>
+                                )}
+                              </div>
+                            )
                             : (hasVoted ? '✓' : '—')}
                         </div>
                       )}
@@ -1543,7 +1733,9 @@ export default function App() {
                       stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
                       darkMode ? 'bg-red-900' : 'bg-red-50'
                     }`}>
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Average</p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
+                        {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Average' : 'Average'}
+                      </p>
                       <p className={`text-2xl font-bold ${
                         stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
                         stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
@@ -1559,6 +1751,15 @@ export default function App() {
                          '⚠ Wide spread'}
                       </p>
                     </div>
+                    {confidenceVotingEnabled && stats.weightedAverage && (
+                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
+                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Confidence-Weighted</p>
+                        <p className={`text-2xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.weightedAverage}</p>
+                        <p className={`text-xs mt-1 ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                          Based on voter confidence
+                        </p>
+                      </div>
+                    )}
                     <div className={darkMode ? 'bg-orange-900 rounded-lg p-4' : 'bg-orange-50 rounded-lg p-4'}>
                       <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
                         Suggested Estimate
@@ -1586,6 +1787,25 @@ export default function App() {
                           stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-700' :
                           darkMode ? 'text-red-400' : 'text-red-700'
                         }`}>{stats.range.min} - {stats.range.max}</p>
+                      </div>
+                    )}
+                    {confidenceVotingEnabled && stats.confidenceBreakdown && (
+                      <div className={`rounded-lg p-4 ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
+                        <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2 font-semibold`}>Confidence Breakdown</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between">
+                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🟢 High:</span>
+                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.high}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🟡 Medium:</span>
+                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.medium}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>🔴 Low:</span>
+                            <span className={`font-bold ${darkMode ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.confidenceBreakdown.low}</span>
+                          </div>
+                        </div>
                       </div>
                     )}
                     {stats.distribution && stats.distribution.length > 0 && (
