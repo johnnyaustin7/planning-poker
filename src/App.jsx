@@ -25,9 +25,21 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.6.0";
+const APP_VERSION = "2.7.0";
 
 const RELEASE_NOTES = {
+  "2.7.0": {
+    date: "October 17, 2025",
+    type: "Minor Release",
+    changes: [
+      "Enhanced confidence weighting - low confidence now 0.25x (was 0.5x)",
+      "Added median calculation and display for more robust estimates",
+      "Smart warnings: Team Uncertainty, High Disagreement, Limited Confidence",
+      "Suggested estimate uses median when spread is very high (>8)",
+      "Warnings appear automatically to guide moderator decisions",
+      "More accurate estimates with diverse team experience levels"
+    ]
+  },
   "2.6.0": {
     date: "October 17, 2025",
     type: "Minor Release",
@@ -865,7 +877,7 @@ export default function App() {
     // Confidence-weighted average (if enabled)
     let weightedAvg = avg;
     let totalWeight = 0;
-    const confidenceWeights = { 'low': 0.5, 'medium': 1.0, 'high': 2.0 };
+    const confidenceWeights = { 'low': 0.25, 'medium': 1.0, 'high': 2.0 };
     
     if (confidenceVotingEnabled) {
       let totalWeightedPoints = 0;
@@ -963,6 +975,87 @@ export default function App() {
     
     const maxCount = Math.max(...Object.values(distribution));
     
+    // Calculate median
+    const sortedNumericVotes = [...numericVotes].sort((a, b) => a - b);
+    const mid = Math.floor(sortedNumericVotes.length / 2);
+    const median = sortedNumericVotes.length % 2 === 0
+      ? (sortedNumericVotes[mid - 1] + sortedNumericVotes[mid]) / 2
+      : sortedNumericVotes[mid];
+    
+    // Find closest Fibonacci/T-shirt to median
+    let medianClosest = fibonacciScale.reduce((prev, curr) =>
+      Math.abs(curr - median) < Math.abs(prev - median) ? curr : prev
+    );
+    
+    if (votingScale === 'tshirt') {
+      const tshirtEntry = Object.entries(TSHIRT_TO_FIBONACCI).find(([_, val]) => val === medianClosest);
+      medianClosest = tshirtEntry ? tshirtEntry[0] : medianClosest;
+    }
+    
+    // Confidence breakdown and warnings
+    let confidenceBreakdown = null;
+    let warnings = [];
+    
+    if (confidenceVotingEnabled) {
+      confidenceBreakdown = {
+        high: votingParticipants.filter(p => p.confidence === 'high').length,
+        medium: votingParticipants.filter(p => p.confidence === 'medium').length,
+        low: votingParticipants.filter(p => p.confidence === 'low').length
+      };
+      
+      const totalVoters = votingParticipants.length;
+      const confidentVoters = confidenceBreakdown.high + confidenceBreakdown.medium;
+      
+      // Warning 1: Team Uncertainty
+      if (confidenceBreakdown.low / totalVoters > 0.5) {
+        warnings.push({
+          type: 'uncertainty',
+          icon: '⚠️',
+          message: 'Team Uncertainty',
+          detail: 'Majority voted low confidence - consider refining story'
+        });
+      }
+      
+      // Warning 2: High Disagreement among confident voters
+      const confidentVotes = votingParticipants
+        .filter(p => p.confidence === 'high')
+        .map(p => {
+          if (votingScale === 'tshirt' && p.points && typeof p.points === 'string') {
+            return TSHIRT_TO_FIBONACCI[p.points];
+          }
+          return p.points;
+        })
+        .filter(p => p !== null && typeof p === 'number');
+      
+      if (confidentVotes.length >= 2) {
+        const confidentSpread = Math.max(...confidentVotes) - Math.min(...confidentVotes);
+        if (confidentSpread > 5) {
+          warnings.push({
+            type: 'disagreement',
+            icon: '🔄',
+            message: 'High Disagreement',
+            detail: 'Confident voters disagree - discussion recommended'
+          });
+        }
+      }
+      
+      // Warning 3: Limited Confidence
+      if (confidentVoters < 2) {
+        warnings.push({
+          type: 'limited',
+          icon: 'ℹ️',
+          message: 'Limited Confidence',
+          detail: 'Few confident estimates available'
+        });
+      }
+    }
+    
+    // Use median as suggested estimate if high spread
+    let suggestedEstimate = confidenceVotingEnabled && weightedClosest ? weightedClosest : displayClosest;
+    if (spread > 8 && median) {
+      suggestedEstimate = medianClosest;
+    }
+    
     // Confidence breakdown
     let confidenceBreakdown = null;
     if (confidenceVotingEnabled) {
@@ -978,14 +1071,18 @@ export default function App() {
       average: avg.toFixed(1),
       weightedAverage: confidenceVotingEnabled ? weightedAvg.toFixed(1) : null,
       weightedClosest: confidenceVotingEnabled ? weightedClosest : null,
+      median: median ? median.toFixed(1) : null,
+      medianClosest: medianClosest,
       closest: displayClosest,
+      suggestedEstimate,
       consensus,
       range,
       spreadType,
       outliers: outliers.length > 0 ? outliers : null,
       distribution: sortedDistribution,
       maxCount,
-      confidenceBreakdown
+      confidenceBreakdown,
+      warnings
     };
   };
 
@@ -1773,17 +1870,60 @@ export default function App() {
                         </p>
                       </div>
                     )}
+                    {stats.median && (
+                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Median</p>
+                        <p className={`text-xl font-bold ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
+                          {stats.median} → {stats.medianClosest}
+                        </p>
+                      </div>
+                    )}
                     <div className={darkMode ? 'bg-orange-900 rounded-lg p-3' : 'bg-orange-50 rounded-lg p-3'}>
                       <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
                         Suggested
                       </p>
                       <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                        {confidenceVotingEnabled && stats.weightedClosest ? stats.weightedClosest : stats.closest}
+                        {stats.suggestedEstimate}
                       </p>
                     </div>
                     {stats.consensus && (
                       <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
                         <p className={`text-xs text-center font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>🎉 Consensus!</p>
+                      </div>
+                    )}
+                    {stats.warnings && stats.warnings.length > 0 && (
+                      <div className="space-y-1">
+                        {stats.warnings.map((warning, idx) => (
+                          <div 
+                            key={idx}
+                            className={`rounded-lg p-2 border ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-300' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-300' :
+                                darkMode ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-300'
+                            }`}
+                          >
+                            <p className={`text-xs font-semibold ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'text-yellow-300' : 'text-yellow-700' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'text-red-300' : 'text-red-700' :
+                                darkMode ? 'text-blue-300' : 'text-blue-700'
+                            }`}>
+                              {warning.icon} {warning.message}
+                            </p>
+                            <p className={`text-xs mt-0.5 ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'text-yellow-200' : 'text-yellow-600' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'text-red-200' : 'text-red-600' :
+                                darkMode ? 'text-blue-200' : 'text-blue-600'
+                            }`}>
+                              {warning.detail}
+                            </p>
+                          </div>
+                        ))}
                       </div>
                     )}
                     {stats.range && (
