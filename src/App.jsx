@@ -1664,8 +1664,8 @@ const handleSelectConfidence = async (confidence) => {
                           selectedConfidence === 'high'
                             ? 'bg-green-600 text-white scale-105 shadow-lg'
                             : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                         }`}
                       >
                         🟢 High
@@ -1676,8 +1676,8 @@ const handleSelectConfidence = async (confidence) => {
                           selectedConfidence === 'medium'
                             ? 'bg-yellow-600 text-white scale-105 shadow-lg'
                             : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                         }`}
                       >
                         🟡 Medium
@@ -1688,8 +1688,8 @@ const handleSelectConfidence = async (confidence) => {
                           selectedConfidence === 'low'
                             ? 'bg-red-600 text-white scale-105 shadow-lg'
                             : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                         }`}
                       >
                         🔴 Low
