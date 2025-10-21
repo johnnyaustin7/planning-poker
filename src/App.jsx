@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Eye, EyeOff, RotateCcw, Copy, Check, ArrowRight, RefreshCw, Moon, Sun, UserX, UserCog, History, Download, FileText } from 'lucide-react';
 
-const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55, '?', 'No QA'];
+const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, '?', 'No QA'];
 const TSHIRT = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '?'];
 
 const TSHIRT_TO_FIBONACCI = {
@@ -25,9 +25,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.7.1";
+const APP_VERSION = "2.7.2";
 
 const RELEASE_NOTES = {
+  "2.7.2": {
+    date: "October 21, 2025",
+    type: "Patch Release",
+    changes: [
+      "Removed '55' card from Fibonacci scale (now 10 cards)",
+      "Confidence buttons can now be toggled on/off by clicking (like vote buttons)",
+      "Added hover scale effect to confidence buttons for consistency",
+      "Toggling confidence off now clears the vote if already submitted"
+    ]
+  },
   "2.7.1": {
     date: "October 17, 2025",
     type: "Patch Release",
@@ -536,25 +546,35 @@ export default function App() {
     }
   };
 
-  const handleSelectConfidence = async (confidence) => {
+const handleSelectConfidence = async (confidence) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
     
-    setSelectedConfidence(confidence);
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    
+    // Toggle off if clicking the same confidence
+    const newConfidence = selectedConfidence === confidence ? null : confidence;
+    setSelectedConfidence(newConfidence);
     
     // Auto-submit if both point and confidence are selected
-    if (selectedPoint !== null) {
-      // Haptic feedback
-      if (navigator.vibrate) {
-        navigator.vibrate(10);
-      }
-      
+    if (selectedPoint !== null && newConfidence !== null) {
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       const updates = { 
         points: selectedPoint,
-        confidence: confidence
+        confidence: newConfidence
       };
       
       await dbModule.update(participantRef, updates);
+    } else if (selectedPoint !== null && newConfidence === null) {
+      // If toggling confidence off but point is selected, clear the vote
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await dbModule.update(participantRef, { 
+        points: null,
+        confidence: null
+      });
+      setSelectedPoint(null);
     }
   };
 
@@ -1614,7 +1634,7 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                   {currentScale.map((point) => (
                     <button
                       key={point}
