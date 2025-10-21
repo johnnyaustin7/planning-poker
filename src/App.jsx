@@ -1056,17 +1056,6 @@ export default function App() {
       suggestedEstimate = medianClosest;
     }
     
-    // Confidence breakdown
-    let confidenceBreakdown = null;
-    if (confidenceVotingEnabled) {
-      const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
-      confidenceBreakdown = {
-        high: votingParticipants.filter(p => p.confidence === 'high').length,
-        medium: votingParticipants.filter(p => p.confidence === 'medium').length,
-        low: votingParticipants.filter(p => p.confidence === 'low').length
-      };
-    }
-    
     return { 
       average: avg.toFixed(1),
       weightedAverage: confidenceVotingEnabled ? weightedAvg.toFixed(1) : null,
