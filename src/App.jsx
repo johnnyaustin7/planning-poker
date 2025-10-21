@@ -25,9 +25,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.7.0";
+const APP_VERSION = "2.7.1";
 
 const RELEASE_NOTES = {
+  "2.7.1": {
+    date: "October 17, 2025",
+    type: "Patch Release",
+    changes: [
+      "Fixed duplicate variable declaration causing build failure",
+      "Fixed flicker animation to stop once user has voted",
+      "Adjusted flicker thresholds: 60% for 3 or fewer voters, 75% for 4+ voters",
+      "Flicker now respects confidence voting state"
+    ]
+  },
   "2.7.0": {
     date: "October 17, 2025",
     type: "Minor Release",
@@ -312,7 +322,7 @@ export default function App() {
           setTimerRunning(false);
         }
         
-        // Check if 75% have voted and current user hasn't
+        // Check if threshold met and current user hasn't voted (60% for ≤3 voters, 75% for 4+)
         if (currentUserId && hasJoined && !isModerator && !isObserver) {
           const votedCount = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length;
           const totalVoters = votingParticipants.length;
@@ -320,7 +330,9 @@ export default function App() {
                                    data.participants[currentUserId]?.points !== undefined && 
                                    data.participants[currentUserId]?.points !== '';
           
-          if (totalVoters > 0 && votedCount / totalVoters >= 0.75 && !currentUserVoted) {
+          const threshold = totalVoters <= 3 ? 0.60 : 0.75;
+          
+          if (totalVoters > 0 && votedCount / totalVoters >= threshold && !currentUserVoted) {
             setShouldFlicker(true);
           } else {
             setShouldFlicker(false);
@@ -1613,7 +1625,7 @@ export default function App() {
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      } ${shouldFlicker && !selectedPoint ? 'animate-flicker' : ''}`}
+                      } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
                     >
                       {point}
                     </button>
