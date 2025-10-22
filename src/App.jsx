@@ -434,9 +434,8 @@ export default function App() {
     'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
     'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
     'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
-    'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER',
-    // NEW WORDS ADDED:
-    'ARROW', 'BRIDGE', 'COBRA', 'DELTA', 'EMBER', 'FROST',
+    'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER','ARROW', 
+    'BRIDGE', 'COBRA', 'DELTA', 'EMBER', 'FROST', 'ZODIAC',
     'GHOST', 'HAWK', 'IVORY', 'JADE', 'KITE', 'LOTUS',
     'MANGO', 'NEXUS', 'OPAL', 'PHOENIX', 'QUARTZ', 'RAVEN',
     'SPARK', 'THUNDER', 'UNITY', 'VIPER', 'WAVE', 'XENON',
@@ -444,7 +443,7 @@ export default function App() {
     'EAGLE', 'FLAME', 'GLACIER', 'HYDRA', 'IRON', 'JAGUAR',
     'KNIGHT', 'LYNX', 'METEOR', 'NOVA', 'OMEGA', 'PRISM',
     'QUEST', 'RUSH', 'STORM', 'TITAN', 'ULTRA', 'VERTEX',
-    'WARDEN', 'XEROX', 'YETI', 'ZODIAC'
+    'WARDEN', 'XEROX', 'YETI'
   ];
   return words[Math.floor(Math.random() * words.length)];
 };
@@ -1189,7 +1188,7 @@ const handleSelectConfidence = async (confidence) => {
   if (!sessionId) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
-        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full fade-in`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-4">
               <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
@@ -1259,7 +1258,7 @@ const handleSelectConfidence = async (confidence) => {
               className="absolute inset-0" 
               onClick={() => setShowReleaseNotes(false)}
             />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10`}>
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -1320,7 +1319,7 @@ const handleSelectConfidence = async (confidence) => {
   if (!hasJoined) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
-        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full fade-in`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-2">
               <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
@@ -1434,7 +1433,7 @@ const handleSelectConfidence = async (confidence) => {
               className="absolute inset-0" 
               onClick={() => setShowReleaseNotes(false)}
             />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10`}>
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -1512,7 +1511,7 @@ const handleSelectConfidence = async (confidence) => {
   });
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} p-4`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'} p-4`}>
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -1539,23 +1538,68 @@ const handleSelectConfidence = async (confidence) => {
       )}
       
       <style>{`
-        @keyframes fall {
-          to {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-        .animate-fall {
-          animation: fall linear forwards;
-        }
-        @keyframes flicker {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        .animate-flicker {
-          animation: flicker 0.5s ease-in-out infinite;
-        }
-      `}</style>
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  .animate-fall {
+    animation: fall linear forwards;
+  }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .animate-flicker {
+    animation: flicker 0.5s ease-in-out infinite;
+  }
+  /* Card flip animation */
+  @keyframes flipIn {
+    from {
+      transform: rotateY(90deg);
+      opacity: 0;
+    }
+    to {
+      transform: rotateY(0deg);
+      opacity: 1;
+    }
+  }
+  .card-flip-enter {
+    animation: flipIn 0.6s ease-out forwards;
+  }
+        /* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal slide up */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-enter {
+  animation: slideUp 0.3s ease-out;
+}
+`}</style>
       
       <div className="max-w-6xl mx-auto">
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
@@ -1574,7 +1618,7 @@ const handleSelectConfidence = async (confidence) => {
                 </button>
                 <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-2 sm:px-3 py-2 rounded text-sm`}>
                   <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} hidden sm:inline`}>Session:</span>
-                  <code className={`font-mono font-bold ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>{sessionId}</code>
+                  <code className={`font-mono font-bold ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>{sessionId}</code>
                   <button
                     onClick={copySessionId}
                     className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
@@ -1600,7 +1644,7 @@ const handleSelectConfidence = async (confidence) => {
                 </button>
               </div>
             </div>
-            <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm sm:text-base`}>
+            <div className={`${darkMode ? 'text-gray-100' : 'text-gray-600'} text-sm sm:text-base`}>
               <span>Welcome, </span>
               {isEditingName ? (
                 <span className="inline-flex items-center gap-2">
@@ -1621,7 +1665,7 @@ const handleSelectConfidence = async (confidence) => {
                 </span>
               ) : (
                 <span 
-                  className={`font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline`}
+                  className={`font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-600'} cursor-pointer hover:underline`}
                   onClick={handleStartEditName}
                   title="Click to edit name"
                 >
@@ -1684,7 +1728,7 @@ const handleSelectConfidence = async (confidence) => {
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
             {!isModerator && !isObserver && (
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+              <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
                   <div className="flex items-center gap-3">
@@ -1710,7 +1754,7 @@ const handleSelectConfidence = async (confidence) => {
                         selectedPoint === point
                           ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
                           : darkMode
-                          ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
+                          ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
                       } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
                     >
@@ -1866,8 +1910,8 @@ const handleSelectConfidence = async (confidence) => {
                   
                   return (
                     <div
-                      key={participant.id}
-                      className={`rounded-lg p-4 text-center border-2 relative ${
+  key={participant.id}
+  className={`rounded-lg p-4 text-center border-2 relative ${revealed ? 'card-flip-enter' : ''} ${
                         participant.isModerator 
                           ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
                           : participant.isObserver
@@ -1929,7 +1973,7 @@ const handleSelectConfidence = async (confidence) => {
               <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Statistics</h2>
               <div className="space-y-3">
                 <div className={darkMode ? 'bg-blue-900 rounded-lg p-3 shadow-md' : 'bg-blue-50 rounded-lg p-3 shadow-md'}>
-                  <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Voted</p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Voted</p>
                   <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
                     {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
                   </p>
@@ -1941,7 +1985,7 @@ const handleSelectConfidence = async (confidence) => {
                       stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
                       darkMode ? 'bg-red-900' : 'bg-red-50'
                     }`}>
-                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
+                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>
                         {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
                       </p>
                       <p className={`text-xl font-bold ${
@@ -1952,7 +1996,7 @@ const handleSelectConfidence = async (confidence) => {
                     </div>
                     {confidenceVotingEnabled && stats.weightedAverage && (
                       <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
                         <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
                           {stats.weightedAverage} → {stats.weightedClosest}
                         </p>
@@ -1960,14 +2004,14 @@ const handleSelectConfidence = async (confidence) => {
                     )}
                     {stats.median && (
                       <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Median</p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Median</p>
                         <p className={`text-xl font-bold ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
                           {stats.median} → {stats.medianClosest}
                         </p>
                       </div>
                     )}
                     <div className={darkMode ? 'bg-orange-900 rounded-lg p-3 shadow-md' : 'bg-orange-50 rounded-lg p-3'}>
-                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Suggested</p>
+                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Suggested</p>
                       <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
                         {stats.suggestedEstimate}
                       </p>
@@ -2019,7 +2063,7 @@ const handleSelectConfidence = async (confidence) => {
                     )}
                     {confidenceVotingEnabled && stats.confidenceBreakdown && (
                       <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Confidence</p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Confidence</p>
                         <div className={`flex justify-between text-xs font-bold ${darkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                           <span>🟢 {stats.confidenceBreakdown.high}</span>
                           <span>🟡 {stats.confidenceBreakdown.medium}</span>
@@ -2029,7 +2073,7 @@ const handleSelectConfidence = async (confidence) => {
                     )}
                     {stats.distribution && stats.distribution.length > 0 && (
                       <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
                         <div className="space-y-1">
                           {stats.distribution.map(([vote, count]) => {
                             const barWidth = (count / stats.maxCount) * 100;
@@ -2065,7 +2109,7 @@ const handleSelectConfidence = async (confidence) => {
               className="absolute inset-0" 
               onClick={() => setShowHistory(false)}
             />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10`}>
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -2261,7 +2305,7 @@ const handleSelectConfidence = async (confidence) => {
             className="absolute inset-0" 
             onClick={() => setShowReleaseNotes(false)}
           />
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10`}>
+          <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
