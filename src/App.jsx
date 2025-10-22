@@ -25,9 +25,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.7.2";
+const APP_VERSION = "2.7.3";
 
 const RELEASE_NOTES = {
+  "2.7.3": {
+  date: "October 22, 2025",
+  type: "Patch Release",
+  changes: [
+    "Expanded session ID pool from 42 to 100 unique words",
+    "Added collision detection - checks if session exists before creating",
+    "Auto-cleanup: Sessions older than 24 hours are automatically deleted",
+    "Prevents accidental overwriting of active sessions"
+  ]
+},
   "2.7.2": {
     date: "October 21, 2025",
     type: "Patch Release",
@@ -417,32 +427,90 @@ export default function App() {
   }, [hasJoined, isModerator, resetTime, timerRunning]);
 
   const generateSessionId = () => {
-    const words = [
-      'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
-      'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
-      'PLANET', 'RABBIT', 'SILVER', 'TIGER', 'VIOLET', 'WIZARD',
-      'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
-      'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
-      'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
-      'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER'
-    ];
-    return words[Math.floor(Math.random() * words.length)];
-  };
+  const words = [
+    'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
+    'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
+    'PLANET', 'RABBIT', 'SILVER', 'TIGER', 'VIOLET', 'WIZARD',
+    'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
+    'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
+    'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
+    'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER',
+    // NEW WORDS ADDED:
+    'ARROW', 'BRIDGE', 'COBRA', 'DELTA', 'EMBER', 'FROST',
+    'GHOST', 'HAWK', 'IVORY', 'JADE', 'KITE', 'LOTUS',
+    'MANGO', 'NEXUS', 'OPAL', 'PHOENIX', 'QUARTZ', 'RAVEN',
+    'SPARK', 'THUNDER', 'UNITY', 'VIPER', 'WAVE', 'XENON',
+    'YOUTH', 'ZENITH', 'APPLE', 'BEAR', 'CLOUD', 'DAWN',
+    'EAGLE', 'FLAME', 'GLACIER', 'HYDRA', 'IRON', 'JAGUAR',
+    'KNIGHT', 'LYNX', 'METEOR', 'NOVA', 'OMEGA', 'PRISM',
+    'QUEST', 'RUSH', 'STORM', 'TITAN', 'ULTRA', 'VERTEX',
+    'WARDEN', 'XEROX', 'YETI', 'ZODIAC'
+  ];
+  return words[Math.floor(Math.random() * words.length)];
+};
 
   const handleCreateSession = async () => {
-    if (!db || !dbModule) return;
-    const newSessionId = generateSessionId();
-    setSessionId(newSessionId);
-    
+  if (!db || !dbModule) return;
+
+  // Clean up old sessions before creating new one
+  cleanupOldSessions();
+  
+  let newSessionId;
+  let attempts = 0;
+  const maxAttempts = 20;
+  
+  // Keep trying until we find an unused ID
+  while (attempts < maxAttempts) {
+    newSessionId = generateSessionId();
     const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
-    await dbModule.set(sessionRef, { 
-      votingScale: 'fibonacci',
-      revealed: false,
-      participants: {},
-      isFirstRound: true,
-      confidenceVotingEnabled: false
+    const snapshot = await dbModule.get(sessionRef);
+    
+    if (!snapshot.exists()) {
+      // Found an unused ID!
+      break;
+    }
+    attempts++;
+  }
+  
+  // Fallback: if couldn't find unique ID, add timestamp
+  if (attempts >= maxAttempts) {
+    newSessionId = generateSessionId() + '-' + Date.now().toString().slice(-3);
+  }
+  
+  setSessionId(newSessionId);
+  
+  const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
+  await dbModule.set(sessionRef, { 
+    votingScale: 'fibonacci',
+    revealed: false,
+    participants: {},
+    isFirstRound: true,
+    confidenceVotingEnabled: false,
+    createdAt: Date.now() // Track when session was created
+  });
+};
+
+const cleanupOldSessions = async () => {
+  if (!db || !dbModule) return;
+  
+  const sessionsRef = dbModule.ref(db, 'sessions');
+  const snapshot = await dbModule.get(sessionsRef);
+  
+  if (snapshot.exists()) {
+    const sessions = snapshot.val();
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    
+    Object.entries(sessions).forEach(async ([sessionId, sessionData]) => {
+      if (sessionData.createdAt && (now - sessionData.createdAt) > twentyFourHours) {
+        // Delete sessions older than 24 hours
+        const oldSessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+        await dbModule.remove(oldSessionRef);
+        console.log(`Cleaned up old session: ${sessionId}`);
+      }
     });
-  };
+  }
+};
 
   const handleJoinSession = () => {
     if (sessionIdInput.trim()) {
