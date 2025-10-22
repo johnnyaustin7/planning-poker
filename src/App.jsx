@@ -25,10 +25,18 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.8.0";
+const APP_VERSION = "2.8.1";
 
 const RELEASE_NOTES = {
-  "2.8.0": {
+  "2.8.1": {
+  date: "October 22, 2025",
+  type: "Patch Release",
+  changes: [
+    "Fixed console error when confidence voting is disabled",
+    "Improved confidence field handling in vote submissions"
+  ]
+},
+"2.8.0": {
     date: "October 22, 2025",
     type: "Minor Release",
     changes: [
@@ -612,17 +620,18 @@ const cleanupOldSessions = async () => {
     setSelectedPoint(newPoint);
     
     // If confidence voting is disabled, submit immediately
-    if (!confidenceVotingEnabled) {
-      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-      await dbModule.update(participantRef, { points: newPoint });
-    } else if (newPoint !== null && selectedConfidence !== null) {
-      // If confidence voting is enabled and confidence is already selected, submit both
-      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-      await dbModule.update(participantRef, { 
-        points: newPoint,
-        confidence: selectedConfidence
-      });
-    }
+if (!confidenceVotingEnabled) {
+  const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+  await dbModule.update(participantRef, { points: newPoint });
+} else if (newPoint !== null && selectedConfidence !== null) {
+  // If confidence voting is enabled and confidence is already selected, submit both
+  const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+  const updates = { points: newPoint };
+  if (selectedConfidence) {
+    updates.confidence = selectedConfidence;
+  }
+  await dbModule.update(participantRef, updates);
+}
   };
 
 const handleSelectConfidence = async (confidence) => {
@@ -737,12 +746,10 @@ const handleSelectConfidence = async (confidence) => {
     setTimerRunning(true);
     
     const updates = {};
-    participants.forEach(p => {
-      updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
-      if (confidenceVotingEnabled) {
-        updates[`sessions/${sessionId}/participants/${p.id}/confidence`] = null;
-      }
-    });
+participants.forEach(p => {
+  updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+  updates[`sessions/${sessionId}/participants/${p.id}/confidence`] = null;
+});
     updates[`sessions/${sessionId}/revealed`] = false;
     updates[`sessions/${sessionId}/currentTicket`] = '';
     updates[`sessions/${sessionId}/determinedPoints`] = '';
