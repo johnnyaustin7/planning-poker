@@ -1140,8 +1140,7 @@ const handleSelectConfidence = async (confidence) => {
           <div className="space-y-4">
             <button
               onClick={handleCreateSession}
-              className="w-full bg-blue-700 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors"
-            >
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md">
               Create New Session
             </button>
             <div className="relative">
@@ -1345,7 +1344,7 @@ const handleSelectConfidence = async (confidence) => {
             </div>
             <button
               onClick={handleJoin}
-              className="w-full bg-blue-700 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
             >
               Join Session
             </button>
@@ -1491,7 +1490,7 @@ const handleSelectConfidence = async (confidence) => {
       `}</style>
       
       <div className="max-w-6xl mx-auto">
-        <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
@@ -1554,7 +1553,7 @@ const handleSelectConfidence = async (confidence) => {
                 </span>
               ) : (
                 <span 
-                  className={`font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-700'} cursor-pointer hover:underline`}
+                  className={`font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-600'} cursor-pointer hover:underline`}
                   onClick={handleStartEditName}
                   title="Click to edit name"
                 >
@@ -1562,7 +1561,7 @@ const handleSelectConfidence = async (confidence) => {
                 </span>
               )}!
               <div className="inline-flex items-center gap-2 ml-2">
-                {isModerator && <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">Moderator</span>}
+                {isModerator && <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded shadow-sm">Moderator</span>}
                 {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
                 {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Voter</span>}
                 {!isModerator && (
@@ -1624,7 +1623,7 @@ const handleSelectConfidence = async (confidence) => {
                     {ticketNumber && (
                       <div className="flex items-center gap-2">
                         <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'} rounded font-semibold`}>
+                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
                           {ticketNumber}
                         </span>
                       </div>
@@ -1641,7 +1640,7 @@ const handleSelectConfidence = async (confidence) => {
                       onClick={() => handleSelectPoint(point)}
                       className={`aspect-square rounded-lg font-bold text-xl transition-all ${
                         selectedPoint === point
-                          ? 'bg-blue-700 text-white scale-105 shadow-lg'
+                          ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
                           : darkMode
                           ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 hover:scale-105'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
@@ -1762,7 +1761,7 @@ const handleSelectConfidence = async (confidence) => {
                     </div>
                     <button
                       onClick={handleReveal}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
                     >
                       {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
                       {revealed ? 'Hide' : 'Reveal'}
@@ -1833,7 +1832,7 @@ const handleSelectConfidence = async (confidence) => {
                       </p>
                       {!participant.isModerator && !participant.isObserver && (
                         <div className={`text-2xl font-bold ${
-                          hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-700' : darkMode ? 'text-gray-500' : 'text-gray-400'
+                          hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-600' : darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           {revealed
                             ? (
@@ -1858,18 +1857,18 @@ const handleSelectConfidence = async (confidence) => {
           </div>
 
           <div className="md:col-span-1">
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 sticky top-4`}>
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-br from-white to-slate-50'} rounded-lg shadow-xl p-4 sticky top-4`}>
               <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Statistics</h2>
               <div className="space-y-3">
-                <div className={darkMode ? 'bg-blue-900 rounded-lg p-3' : 'bg-blue-50 rounded-lg p-3'}>
+                <div className={darkMode ? 'bg-blue-900 rounded-lg p-3 shadow-md' : 'bg-blue-50 rounded-lg p-3 shadow-md'}>
                   <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Voted</p>
-                  <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-700'}`}>
+                  <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
                     {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
                   </p>
                 </div>
                 {revealed && stats && (
                   <>
-                    <div className={`rounded-lg p-3 ${
+                    <div className={`rounded-lg p-3 shadow-md ${
                       stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
                       stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
                       darkMode ? 'bg-red-900' : 'bg-red-50'
@@ -1884,7 +1883,7 @@ const handleSelectConfidence = async (confidence) => {
                       }`}>{stats.average}</p>
                     </div>
                     {confidenceVotingEnabled && stats.weightedAverage && (
-                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
+                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
                         <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
                           {stats.weightedAverage} → {stats.weightedClosest}
@@ -1892,23 +1891,21 @@ const handleSelectConfidence = async (confidence) => {
                       </div>
                     )}
                     {stats.median && (
-                      <div className={`rounded-lg p-3 ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
+                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Median</p>
                         <p className={`text-xl font-bold ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
                           {stats.median} → {stats.medianClosest}
                         </p>
                       </div>
                     )}
-                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-3' : 'bg-orange-50 rounded-lg p-3'}>
-                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
-                        Suggested
-                      </p>
+                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-3 shadow-md' : 'bg-orange-50 rounded-lg p-3'}>
+                      <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Suggested</p>
                       <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
                         {stats.suggestedEstimate}
                       </p>
                     </div>
                     {stats.consensus && (
-                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
+                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 shadow-md border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
                         <p className={`text-xs text-center font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>🎉 Consensus!</p>
                       </div>
                     )}
@@ -1917,7 +1914,7 @@ const handleSelectConfidence = async (confidence) => {
                         {stats.warnings.map((warning, idx) => (
                           <div 
                             key={idx}
-                            className={`rounded-lg p-2 border ${
+                            className={`rounded-lg p-2 shadow-md border ${
                               warning.type === 'uncertainty' ? 
                                 darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-300' :
                               warning.type === 'disagreement' ?
@@ -1930,7 +1927,7 @@ const handleSelectConfidence = async (confidence) => {
                                 darkMode ? 'text-yellow-300' : 'text-yellow-700' :
                               warning.type === 'disagreement' ?
                                 darkMode ? 'text-red-300' : 'text-red-700' :
-                                darkMode ? 'text-blue-300' : 'text-blue-700'
+                                darkMode ? 'text-blue-300' : 'text-blue-600'
                             }`}>
                               {warning.icon} {warning.message}
                             </p>
@@ -1948,12 +1945,12 @@ const handleSelectConfidence = async (confidence) => {
                       </div>
                     )}
                     {stats.range && (
-                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Range: <span className="font-bold">{stats.range.min} - {stats.range.max}</span></p>
                       </div>
                     )}
                     {confidenceVotingEnabled && stats.confidenceBreakdown && (
-                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Confidence</p>
                         <div className={`flex justify-between text-xs font-bold ${darkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
                           <span>🟢 {stats.confidenceBreakdown.high}</span>
@@ -1963,7 +1960,7 @@ const handleSelectConfidence = async (confidence) => {
                       </div>
                     )}
                     {stats.distribution && stats.distribution.length > 0 && (
-                      <div className={`rounded-lg p-2 ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
                         <p className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
                         <div className="space-y-1">
                           {stats.distribution.map(([vote, count]) => {
@@ -2023,7 +2020,7 @@ const handleSelectConfidence = async (confidence) => {
                   </button>
                   <button
                     onClick={copyHistoryToClipboard}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
                   >
                     <FileText size={16} />
                     Copy to Clipboard
@@ -2108,7 +2105,7 @@ const handleSelectConfidence = async (confidence) => {
                           ) : (
                             <div 
                               className={`px-3 py-1 rounded font-bold text-lg cursor-pointer hover:ring-2 hover:ring-blue-500 ${
-                                darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-700'
+                                darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'
                               }`}
                               onClick={() => {
                                 setEditingEstimateId(entry.timestamp);
