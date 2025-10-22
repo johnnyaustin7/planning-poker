@@ -28,7 +28,15 @@ const FIREBASE_CONFIG = {
 const APP_VERSION = "2.8.0";
 
 const RELEASE_NOTES = {
-  "2.8.0": {
+  "2.8.1": {
+  date: "October 22, 2025",
+  type: "Patch Release",
+  changes: [
+    "Fixed console error when confidence voting is disabled",
+    "Improved confidence field handling in vote submissions"
+  ]
+},
+"2.8.0": {
     date: "October 22, 2025",
     type: "Minor Release",
     changes: [
