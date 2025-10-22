@@ -25,9 +25,21 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.7.3";
+const APP_VERSION = "2.8.0";
 
 const RELEASE_NOTES = {
+  "2.8.0": {
+    date: "October 22, 2025",
+    type: "Minor Release",
+    changes: [
+      "Added card flip animations when votes are revealed",
+      "Enhanced dark mode with better contrast and brighter accent colors",
+      "Added glassmorphism effects to modals (frosted glass blur)",
+      "Smooth fade-in transitions for all screens",
+      "Modal slide-up animations for polished interactions",
+      "Improved gradient backgrounds in both light and dark modes"
+    ]
+  },
   "2.7.3": {
   date: "October 22, 2025",
   type: "Patch Release",
