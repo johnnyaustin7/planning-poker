@@ -25,39 +25,50 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.8.1";
+const APP_VERSION = "2.8.2";
 
 const RELEASE_NOTES = {
+  "2.8.2": {
+    date: "October 22, 2025",
+    type: "Patch Release",
+    changes: [
+      "Added automated end-to-end testing with Playwright",
+      "Configured GitHub Actions for continuous integration",
+      "Tests run automatically on every code push",
+      "Multi-browser testing across Chrome, Firefox, and Safari",
+      "Critical user flows now validated before deployment"
+    ]
+  },
   "2.8.1": {
-  date: "October 22, 2025",
-  type: "Patch Release",
-  changes: [
-    "Fixed console error when confidence voting is disabled",
-    "Improved confidence field handling in vote submissions"
-  ]
-},
-"2.8.0": {
+    date: "October 22, 2025",
+    type: "Patch Release",
+    changes: [
+      "Fixed console error when confidence voting is disabled",
+      "Improved confidence field handling in vote submissions"
+    ]
+  },
+  "2.8.0": {
     date: "October 22, 2025",
     type: "Minor Release",
     changes: [
-      "Added card flip animations when votes are revealed",
-      "Enhanced dark mode with better contrast and brighter accent colors",
-      "Added glassmorphism effects to modals (frosted glass blur)",
-      "Smooth fade-in transitions for all screens",
-      "Modal slide-up animations for polished interactions",
-      "Improved gradient backgrounds in both light and dark modes"
+      "🎴 Added card flip animations when votes are revealed",
+      "🌙 Enhanced dark mode with better contrast and brighter accent colors",
+      "❄️ Added glassmorphism effects to modals (frosted glass blur)",
+      "✨ Smooth fade-in transitions for all screens",
+      "🎬 Modal slide-up animations for polished interactions",
+      "🎨 Improved gradient backgrounds in both light and dark modes"
     ]
   },
   "2.7.3": {
-  date: "October 22, 2025",
-  type: "Patch Release",
-  changes: [
-    "Expanded session ID pool from 42 to 100 unique words",
-    "Added collision detection - checks if session exists before creating",
-    "Auto-cleanup: Sessions older than 24 hours are automatically deleted",
-    "Prevents accidental overwriting of active sessions"
-  ]
-},
+    date: "October 22, 2025",
+    type: "Patch Release",
+    changes: [
+      "Expanded session ID pool from 42 to 100 unique words",
+      "Added collision detection - checks if session exists before creating",
+      "Auto-cleanup: Sessions older than 24 hours are automatically deleted",
+      "Prevents accidental overwriting of active sessions"
+    ]
+  },
   "2.7.2": {
     date: "October 21, 2025",
     type: "Patch Release",
@@ -82,36 +93,36 @@ const RELEASE_NOTES = {
     date: "October 17, 2025",
     type: "Minor Release",
     changes: [
-      "Enhanced confidence weighting - low confidence now 0.25x (was 0.5x)",
-      "Added median calculation and display for more robust estimates",
-      "Smart warnings: Team Uncertainty, High Disagreement, Limited Confidence",
-      "Suggested estimate uses median when spread is very high (>8)",
-      "Warnings appear automatically to guide moderator decisions",
-      "More accurate estimates with diverse team experience levels"
+      "⚖️ Enhanced confidence weighting - low confidence now 0.25x (was 0.5x)",
+      "📊 Added median calculation and display for more robust estimates",
+      "⚠️ Smart warnings: Team Uncertainty, High Disagreement, Limited Confidence",
+      "🎯 Suggested estimate uses median when spread is very high (>8)",
+      "💡 Warnings appear automatically to guide moderator decisions",
+      "🎓 More accurate estimates with diverse team experience levels"
     ]
   },
   "2.6.0": {
     date: "October 17, 2025",
     type: "Minor Release",
     changes: [
-      "Added Confidence-Weighted Voting system (moderator can enable/disable)",
-      "Voters can indicate High/Medium/Low confidence in their estimates",
-      "Weighted average calculation gives more weight to high-confidence votes",
-      "Shows both traditional and confidence-weighted averages when enabled",
-      "Confidence indicators displayed on participant cards after reveal",
-      "Confidence breakdown in statistics panel",
-      "Setting persists throughout session"
+      "🎚️ Added Confidence-Weighted Voting system (moderator can enable/disable)",
+      "💭 Voters can indicate High/Medium/Low confidence in their estimates",
+      "⚖️ Weighted average calculation gives more weight to high-confidence votes",
+      "📈 Shows both traditional and confidence-weighted averages when enabled",
+      "🏷️ Confidence indicators displayed on participant cards after reveal",
+      "📊 Confidence breakdown in statistics panel",
+      "💾 Setting persists throughout session"
     ]
   },
   "2.5.0": {
     date: "October 17, 2025",
     type: "Minor Release",
     changes: [
-      "Added Vote Distribution Chart in statistics panel",
-      "Visual bar chart shows vote clustering and patterns",
-      "Helps identify consensus and outliers at a glance",
-      "Automatically sorts votes from lowest to highest",
-      "Animated bars with vote counts displayed"
+      "📊 Added Vote Distribution Chart in statistics panel",
+      "📉 Visual bar chart shows vote clustering and patterns",
+      "👀 Helps identify consensus and outliers at a glance",
+      "🔢 Automatically sorts votes from lowest to highest",
+      "🎬 Animated bars with vote counts displayed"
     ]
   },
   "2.4.1": {
@@ -129,70 +140,70 @@ const RELEASE_NOTES = {
     date: "October 17, 2025",
     type: "Minor Release",
     changes: [
-      "Enhanced average display with consensus strength indicators (tight/moderate/wide)",
-      "Renamed 'Closest' to 'Suggested Estimate' with improved prominence",
-      "Added session persistence - automatically resume session on page refresh",
-      "Updated tooltip from 'Copy Session ID' to 'Copy Session Link'",
-      "Optimized voting cards for mobile - 4 columns on small screens, 6 on desktop",
-      "Added warning to prevent accidental close during active voting (moderators)",
-      "Added haptic feedback on mobile devices for votes, reveals, resets, and consensus"
+      "📊 Enhanced average display with consensus strength indicators (tight/moderate/wide)",
+      "🎯 Renamed 'Closest' to 'Suggested Estimate' with improved prominence",
+      "💾 Added session persistence - automatically resume session on page refresh",
+      "🔗 Updated tooltip from 'Copy Session ID' to 'Copy Session Link'",
+      "📱 Optimized voting cards for mobile - 4 columns on small screens, 6 on desktop",
+      "⚠️ Added warning to prevent accidental close during active voting (moderators)",
+      "📳 Added haptic feedback on mobile devices for votes, reveals, resets, and consensus"
     ]
   },
   "2.3.0": {
     date: "October 17, 2025",
     type: "Minor Release",
     changes: [
-      "Added flickering animation when 75% of voters have cast their vote",
-      "Made ticket names editable in session history (click to edit)",
-      "Added 'Final Estimate' field for moderators to set determined points",
-      "First round now requires manual reveal (prevents late joiners from seeing votes)",
-      "Timer now stops when all votes are cast or reveal is clicked",
-      "Final estimates in history are now editable (click to edit)",
-      "Ticket number now visible to all participants (not just moderator)",
-      "Removed voting scale column from CSV export",
-      "Added clickable release notes - click version number to view",
-      "Release notes accessible from all screens"
+      "✨ Added flickering animation when 75% of voters have cast their vote",
+      "✏️ Made ticket names editable in session history (click to edit)",
+      "🎯 Added 'Final Estimate' field for moderators to set determined points",
+      "🔒 First round now requires manual reveal (prevents late joiners from seeing votes)",
+      "⏱️ Timer now stops when all votes are cast or reveal is clicked",
+      "✏️ Final estimates in history are now editable (click to edit)",
+      "🎫 Ticket number now visible to all participants (not just moderator)",
+      "📊 Removed voting scale column from CSV export",
+      "📋 Added clickable release notes - click version number to view",
+      "📄 Release notes accessible from all screens"
     ]
   },
   "2.2.0": {
     date: "October 16, 2025",
     type: "Minor Release",
     changes: [
-      "Added QR code generation for easy session joining",
-      "Implemented dark mode with system preference detection",
-      "Added T-shirt sizing scale (XS, S, M, L, XL, XXL)",
-      "Added ability to switch between Fibonacci and T-shirt sizing",
-      "Consensus detection with confetti animation",
-      "Added Observer role alongside Moderator and Voter",
-      "Users can switch between voter and observer roles",
-      "Click-outside-to-close for dropdowns and modals"
+      "📱 Added QR code generation for easy session joining",
+      "🌙 Implemented dark mode with system preference detection",
+      "👕 Added T-shirt sizing scale (XS, S, M, L, XL, XXL)",
+      "🔄 Added ability to switch between Fibonacci and T-shirt sizing",
+      "🎉 Consensus detection with confetti animation",
+      "👁️ Added Observer role alongside Moderator and Voter",
+      "🔀 Users can switch between voter and observer roles",
+      "✨ Click-outside-to-close for dropdowns and modals"
     ]
   },
   "2.1.0": {
     date: "October 16, 2025",
     type: "Minor Release",
     changes: [
-      "Added ticket number input for moderators",
-      "Automatic voting history tracking",
-      "Session history viewer modal",
-      "CSV export functionality",
-      "Copy history to clipboard feature",
-      "Duration tracking per voting round",
-      "History persists in Firebase throughout session"
+      "🎫 Added ticket number input for moderators",
+      "📜 Automatic voting history tracking",
+      "🗂️ Session history viewer modal",
+      "📥 CSV export functionality",
+      "📋 Copy history to clipboard feature",
+      "⏱️ Duration tracking per voting round",
+      "💾 History persists in Firebase throughout session"
     ]
   },
   "2.0.0": {
     date: "October 16, 2025",
     type: "Major Release",
     changes: [
-      "Added version display on login and session screens",
-      "User cards now sorted by role and alphabetically",
-      "Added Voter badge display",
-      "Users auto-removed when closing tab/browser",
-      "Users can rejoin with same ID using same name",
-      "Moderators can remove users with X button",
-      "Removal notification when kicked by moderator",
-      "Mobile-responsive header layout"
+      "🔢 Added version display on login and session screens",
+      "📊 User cards now sorted by role and alphabetically",
+      "🗳️ Added Voter badge display",
+      "🚪 Users auto-removed when closing tab/browser",
+      "🔄 Users can rejoin with same ID using same name",
+      "❌ Moderators can remove users with X button",
+      "⚠️ Removal notification when kicked by moderator",
+      "📱 Mobile-responsive header layout"
     ]
   }
 };
