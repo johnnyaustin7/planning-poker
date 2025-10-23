@@ -25,9 +25,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.8.2";
+const APP_VERSION = "2.8.3";
 
 const RELEASE_NOTES = {
+  "2.8.3": {
+    date: "October 23, 2025",
+    type: "Patch Release",
+    changes: [
+      "Fixed session persistence behavior on browser refresh",
+      "Always show home screen with 'Create' and 'Join' options after refresh",
+      "QR code and session links still work to auto-join sessions",
+      "Improved user control over session joining"
+    ]
+  },
   "2.8.2": {
     date: "October 22, 2025",
     type: "Patch Release",
@@ -277,30 +287,18 @@ export default function App() {
     setDarkMode(prefersDark);
   }, []);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionParam = urlParams.get('session');
-    if (sessionParam) {
-      setSessionId(sessionParam.toUpperCase());
-    }
-    
-    const savedName = localStorage.getItem('planningPokerUserName');
-    if (savedName) {
-      setUserName(savedName);
-    }
-    
-    // Try to resume previous session
-    const savedSessionId = localStorage.getItem('planningPokerSessionId');
-    const savedUserId = localStorage.getItem('planningPokerUserId');
-    
-    if (savedSessionId && !sessionParam) {
-      setSessionId(savedSessionId);
-    }
-    
-    if (savedUserId) {
-      setCurrentUserId(savedUserId);
-    }
-  }, []);
+useEffect(() => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionParam = urlParams.get('session');
+  if (sessionParam) {
+    setSessionId(sessionParam.toUpperCase());
+  }
+  
+  const savedName = localStorage.getItem('planningPokerUserName');
+  if (savedName) {
+    setUserName(savedName);
+  }
+}, []);
 
   useEffect(() => {
     if (!sessionId || !db || !dbModule) return;
