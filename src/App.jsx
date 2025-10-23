@@ -15,6 +15,43 @@ const TSHIRT_TO_FIBONACCI = {
   'No QA': 'No QA'
 };
 
+const RETRO_FORMATS = {
+  'start-stop-continue': {
+    name: 'Start/Stop/Continue',
+    columns: [
+      { id: 'start', label: 'Start', color: '#10b981', icon: '▶️', prompt: 'What should we start doing?' },
+      { id: 'stop', label: 'Stop', color: '#ef4444', icon: '⏹️', prompt: 'What should we stop doing?' },
+      { id: 'continue', label: 'Continue', color: '#3b82f6', icon: '➡️', prompt: 'What should we keep doing?' }
+    ]
+  },
+  'www-wdgw': {
+    name: 'What Went Well / What Didn\'t Go Well',
+    columns: [
+      { id: 'well', label: 'What Went Well', color: '#10b981', icon: '✅', prompt: 'What went well?' },
+      { id: 'notwell', label: 'What Didn\'t Go Well', color: '#f59e0b', icon: '⚠️', prompt: 'What didn\'t go well?' },
+      { id: 'actions', label: 'Action Items', color: '#8b5cf6', icon: '🎯', prompt: 'What actions should we take?' }
+    ]
+  },
+  'sailboat': {
+    name: 'Sailboat',
+    columns: [
+      { id: 'wind', label: 'Wind (Helping)', color: '#3b82f6', icon: '💨', prompt: 'What\'s propelling us forward?' },
+      { id: 'anchor', label: 'Anchor (Holding Back)', color: '#f59e0b', icon: '⚓', prompt: 'What\'s slowing us down?' },
+      { id: 'rocks', label: 'Rocks (Risks)', color: '#ef4444', icon: '🪨', prompt: 'What risks do we need to avoid?' },
+      { id: 'island', label: 'Island (Goal)', color: '#10b981', icon: '🏝️', prompt: 'Where are we headed?' }
+    ]
+  },
+  '4qs': {
+    name: '4Qs Retrospective',
+    columns: [
+      { id: 'wins', label: 'Wins', color: '#10b981', icon: '🏆', prompt: 'What did we do well that we should discuss so we don\'t forget?' },
+      { id: 'learnings', label: 'Learnings', color: '#3b82f6', icon: '💡', prompt: 'What did we learn?' },
+      { id: 'improvements', label: 'Improvements', color: '#f59e0b', icon: '📈', prompt: 'What should we do differently next time?' },
+      { id: 'questions', label: 'Questions', color: '#8b5cf6', icon: '❓', prompt: 'What questions do we have?' }
+    ]
+  }
+};
+
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAQtXHpQQuS5-HNXzS_PL9yTcQofhVoMOM",
   authDomain: "pointing-poker-b7a24.firebaseapp.com",
@@ -25,9 +62,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.8.3";
-
+const APP_VERSION = "2.9.0";
 const RELEASE_NOTES = {
+  "2.9.0": {
+    date: "October 23, 2025",
+    type: "Minor Release",
+    changes: [
+      "🔄 Added Retrospective functionality",
+      "🎨 Rebranded to 'Scrumptious' - unified agile ceremony toolkit",
+      "📋 Four retrospective formats: Start/Stop/Continue, WWW/WDGW, Sailboat, 4Qs",
+      "🎯 Unified session creation - choose ceremony type from landing page",
+      "🔗 Auto-detection of session type when joining"
+    ]
+  },
   "2.8.3": {
     date: "October 23, 2025",
     type: "Patch Release",
@@ -38,201 +85,8 @@ const RELEASE_NOTES = {
       "Improved user control over session joining"
     ]
   },
-  "2.8.2": {
-    date: "October 22, 2025",
-    type: "Patch Release",
-    changes: [
-      "Added automated end-to-end testing with Playwright",
-      "Configured GitHub Actions for continuous integration",
-      "Tests run automatically on every code push",
-      "Multi-browser testing across Chrome, Firefox, and Safari",
-      "Critical user flows now validated before deployment"
-    ]
-  },
-  "2.8.1": {
-    date: "October 22, 2025",
-    type: "Patch Release",
-    changes: [
-      "Fixed console error when confidence voting is disabled",
-      "Improved confidence field handling in vote submissions"
-    ]
-  },
-  "2.8.0": {
-    date: "October 22, 2025",
-    type: "Minor Release",
-    changes: [
-      "🎴 Added card flip animations when votes are revealed",
-      "🌙 Enhanced dark mode with better contrast and brighter accent colors",
-      "❄️ Added glassmorphism effects to modals (frosted glass blur)",
-      "✨ Smooth fade-in transitions for all screens",
-      "🎬 Modal slide-up animations for polished interactions",
-      "🎨 Improved gradient backgrounds in both light and dark modes"
-    ]
-  },
-  "2.7.3": {
-    date: "October 22, 2025",
-    type: "Patch Release",
-    changes: [
-      "Expanded session ID pool from 42 to 100 unique words",
-      "Added collision detection - checks if session exists before creating",
-      "Auto-cleanup: Sessions older than 24 hours are automatically deleted",
-      "Prevents accidental overwriting of active sessions"
-    ]
-  },
-  "2.7.2": {
-    date: "October 21, 2025",
-    type: "Patch Release",
-    changes: [
-      "Removed '55' card from Fibonacci scale (now 10 cards)",
-      "Confidence buttons can now be toggled on/off by clicking (like vote buttons)",
-      "Added hover scale effect to confidence buttons for consistency",
-      "Toggling confidence off now clears the vote if already submitted"
-    ]
-  },
-  "2.7.1": {
-    date: "October 17, 2025",
-    type: "Patch Release",
-    changes: [
-      "Fixed duplicate variable declaration causing build failure",
-      "Fixed flicker animation to stop once user has voted",
-      "Adjusted flicker thresholds: 60% for 3 or fewer voters, 75% for 4+ voters",
-      "Flicker now respects confidence voting state"
-    ]
-  },
-  "2.7.0": {
-    date: "October 17, 2025",
-    type: "Minor Release",
-    changes: [
-      "⚖️ Enhanced confidence weighting - low confidence now 0.25x (was 0.5x)",
-      "📊 Added median calculation and display for more robust estimates",
-      "⚠️ Smart warnings: Team Uncertainty, High Disagreement, Limited Confidence",
-      "🎯 Suggested estimate uses median when spread is very high (>8)",
-      "💡 Warnings appear automatically to guide moderator decisions",
-      "🎓 More accurate estimates with diverse team experience levels"
-    ]
-  },
-  "2.6.0": {
-    date: "October 17, 2025",
-    type: "Minor Release",
-    changes: [
-      "🎚️ Added Confidence-Weighted Voting system (moderator can enable/disable)",
-      "💭 Voters can indicate High/Medium/Low confidence in their estimates",
-      "⚖️ Weighted average calculation gives more weight to high-confidence votes",
-      "📈 Shows both traditional and confidence-weighted averages when enabled",
-      "🏷️ Confidence indicators displayed on participant cards after reveal",
-      "📊 Confidence breakdown in statistics panel",
-      "💾 Setting persists throughout session"
-    ]
-  },
-  "2.5.0": {
-    date: "October 17, 2025",
-    type: "Minor Release",
-    changes: [
-      "📊 Added Vote Distribution Chart in statistics panel",
-      "📉 Visual bar chart shows vote clustering and patterns",
-      "👀 Helps identify consensus and outliers at a glance",
-      "🔢 Automatically sorts votes from lowest to highest",
-      "🎬 Animated bars with vote counts displayed"
-    ]
-  },
-  "2.4.1": {
-    date: "October 17, 2025",
-    type: "Patch Release",
-    changes: [
-      "Fixed Leave Session button - no longer shows 'removed by moderator' warning",
-      "Fixed ticket ID clearing - now syncs removal across all participants",
-      "Moved ticket display to 'Select Your Estimate' section header",
-      "Cleaned up duplicate ticket displays",
-      "Fixed beforeunload handler performance issue"
-    ]
-  },
-  "2.4.0": {
-    date: "October 17, 2025",
-    type: "Minor Release",
-    changes: [
-      "📊 Enhanced average display with consensus strength indicators (tight/moderate/wide)",
-      "🎯 Renamed 'Closest' to 'Suggested Estimate' with improved prominence",
-      "💾 Added session persistence - automatically resume session on page refresh",
-      "🔗 Updated tooltip from 'Copy Session ID' to 'Copy Session Link'",
-      "📱 Optimized voting cards for mobile - 4 columns on small screens, 6 on desktop",
-      "⚠️ Added warning to prevent accidental close during active voting (moderators)",
-      "📳 Added haptic feedback on mobile devices for votes, reveals, resets, and consensus"
-    ]
-  },
-  "2.3.0": {
-    date: "October 17, 2025",
-    type: "Minor Release",
-    changes: [
-      "✨ Added flickering animation when 75% of voters have cast their vote",
-      "✏️ Made ticket names editable in session history (click to edit)",
-      "🎯 Added 'Final Estimate' field for moderators to set determined points",
-      "🔒 First round now requires manual reveal (prevents late joiners from seeing votes)",
-      "⏱️ Timer now stops when all votes are cast or reveal is clicked",
-      "✏️ Final estimates in history are now editable (click to edit)",
-      "🎫 Ticket number now visible to all participants (not just moderator)",
-      "📊 Removed voting scale column from CSV export",
-      "📋 Added clickable release notes - click version number to view",
-      "📄 Release notes accessible from all screens"
-    ]
-  },
-  "2.2.0": {
-    date: "October 16, 2025",
-    type: "Minor Release",
-    changes: [
-      "📱 Added QR code generation for easy session joining",
-      "🌙 Implemented dark mode with system preference detection",
-      "👕 Added T-shirt sizing scale (XS, S, M, L, XL, XXL)",
-      "🔄 Added ability to switch between Fibonacci and T-shirt sizing",
-      "🎉 Consensus detection with confetti animation",
-      "👁️ Added Observer role alongside Moderator and Voter",
-      "🔀 Users can switch between voter and observer roles",
-      "✨ Click-outside-to-close for dropdowns and modals"
-    ]
-  },
-  "2.1.0": {
-    date: "October 16, 2025",
-    type: "Minor Release",
-    changes: [
-      "🎫 Added ticket number input for moderators",
-      "📜 Automatic voting history tracking",
-      "🗂️ Session history viewer modal",
-      "📥 CSV export functionality",
-      "📋 Copy history to clipboard feature",
-      "⏱️ Duration tracking per voting round",
-      "💾 History persists in Firebase throughout session"
-    ]
-  },
-  "2.0.0": {
-    date: "October 16, 2025",
-    type: "Major Release",
-    changes: [
-      "🔢 Added version display on login and session screens",
-      "📊 User cards now sorted by role and alphabetically",
-      "🗳️ Added Voter badge display",
-      "🚪 Users auto-removed when closing tab/browser",
-      "🔄 Users can rejoin with same ID using same name",
-      "❌ Moderators can remove users with X button",
-      "⚠️ Removal notification when kicked by moderator",
-      "📱 Mobile-responsive header layout"
-    ]
-  }
+  // ... rest of your existing release notes ...
 };
-
-let firebaseApp = null;
-let database = null;
-
-const initializeFirebase = async () => {
-  if (firebaseApp) return { app: firebaseApp, db: database };
-  
-  const firebase = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-  const dbModule = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
-  
-  firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
-  database = dbModule.getDatabase(firebaseApp);
-  
-  return { app: firebaseApp, db: database, dbModule };
-};
-
 export default function App() {
   const [userName, setUserName] = useState('');
   const [isModerator, setIsModerator] = useState(false);
@@ -272,7 +126,14 @@ export default function App() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [selectedConfidence, setSelectedConfidence] = useState(null);
   const [confidenceVotingEnabled, setConfidenceVotingEnabled] = useState(false);
-
+  
+  // NEW STATE VARIABLES FOR RETROSPECTIVE
+  const [sessionType, setSessionType] = useState(null); // 'estimation' or 'retrospective'
+  const [retroFormat, setRetroFormat] = useState(null);
+  const [showFormatSelector, setShowFormatSelector] = useState(false);
+  const [retroItems, setRetroItems] = useState({});
+  const [newItemText, setNewItemText] = useState('');
+  const [selectedColumn, setSelectedColumn] = useState(null);
   useEffect(() => {
     const init = async () => {
       const { db: firebaseDb, dbModule: firebaseDbModule } = await initializeFirebase();
@@ -300,6 +161,7 @@ useEffect(() => {
   }
 }, []);
 
+  // UPDATED: This useEffect now handles both estimation and retrospective sessions
   useEffect(() => {
     if (!sessionId || !db || !dbModule) return;
 
@@ -316,6 +178,21 @@ useEffect(() => {
         setParticipants(newParticipants);
         setRevealed(newRevealed);
         setVotingScale(newVotingScale);
+        
+        // Load session type
+        if (data.sessionType) {
+          setSessionType(data.sessionType);
+        }
+        
+        // Load retrospective data
+        if (data.sessionType === 'retrospective') {
+          if (data.retroFormat) {
+            setRetroFormat(data.retroFormat);
+          }
+          if (data.retroItems) {
+            setRetroItems(data.retroItems);
+          }
+        }
         
         // Load confidence voting setting
         if (data.confidenceVotingEnabled !== undefined) {
@@ -348,7 +225,6 @@ useEffect(() => {
         // Check if current user still exists in session
         if (currentUserId && hasJoined) {
           if (!data.participants || !data.participants[currentUserId]) {
-            // User was removed - only show warning if wasRemoved flag wasn't manually cleared
             if (!wasRemoved) {
               setWasRemoved(true);
             }
@@ -363,49 +239,48 @@ useEffect(() => {
           setIsObserver(data.participants[currentUserId].isObserver || false);
         }
         
-        const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
-        const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
-        
-        // Stop timer when all votes are cast or revealed
-        if (allVoted || newRevealed) {
-          setTimerRunning(false);
-        }
-        
-        // Check if threshold met and current user hasn't voted (60% for ≤3 voters, 75% for 4+)
-        if (currentUserId && hasJoined && !isModerator && !isObserver) {
-          const votedCount = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length;
-          const totalVoters = votingParticipants.length;
-          const currentUserVoted = data.participants[currentUserId]?.points !== null && 
-                                   data.participants[currentUserId]?.points !== undefined && 
-                                   data.participants[currentUserId]?.points !== '';
+        // Only run estimation-specific logic if this is an estimation session
+        if (data.sessionType === 'estimation' || !data.sessionType) {
+          const votingParticipants = newParticipants.filter(p => !p.isModerator && !p.isObserver);
+          const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
           
-          const threshold = totalVoters <= 3 ? 0.60 : 0.75;
-          
-          if (totalVoters > 0 && votedCount / totalVoters >= threshold && !currentUserVoted) {
-            setShouldFlicker(true);
-          } else {
-            setShouldFlicker(false);
+          if (allVoted || newRevealed) {
+            setTimerRunning(false);
           }
-        }
-        
-        // Only auto-reveal if not the first round
-        const checkIsFirstRound = data.isFirstRound !== undefined ? data.isFirstRound : true;
-        if (!newRevealed && allVoted && votingParticipants.length > 0 && !checkIsFirstRound) {
-          handleReveal();
-        }
-        
-        if (!revealed && newRevealed) {
-          const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
           
-          if (votes.length > 1) {
-            const uniqueVotes = new Set(votes);
-            if (uniqueVotes.size === 1) {
-              setShowConfetti(true);
-              setTimeout(() => setShowConfetti(false), 4000);
-              
-              // Haptic feedback for consensus
-              if (navigator.vibrate) {
-                navigator.vibrate([50, 100, 50, 100, 50]);
+          if (currentUserId && hasJoined && !isModerator && !isObserver) {
+            const votedCount = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length;
+            const totalVoters = votingParticipants.length;
+            const currentUserVoted = data.participants[currentUserId]?.points !== null && 
+                                     data.participants[currentUserId]?.points !== undefined && 
+                                     data.participants[currentUserId]?.points !== '';
+            
+            const threshold = totalVoters <= 3 ? 0.60 : 0.75;
+            
+            if (totalVoters > 0 && votedCount / totalVoters >= threshold && !currentUserVoted) {
+              setShouldFlicker(true);
+            } else {
+              setShouldFlicker(false);
+            }
+          }
+          
+          const checkIsFirstRound = data.isFirstRound !== undefined ? data.isFirstRound : true;
+          if (!newRevealed && allVoted && votingParticipants.length > 0 && !checkIsFirstRound) {
+            handleReveal();
+          }
+          
+          if (!revealed && newRevealed) {
+            const votes = votingParticipants.map(p => p.points).filter(p => p !== null);
+            
+            if (votes.length > 1) {
+              const uniqueVotes = new Set(votes);
+              if (uniqueVotes.size === 1) {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 4000);
+                
+                if (navigator.vibrate) {
+                  navigator.vibrate([50, 100, 50, 100, 50]);
+                }
               }
             }
           }
@@ -427,7 +302,6 @@ useEffect(() => {
   useEffect(() => {
     if (!hasJoined || !currentUserId || !db || !dbModule || !sessionId) return;
     
-    // Prevent accidental closes if moderator and voting is active
     const handleBeforeUnload = (e) => {
       const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
       const hasVotes = votingParticipants.some(p => p.points !== null && p.points !== undefined && p.points !== '');
@@ -454,91 +328,137 @@ useEffect(() => {
     
     return () => clearInterval(interval);
   }, [hasJoined, isModerator, resetTime, timerRunning]);
-
   const generateSessionId = () => {
-  const words = [
-    'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
-    'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
-    'PLANET', 'RABBIT', 'SILVER', 'TIGER', 'VIOLET', 'WIZARD',
-    'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
-    'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
-    'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
-    'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER','ARROW', 
-    'BRIDGE', 'COBRA', 'DELTA', 'EMBER', 'FROST', 'ZODIAC',
-    'GHOST', 'HAWK', 'IVORY', 'JADE', 'KITE', 'LOTUS',
-    'MANGO', 'NEXUS', 'OPAL', 'PHOENIX', 'QUARTZ', 'RAVEN',
-    'SPARK', 'THUNDER', 'UNITY', 'VIPER', 'WAVE', 'XENON',
-    'YOUTH', 'ZENITH', 'APPLE', 'BEAR', 'CLOUD', 'DAWN',
-    'EAGLE', 'FLAME', 'GLACIER', 'HYDRA', 'IRON', 'JAGUAR',
-    'KNIGHT', 'LYNX', 'METEOR', 'NOVA', 'OMEGA', 'PRISM',
-    'QUEST', 'RUSH', 'STORM', 'TITAN', 'ULTRA', 'VERTEX',
-    'WARDEN', 'XEROX', 'YETI'
-  ];
-  return words[Math.floor(Math.random() * words.length)];
-};
+    const words = [
+      'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
+      'ISLAND', 'JUNGLE', 'KITTEN', 'LEMON', 'MARBLE', 'ORANGE',
+      'PLANET', 'RABBIT', 'SILVER', 'TIGER', 'VIOLET', 'WIZARD',
+      'YELLOW', 'ANCHOR', 'BUCKET', 'CANDLE', 'DANCER', 'ENGINE',
+      'FALCON', 'GARDEN', 'HELMET', 'INSECT', 'JACKET', 'KETTLE',
+      'LADDER', 'MAGNET', 'NAPKIN', 'OCTAVE', 'PENCIL', 'ROCKET',
+      'SADDLE', 'TIMBER', 'VELVET', 'WALNUT', 'ZIPPER','ARROW', 
+      'BRIDGE', 'COBRA', 'DELTA', 'EMBER', 'FROST', 'ZODIAC',
+      'GHOST', 'HAWK', 'IVORY', 'JADE', 'KITE', 'LOTUS',
+      'MANGO', 'NEXUS', 'OPAL', 'PHOENIX', 'QUARTZ', 'RAVEN',
+      'SPARK', 'THUNDER', 'UNITY', 'VIPER', 'WAVE', 'XENON',
+      'YOUTH', 'ZENITH', 'APPLE', 'BEAR', 'CLOUD', 'DAWN',
+      'EAGLE', 'FLAME', 'GLACIER', 'HYDRA', 'IRON', 'JAGUAR',
+      'KNIGHT', 'LYNX', 'METEOR', 'NOVA', 'OMEGA', 'PRISM',
+      'QUEST', 'RUSH', 'STORM', 'TITAN', 'ULTRA', 'VERTEX',
+      'WARDEN', 'XEROX', 'YETI'
+    ];
+    return words[Math.floor(Math.random() * words.length)];
+  };
 
-  const handleCreateSession = async () => {
-  if (!db || !dbModule) return;
+  // UPDATED: Now accepts type parameter and handles retrospective format selection
+  const handleCreateSession = async (type) => {
+    if (!db || !dbModule) return;
 
-  // Clean up old sessions before creating new one
-  cleanupOldSessions();
-  
-  let newSessionId;
-  let attempts = 0;
-  const maxAttempts = 20;
-  
-  // Keep trying until we find an unused ID
-  while (attempts < maxAttempts) {
-    newSessionId = generateSessionId();
-    const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
-    const snapshot = await dbModule.get(sessionRef);
-    
-    if (!snapshot.exists()) {
-      // Found an unused ID!
-      break;
+    // If retrospective, show format selector first
+    if (type === 'retrospective') {
+      setSessionType('retrospective');
+      setShowFormatSelector(true);
+      return;
     }
-    attempts++;
-  }
-  
-  // Fallback: if couldn't find unique ID, add timestamp
-  if (attempts >= maxAttempts) {
-    newSessionId = generateSessionId() + '-' + Date.now().toString().slice(-3);
-  }
-  
-  setSessionId(newSessionId);
-  
-  const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
-  await dbModule.set(sessionRef, { 
-    votingScale: 'fibonacci',
-    revealed: false,
-    participants: {},
-    isFirstRound: true,
-    confidenceVotingEnabled: false,
-    createdAt: Date.now() // Track when session was created
-  });
-};
 
-const cleanupOldSessions = async () => {
-  if (!db || !dbModule) return;
-  
-  const sessionsRef = dbModule.ref(db, 'sessions');
-  const snapshot = await dbModule.get(sessionsRef);
-  
-  if (snapshot.exists()) {
-    const sessions = snapshot.val();
-    const now = Date.now();
-    const twentyFourHours = 24 * 60 * 60 * 1000;
+    // For estimation, create immediately
+    cleanupOldSessions();
     
-    Object.entries(sessions).forEach(async ([sessionId, sessionData]) => {
-      if (sessionData.createdAt && (now - sessionData.createdAt) > twentyFourHours) {
-        // Delete sessions older than 24 hours
-        const oldSessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-        await dbModule.remove(oldSessionRef);
-        console.log(`Cleaned up old session: ${sessionId}`);
+    let newSessionId;
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+      newSessionId = generateSessionId();
+      const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
+      const snapshot = await dbModule.get(sessionRef);
+      
+      if (!snapshot.exists()) {
+        break;
       }
+      attempts++;
+    }
+    
+    if (attempts >= maxAttempts) {
+      newSessionId = generateSessionId() + '-' + Date.now().toString().slice(-3);
+    }
+    
+    setSessionId(newSessionId);
+    setSessionType(type);
+    
+    const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
+    await dbModule.set(sessionRef, { 
+      sessionType: type,
+      votingScale: 'fibonacci',
+      revealed: false,
+      participants: {},
+      isFirstRound: true,
+      confidenceVotingEnabled: false,
+      createdAt: Date.now()
     });
-  }
-};
+  };
+
+  // NEW: Function to create retrospective session with selected format
+  const handleCreateRetroSession = async (format) => {
+    if (!db || !dbModule) return;
+
+    cleanupOldSessions();
+    
+    let newSessionId;
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+      newSessionId = generateSessionId();
+      const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
+      const snapshot = await dbModule.get(sessionRef);
+      
+      if (!snapshot.exists()) {
+        break;
+      }
+      attempts++;
+    }
+    
+    if (attempts >= maxAttempts) {
+      newSessionId = generateSessionId() + '-' + Date.now().toString().slice(-3);
+    }
+    
+    setSessionId(newSessionId);
+    setSessionType('retrospective');
+    setRetroFormat(format);
+    setShowFormatSelector(false);
+    
+    const sessionRef = dbModule.ref(db, `sessions/${newSessionId}`);
+    await dbModule.set(sessionRef, { 
+      sessionType: 'retrospective',
+      retroFormat: format,
+      revealed: false,
+      participants: {},
+      retroItems: {},
+      createdAt: Date.now()
+    });
+  };
+
+  const cleanupOldSessions = async () => {
+    if (!db || !dbModule) return;
+    
+    const sessionsRef = dbModule.ref(db, 'sessions');
+    const snapshot = await dbModule.get(sessionsRef);
+    
+    if (snapshot.exists()) {
+      const sessions = snapshot.val();
+      const now = Date.now();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      Object.entries(sessions).forEach(async ([sessionId, sessionData]) => {
+        if (sessionData.createdAt && (now - sessionData.createdAt) > twentyFourHours) {
+          const oldSessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+          await dbModule.remove(oldSessionRef);
+          console.log(`Cleaned up old session: ${sessionId}`);
+        }
+      });
+    }
+  };
 
   const handleJoinSession = () => {
     if (sessionIdInput.trim()) {
@@ -551,25 +471,21 @@ const cleanupOldSessions = async () => {
       localStorage.setItem('planningPokerUserName', userName.trim());
       localStorage.setItem('planningPokerSessionId', sessionId);
       
-      // Check if user with same name already exists
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await dbModule.get(sessionRef);
       
       let userId = null;
       
       if (sessionSnapshot.exists() && sessionSnapshot.val().participants) {
-        // Look for existing user with same name
         const existingUser = Object.entries(sessionSnapshot.val().participants).find(
           ([id, participant]) => participant.name === userName.trim()
         );
         
         if (existingUser) {
-          // Reuse existing user ID
           userId = existingUser[0];
         }
       }
       
-      // If no existing user found, create new ID or use saved one
       if (!userId) {
         userId = currentUserId || Date.now().toString();
       }
@@ -580,6 +496,7 @@ const cleanupOldSessions = async () => {
       
       if (!sessionSnapshot.exists()) {
         await dbModule.set(sessionRef, {
+          sessionType: 'estimation',
           votingScale: 'fibonacci',
           revealed: false,
           participants: {},
@@ -609,18 +526,16 @@ const cleanupOldSessions = async () => {
         if (sessionIdInput.trim()) {
           handleJoinSession();
         } else {
-          handleCreateSession();
+          handleCreateSession('estimation');
         }
       } else if (!hasJoined) {
         handleJoin();
       }
     }
   };
-
   const handleSelectPoint = async (point) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
     
-    // Haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
@@ -628,34 +543,29 @@ const cleanupOldSessions = async () => {
     const newPoint = selectedPoint === point ? null : point;
     setSelectedPoint(newPoint);
     
-    // If confidence voting is disabled, submit immediately
-if (!confidenceVotingEnabled) {
-  const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-  await dbModule.update(participantRef, { points: newPoint });
-} else if (newPoint !== null && selectedConfidence !== null) {
-  // If confidence voting is enabled and confidence is already selected, submit both
-  const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-  const updates = { points: newPoint };
-  if (selectedConfidence) {
-    updates.confidence = selectedConfidence;
-  }
-  await dbModule.update(participantRef, updates);
-}
+    if (!confidenceVotingEnabled) {
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      await dbModule.update(participantRef, { points: newPoint });
+    } else if (newPoint !== null && selectedConfidence !== null) {
+      const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+      const updates = { points: newPoint };
+      if (selectedConfidence) {
+        updates.confidence = selectedConfidence;
+      }
+      await dbModule.update(participantRef, updates);
+    }
   };
 
-const handleSelectConfidence = async (confidence) => {
+  const handleSelectConfidence = async (confidence) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
     
-    // Haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
     
-    // Toggle off if clicking the same confidence
     const newConfidence = selectedConfidence === confidence ? null : confidence;
     setSelectedConfidence(newConfidence);
     
-    // Auto-submit if both point and confidence are selected
     if (selectedPoint !== null && newConfidence !== null) {
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       const updates = { 
@@ -665,7 +575,6 @@ const handleSelectConfidence = async (confidence) => {
       
       await dbModule.update(participantRef, updates);
     } else if (selectedPoint !== null && newConfidence === null) {
-      // If toggling confidence off but point is selected, clear the vote
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       await dbModule.update(participantRef, { 
         points: null,
@@ -679,7 +588,6 @@ const handleSelectConfidence = async (confidence) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
     if (selectedPoint === null || (confidenceVotingEnabled && selectedConfidence === null)) return;
     
-    // Haptic feedback
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
@@ -697,7 +605,6 @@ const handleSelectConfidence = async (confidence) => {
   const handleReveal = async () => {
     if (!db || !dbModule) return;
     
-    // Haptic feedback for reveal
     if (navigator.vibrate) {
       navigator.vibrate(20);
     }
@@ -705,7 +612,6 @@ const handleSelectConfidence = async (confidence) => {
     const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
     const updates = { revealed: !revealed };
     
-    // Mark that we're no longer on the first round after first reveal
     if (isFirstRound && !revealed) {
       updates.isFirstRound = false;
     }
@@ -716,12 +622,10 @@ const handleSelectConfidence = async (confidence) => {
   const handleReset = async () => {
     if (!db || !dbModule) return;
     
-    // Haptic feedback for reset
     if (navigator.vibrate) {
       navigator.vibrate([10, 50, 10]);
     }
     
-    // Save current round to history if revealed and has votes
     if (revealed && votingParticipants.length > 0) {
       const votedParticipants = votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '');
       
@@ -755,10 +659,10 @@ const handleSelectConfidence = async (confidence) => {
     setTimerRunning(true);
     
     const updates = {};
-participants.forEach(p => {
-  updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
-  updates[`sessions/${sessionId}/participants/${p.id}/confidence`] = null;
-});
+    participants.forEach(p => {
+      updates[`sessions/${sessionId}/participants/${p.id}/points`] = null;
+      updates[`sessions/${sessionId}/participants/${p.id}/confidence`] = null;
+    });
     updates[`sessions/${sessionId}/revealed`] = false;
     updates[`sessions/${sessionId}/currentTicket`] = '';
     updates[`sessions/${sessionId}/determinedPoints`] = '';
@@ -799,7 +703,48 @@ participants.forEach(p => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
+  // NEW: Add retrospective item
+  const handleAddRetroItem = async (columnId) => {
+    if (!newItemText.trim() || !db || !dbModule || !currentUserId) return;
+    
+    const itemId = Date.now().toString();
+    const item = {
+      id: itemId,
+      text: newItemText.trim(),
+      authorId: currentUserId,
+      authorName: userName,
+      columnId: columnId,
+      timestamp: Date.now(),
+      votes: 0
+    };
+    
+    const itemRef = dbModule.ref(db, `sessions/${sessionId}/retroItems/${itemId}`);
+    await dbModule.set(itemRef, item);
+    
+    setNewItemText('');
+    setSelectedColumn(null);
+  };
 
+  // NEW: Delete retrospective item
+  const handleDeleteRetroItem = async (itemId) => {
+    if (!db || !dbModule) return;
+    
+    const itemRef = dbModule.ref(db, `sessions/${sessionId}/retroItems/${itemId}`);
+    await dbModule.remove(itemRef);
+  };
+
+  // NEW: Vote on retrospective item
+  const handleVoteRetroItem = async (itemId) => {
+    if (!db || !dbModule) return;
+    
+    const item = retroItems[itemId];
+    if (!item) return;
+    
+    const newVotes = (item.votes || 0) + 1;
+    
+    const itemRef = dbModule.ref(db, `sessions/${sessionId}/retroItems/${itemId}`);
+    await dbModule.update(itemRef, { votes: newVotes });
+  };
   const removeUser = async (userId) => {
     if (!isModerator || !db || !dbModule) return;
     
@@ -813,11 +758,9 @@ participants.forEach(p => {
     const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
     await dbModule.remove(participantRef);
     
-    // Clear session data
     localStorage.removeItem('planningPokerSessionId');
     localStorage.removeItem('planningPokerUserId');
     
-    // Reset state - don't show "was removed" warning
     setHasJoined(false);
     setSessionId('');
     setSelectedPoint(null);
@@ -997,11 +940,9 @@ participants.forEach(p => {
     
     if (numericVotes.length === 0) return null;
     
-    // Traditional average
     const sum = numericVotes.reduce((acc, val) => acc + val, 0);
     const avg = sum / numericVotes.length;
     
-    // Confidence-weighted average (if enabled)
     let weightedAvg = avg;
     let totalWeight = 0;
     const confidenceWeights = { 'low': 0.25, 'medium': 1.0, 'high': 2.0 };
@@ -1039,7 +980,6 @@ participants.forEach(p => {
       displayClosest = tshirtEntry ? tshirtEntry[0] : closest;
     }
     
-    // Calculate weighted closest separately if confidence voting enabled
     if (confidenceVotingEnabled && totalWeight > 0) {
       weightedClosest = fibonacciScale.reduce((prev, curr) =>
         Math.abs(curr - weightedAvg) < Math.abs(prev - weightedAvg) ? curr : prev
@@ -1074,21 +1014,17 @@ participants.forEach(p => {
       return Math.abs(voteIndex - avgIndex) > 2;
     });
     
-    // Calculate vote distribution
     const distribution = {};
     allVotes.forEach(vote => {
       distribution[vote] = (distribution[vote] || 0) + 1;
     });
     
-    // Sort distribution by vote value
     const sortedDistribution = Object.entries(distribution).sort((a, b) => {
-      // Handle special cases (?, No QA)
       if (a[0] === '?') return 1;
       if (b[0] === '?') return 1;
       if (a[0] === 'No QA') return 1;
       if (b[0] === 'No QA') return 1;
       
-      // Get numeric values for sorting
       let aVal = a[0];
       let bVal = b[0];
       
@@ -1102,14 +1038,12 @@ participants.forEach(p => {
     
     const maxCount = Math.max(...Object.values(distribution));
     
-    // Calculate median
     const sortedNumericVotes = [...numericVotes].sort((a, b) => a - b);
     const mid = Math.floor(sortedNumericVotes.length / 2);
     const median = sortedNumericVotes.length % 2 === 0
       ? (sortedNumericVotes[mid - 1] + sortedNumericVotes[mid]) / 2
       : sortedNumericVotes[mid];
     
-    // Find closest Fibonacci/T-shirt to median
     let medianClosest = fibonacciScale.reduce((prev, curr) =>
       Math.abs(curr - median) < Math.abs(prev - median) ? curr : prev
     );
@@ -1119,7 +1053,6 @@ participants.forEach(p => {
       medianClosest = tshirtEntry ? tshirtEntry[0] : medianClosest;
     }
     
-    // Confidence breakdown and warnings
     let confidenceBreakdown = null;
     let warnings = [];
     
@@ -1133,7 +1066,6 @@ participants.forEach(p => {
       const totalVoters = votingParticipants.length;
       const confidentVoters = confidenceBreakdown.high + confidenceBreakdown.medium;
       
-      // Warning 1: Team Uncertainty
       if (confidenceBreakdown.low / totalVoters > 0.5) {
         warnings.push({
           type: 'uncertainty',
@@ -1143,7 +1075,6 @@ participants.forEach(p => {
         });
       }
       
-      // Warning 2: High Disagreement among confident voters
       const confidentVotes = votingParticipants
         .filter(p => p.confidence === 'high')
         .map(p => {
@@ -1166,7 +1097,6 @@ participants.forEach(p => {
         }
       }
       
-      // Warning 3: Limited Confidence
       if (confidentVoters < 2) {
         warnings.push({
           type: 'limited',
@@ -1177,7 +1107,6 @@ participants.forEach(p => {
       }
     }
     
-    // Use median as suggested estimate if high spread
     let suggestedEstimate = confidenceVotingEnabled && weightedClosest ? weightedClosest : displayClosest;
     if (spread > 8 && median) {
       suggestedEstimate = medianClosest;
@@ -1201,7 +1130,6 @@ participants.forEach(p => {
       warnings
     };
   };
-
   if (!db || !dbModule) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 flex items-center justify-center">
@@ -1212,14 +1140,13 @@ participants.forEach(p => {
       </div>
     );
   }
-
   if (!sessionId) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full fade-in`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -1230,14 +1157,38 @@ participants.forEach(p => {
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
             </div>
-            <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Create a new session or join an existing one</p>
+            <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Your agile ceremony toolkit</p>
           </div>
           <div className="space-y-4">
-            <button
-              onClick={handleCreateSession}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md">
-              Create New Session
-            </button>
+            {/* Session Type Selection Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleCreateSession('estimation')}
+                className={`${darkMode ? 'bg-gray-700 hover:border-blue-400' : 'bg-white hover:border-blue-500'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
+              >
+                <div className="text-4xl mb-2">🃏</div>
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Planning Poker
+                </h3>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Estimate stories
+                </p>
+              </button>
+
+              <button
+                onClick={() => handleCreateSession('retrospective')}
+                className={`${darkMode ? 'bg-gray-700 hover:border-purple-400' : 'bg-white hover:border-purple-500'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
+              >
+                <div className="text-4xl mb-2">🔄</div>
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Retrospective
+                </h3>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Reflect & improve
+                </p>
+              </button>
+            </div>
+            
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className={`w-full border-t ${darkMode ? 'border-gray-600' : 'border-gray-300'}`}></div>
@@ -1275,11 +1226,63 @@ participants.forEach(p => {
               onClick={() => setShowReleaseNotes(true)}
               title="View release notes"
             >
-              Planning Poker v{APP_VERSION}
+              Scrumptious v{APP_VERSION}
             </p>
           </div>
         </div>
 
+        {/* Format Selector Modal for Retrospective */}
+        {showFormatSelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowFormatSelector(false)}
+            />
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-2xl w-full relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Choose Retrospective Format
+                  </h2>
+                  <button
+                    onClick={() => setShowFormatSelector(false)}
+                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(RETRO_FORMATS).map(([key, format]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleCreateRetroSession(key)}
+                      className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg p-4 text-left transition-all border-2 border-transparent hover:border-purple-500`}
+                    >
+                      <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        {format.name}
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {format.columns.map(col => (
+                          <span
+                            key={col.id}
+                            className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-white text-gray-700'}`}
+                          >
+                            {col.icon} {col.label}
+                          </span>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Release Notes Modal - keep existing */}
         {showReleaseNotes && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div 
@@ -1343,14 +1346,13 @@ participants.forEach(p => {
       </div>
     );
   }
-
   if (!hasJoined) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full fade-in`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Planning Poker</h1>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -1367,7 +1369,7 @@ participants.forEach(p => {
               <button
                 onClick={copySessionId}
                 className={`p-2 rounded transition-colors ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                title="Copy Session ID"
+                title="Copy Session Link"
               >
                 {showCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={darkMode ? 'text-gray-400' : 'text-gray-600'} />}
               </button>
@@ -1450,11 +1452,12 @@ participants.forEach(p => {
               onClick={() => setShowReleaseNotes(true)}
               title="View release notes"
             >
-              Planning Poker v{APP_VERSION}
+              Scrumptious v{APP_VERSION}
             </p>
           </div>
         </div>
 
+        {/* Release Notes Modal - Same as landing page */}
         {showReleaseNotes && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div 
@@ -1518,15 +1521,14 @@ participants.forEach(p => {
       </div>
     );
   }
-
-  const stats = calculateAverage();
+  // Calculate stats for estimation sessions
+  const stats = sessionType === 'estimation' ? calculateAverage() : null;
   const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
   const allVoted = votingParticipants.every(p => p.points !== null && p.points !== undefined && p.points !== '') && votingParticipants.length > 0;
   const currentScale = votingScale === 'fibonacci' ? FIBONACCI : TSHIRT;
 
-  // Sort participants: moderators first, then voters, then observers, alphabetically within each group
+  // Sort participants
   const sortedParticipants = [...participants].sort((a, b) => {
-    // First by type
     if (a.isModerator && !b.isModerator) return -1;
     if (!a.isModerator && b.isModerator) return 1;
     if (!a.isModerator && !a.isObserver && (b.isModerator || b.isObserver)) return -1;
@@ -1534,10 +1536,451 @@ participants.forEach(p => {
     if (a.isObserver && !b.isObserver && !b.isModerator) return 1;
     if (!a.isObserver && b.isObserver && !a.isModerator) return -1;
     
-    // Then alphabetically by name
     return a.name.localeCompare(b.name);
   });
 
+  // Get current retro format if in retrospective session
+  const currentRetroFormat = retroFormat ? RETRO_FORMATS[retroFormat] : null;
+  // NEW: Retrospective Session View
+  if (sessionType === 'retrospective' && retroFormat && currentRetroFormat) {
+    return (
+      <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'} p-4`}>
+        <style>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          .fade-in {
+            animation: fadeIn 0.3s ease-out;
+          }
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          .modal-enter {
+            animation: slideUp 0.3s ease-out;
+          }
+        `}</style>
+
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-purple-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Retrospective: {currentRetroFormat.name}
+                  </h1>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{sessionId}</code>
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={toggleDarkMode}
+                    className={`p-2 rounded-lg transition-colors ${
+                      darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    title="Toggle dark mode"
+                  >
+                    {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  </button>
+                  <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
+                    <Users size={18} />
+                    <span className="font-semibold">{participants.length}</span>
+                  </div>
+                  <button
+                    onClick={() => setShowLeaveConfirm(true)}
+                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      darkMode 
+                        ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                        : 'bg-red-100 text-red-700 hover:bg-red-200'
+                    }`}
+                  >
+                    Leave Session
+                  </button>
+                </div>
+              </div>
+              <div className={`${darkMode ? 'text-gray-100' : 'text-gray-600'} text-sm sm:text-base`}>
+                <span>Welcome, </span>
+                {isEditingName ? (
+                  <span className="inline-flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      onKeyDown={handleNameKeyPress}
+                      onBlur={handleSaveName}
+                      maxLength={30}
+                      className={`px-2 py-1 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-purple-500 text-white' 
+                          : 'border-purple-500'
+                      } rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm`}
+                      autoFocus
+                    />
+                  </span>
+                ) : (
+                  <span 
+                    className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-purple-600'} cursor-pointer hover:underline`}
+                    onClick={handleStartEditName}
+                    title="Click to edit name"
+                  >
+                    {userName}
+                  </span>
+                )}!
+                <div className="inline-flex items-center gap-2 ml-2">
+                  {isModerator && <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded shadow-sm">Moderator</span>}
+                  {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
+                  {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Participant</span>}
+                  {!isModerator && (
+                    <span className="relative inline-block">
+                      <button
+                        onClick={() => setShowTypeMenu(!showTypeMenu)}
+                        className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
+                        title="Change user type"
+                      >
+                        <UserCog size={12} />
+                        <span className="hidden sm:inline">Change Type</span>
+                      </button>
+                      {showTypeMenu && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-10" 
+                            onClick={() => setShowTypeMenu(false)}
+                          />
+                          <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
+                            <button
+                              onClick={() => changeUserType('voter')}
+                              disabled={!isObserver}
+                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                                !isObserver 
+                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              Switch to Participant
+                            </button>
+                            <button
+                              onClick={() => changeUserType('observer')}
+                              disabled={isObserver}
+                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                                isObserver 
+                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              Switch to Observer
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Retrospective Columns */}
+          <div className={`grid grid-cols-1 md:grid-cols-${currentRetroFormat.columns.length >= 4 ? '2' : currentRetroFormat.columns.length} gap-4 mb-6`}>
+            {currentRetroFormat.columns.map(column => {
+              const columnItems = Object.values(retroItems).filter(item => item.columnId === column.id);
+              const sortedItems = columnItems.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+              
+              return (
+                <div
+                  key={column.id}
+                  className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 min-h-[300px]`}
+                  style={{ borderTop: `4px solid ${column.color}` }}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-2xl">{column.icon}</span>
+                    <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      {column.label}
+                    </h3>
+                  </div>
+                  
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 italic`}>
+                    {column.prompt}
+                  </p>
+
+                  {/* Add Item Button */}
+                  {!isObserver && (
+                    <button
+                      onClick={() => setSelectedColumn(column.id)}
+                      className={`w-full mb-4 py-2 px-4 rounded-lg border-2 border-dashed transition-colors ${
+                        darkMode 
+                          ? 'border-gray-600 hover:border-gray-500 text-gray-400 hover:text-gray-300' 
+                          : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700'
+                      }`}
+                    >
+                      + Add Item
+                    </button>
+                  )}
+
+                  {/* Items List */}
+                  <div className="space-y-2">
+                    {sortedItems.map(item => (
+                      <div
+                        key={item.id}
+                        className={`p-3 rounded-lg ${
+                          darkMode ? 'bg-gray-700' : 'bg-gray-50'
+                        } border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                            {item.text}
+                          </p>
+                          {(isModerator || item.authorId === currentUserId) && (
+                            <button
+                              onClick={() => handleDeleteRetroItem(item.id)}
+                              className={`p-1 rounded ${
+                                darkMode ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-600'
+                              }`}
+                              title="Delete"
+                            >
+                              <UserX size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {item.authorName}
+                          </span>
+                          <button
+                            onClick={() => handleVoteRetroItem(item.id)}
+                            className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+                              darkMode 
+                                ? 'bg-gray-600 hover:bg-gray-500 text-gray-200' 
+                                : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                            }`}
+                          >
+                            👍 {item.votes || 0}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Participants List */}
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+            <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Participants ({participants.length})
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {sortedParticipants.map((participant) => (
+                <div
+                  key={participant.id}
+                  className={`rounded-lg p-3 text-center border-2 relative ${
+                    participant.isModerator 
+                      ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
+                      : participant.isObserver
+                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  {isModerator && participant.id !== currentUserId && (
+                    <button
+                      onClick={() => removeUser(participant.id)}
+                      className={`absolute top-1 right-1 p-1 rounded ${
+                        darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+                      } text-white transition-colors`}
+                      title="Remove user"
+                    >
+                      <UserX size={12} />
+                    </button>
+                  )}
+                  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+                    {participant.name}
+                  </p>
+                  {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
+                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Add Item Modal */}
+        {selectedColumn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => {
+                setSelectedColumn(null);
+                setNewItemText('');
+              }}
+            />
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10 modal-enter`}>
+              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+                Add Item
+              </h3>
+              <textarea
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="Enter your thoughts..."
+                rows={4}
+                className={`w-full px-4 py-3 border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
+                autoFocus
+              />
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setSelectedColumn(null);
+                    setNewItemText('');
+                  }}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleAddRetroItem(selectedColumn)}
+                  disabled={!newItemText.trim()}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  Add Item
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Leave Confirmation Modal */}
+        {showLeaveConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowLeaveConfirm(false)}
+            />
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10`}>
+              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+                Leave Session?
+              </h3>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                Are you sure you want to leave this session? You'll be removed from the participant list.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowLeaveConfirm(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLeaveSession}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Leave Session
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <footer className="mt-6 text-center">
+          <p 
+            className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+            onClick={() => setShowReleaseNotes(true)}
+            title="View release notes"
+          >
+            Scrumptious v{APP_VERSION}
+          </p>
+        </footer>
+
+        {/* Release Notes Modal */}
+        {showReleaseNotes && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowReleaseNotes(false)}
+            />
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Release Notes
+                  </h2>
+                  <button
+                    onClick={() => setShowReleaseNotes(false)}
+                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                    <div
+                      key={version}
+                      className={`p-4 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                            Version {version}
+                          </h3>
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {notes.date} • {notes.type}
+                          </p>
+                        </div>
+                        {version === APP_VERSION && (
+                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {notes.changes.map((change, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="mr-2 mt-1">•</span>
+                            <span>{change}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+  // Main Planning Poker Session View
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'} p-4`}>
       {showConfetti && (
@@ -1633,7 +2076,7 @@ participants.forEach(p => {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Planning Poker</h1>
+              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Scrumptious: Planning Poker</h1>
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={toggleDarkMode}
@@ -1650,7 +2093,7 @@ participants.forEach(p => {
                   <button
                     onClick={copySessionId}
                     className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
-                    title="Copy Session ID"
+                    title="Copy Session Link"
                   >
                     {showCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className={darkMode ? 'text-blue-400' : 'text-blue-600'} />}
                   </button>
@@ -1938,8 +2381,8 @@ participants.forEach(p => {
                   
                   return (
                     <div
-  key={participant.id}
-  className={`rounded-lg p-4 text-center border-2 relative ${revealed ? 'card-flip-enter' : ''} ${
+                      key={participant.id}
+                      className={`rounded-lg p-4 text-center border-2 relative ${revealed ? 'card-flip-enter' : ''} ${
                         participant.isModerator 
                           ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
                           : participant.isObserver
@@ -2131,6 +2574,7 @@ participants.forEach(p => {
           </div>
         </div>
 
+        {/* History Modal */}
         {showHistory && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div 
@@ -2288,10 +2732,11 @@ participants.forEach(p => {
           onClick={() => setShowReleaseNotes(true)}
           title="View release notes"
         >
-          Planning Poker v{APP_VERSION}
+          Scrumptious v{APP_VERSION}
         </p>
       </footer>
 
+      {/* Leave Confirmation Modal */}
       {showLeaveConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div 
@@ -2327,6 +2772,7 @@ participants.forEach(p => {
         </div>
       )}
 
+      {/* Release Notes Modal */}
       {showReleaseNotes && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div 
