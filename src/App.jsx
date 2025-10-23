@@ -1807,16 +1807,16 @@ export default function App() {
               onClick={() => setShowLeaveConfirm(false)}
             />
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10`}>
-              <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
                 Leave Session?
               </h3>
-              <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Are you sure you want to leave this session?
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+                Are you sure you want to leave this session? You'll be removed from the participant list.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setShowLeaveConfirm(false)}
-                  className={`px-4 py-2 rounded-lg ${
+                  className={`px-4 py-2 rounded-lg transition-colors ${
                     darkMode 
                       ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -1826,7 +1826,7 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleLeaveSession}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
                   Leave Session
                 </button>
@@ -1839,6 +1839,7 @@ export default function App() {
           <p 
             className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
             onClick={() => setShowReleaseNotes(true)}
+            title="View release notes"
           >
             Scrumptious v{APP_VERSION}
           </p>
@@ -1851,7 +1852,7 @@ export default function App() {
               className="absolute inset-0" 
               onClick={() => setShowReleaseNotes(false)}
             />
-            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -1908,28 +1909,761 @@ export default function App() {
       </div>
     );
   }
-
-  // If we get here, it means we're in an estimation session
-  // Return a simple message since the full planning poker UI is too large
+  // Main Planning Poker Session View
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full text-center`}>
-        <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-          Planning Poker Session
-        </h1>
-        <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Session: <code className={`${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'} px-2 py-1 rounded`}>{sessionId}</code>
-        </p>
-        <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>
-          Planning Poker functionality is available in the full application.
-        </p>
-        <button
-          onClick={() => setShowLeaveConfirm(true)}
-          className="mt-6 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-        >
-          Leave Session
-        </button>
+    <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'} p-4`}>
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {[...Array(50)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-fall"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `-10%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${3 + Math.random() * 2}s`
+              }}
+            >
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{
+                  backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)],
+                  transform: `rotate(${Math.random() * 360}deg)`
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <style>{`
+  @keyframes fall {
+    to {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+  .animate-fall {
+    animation: fall linear forwards;
+  }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .animate-flicker {
+    animation: flicker 0.5s ease-in-out infinite;
+  }
+  /* Card flip animation */
+  @keyframes flipIn {
+    from {
+      transform: rotateY(90deg);
+      opacity: 0;
+    }
+    to {
+      transform: rotateY(0deg);
+      opacity: 1;
+    }
+  }
+  .card-flip-enter {
+    animation: flipIn 0.6s ease-out forwards;
+  }
+        /* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal slide up */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-enter {
+  animation: slideUp 0.3s ease-out;
+}
+`}</style>
+      
+      <div className="max-w-6xl mx-auto">
+        <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Scrumptious: Planning Poker</h1>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={toggleDarkMode}
+                  className={`p-2 rounded-lg transition-colors ${
+                    darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title="Toggle dark mode"
+                >
+                  {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+                <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-2 sm:px-3 py-2 rounded text-sm`}>
+                  <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} hidden sm:inline`}>Session:</span>
+                  <code className={`font-mono font-bold ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>{sessionId}</code>
+                  <button
+                    onClick={copySessionId}
+                    className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
+                    title="Copy Session Link"
+                  >
+                    {showCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className={darkMode ? 'text-blue-400' : 'text-blue-600'} />}
+                  </button>
+                </div>
+                <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
+                  <Users size={18} />
+                  <span className="font-semibold">{participants.length}</span>
+                </div>
+                <button
+                  onClick={() => setShowLeaveConfirm(true)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    darkMode 
+                      ? 'bg-red-900 text-red-200 hover:bg-red-800' 
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                  title="Leave session"
+                >
+                  Leave Session
+                </button>
+              </div>
+            </div>
+            <div className={`${darkMode ? 'text-gray-100' : 'text-gray-600'} text-sm sm:text-base`}>
+              <span>Welcome, </span>
+              {isEditingName ? (
+                <span className="inline-flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    onKeyDown={handleNameKeyPress}
+                    onBlur={handleSaveName}
+                    maxLength={30}
+                    className={`px-2 py-1 border ${
+                      darkMode 
+                        ? 'bg-gray-700 border-blue-500 text-white' 
+                        : 'border-blue-500'
+                    } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm`}
+                    autoFocus
+                  />
+                </span>
+              ) : (
+                <span 
+                  className={`font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-600'} cursor-pointer hover:underline`}
+                  onClick={handleStartEditName}
+                  title="Click to edit name"
+                >
+                  {userName}
+                </span>
+              )}!
+              <div className="inline-flex items-center gap-2 ml-2">
+                {isModerator && <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded shadow-sm">Moderator</span>}
+                {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
+                {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Voter</span>}
+                {!isModerator && (
+                  <span className="relative inline-block">
+                    <button
+                      onClick={() => setShowTypeMenu(!showTypeMenu)}
+                      className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
+                      title="Change user type"
+                    >
+                      <UserCog size={12} />
+                      <span className="hidden sm:inline">Change Type</span>
+                    </button>
+                    {showTypeMenu && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-10" 
+                          onClick={() => setShowTypeMenu(false)}
+                        />
+                        <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
+                          <button
+                            onClick={() => changeUserType('voter')}
+                            disabled={!isObserver}
+                            className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                              !isObserver 
+                                ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            Switch to Voter
+                          </button>
+                          <button
+                            onClick={() => changeUserType('observer')}
+                            disabled={isObserver}
+                            className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+                              isObserver 
+                                ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+                                : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            Switch to Observer
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
+          <div className="md:col-span-2">
+            {!isModerator && !isObserver && (
+              <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
+                  <div className="flex items-center gap-3">
+                    {ticketNumber && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
+                          {ticketNumber}
+                        </span>
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                  {currentScale.map((point) => (
+                    <button
+                      key={point}
+                      onClick={() => handleSelectPoint(point)}
+                      className={`aspect-square rounded-lg font-bold text-xl transition-all ${
+                        selectedPoint === point
+                          ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
+                          : darkMode
+                          ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                      } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
+                    >
+                      {point}
+                    </button>
+                  ))}
+                </div>
+                
+                {confidenceVotingEnabled && (
+                  <div className="mt-6">
+                    <label className={`block text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>
+                      How confident are you?
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        onClick={() => handleSelectConfidence('high')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'high'
+                            ? 'bg-green-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                        }`}
+                      >
+                        🟢 High
+                      </button>
+                      <button
+                        onClick={() => handleSelectConfidence('medium')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'medium'
+                            ? 'bg-yellow-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                        }`}
+                      >
+                        🟡 Medium
+                      </button>
+                      <button
+                        onClick={() => handleSelectConfidence('low')}
+                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+                          selectedConfidence === 'low'
+                            ? 'bg-red-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                        }`}
+                      >
+                        🔴 Low
+                      </button>
+                    </div>
+                    <p className={`text-xs mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      High: Very familiar • Medium: Some uncertainty • Low: Just guessing
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
+                {isModerator && (
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <input
+                      type="text"
+                      value={ticketNumber}
+                      onChange={(e) => updateTicketNumber(e.target.value)}
+                      placeholder="Ticket # (optional)"
+                      className={`px-3 py-2 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-40`}
+                    />
+                    <input
+                      type="text"
+                      value={determinedPoints}
+                      onChange={(e) => updateDeterminedPoints(e.target.value)}
+                      placeholder="Final Estimate"
+                      className={`px-3 py-2 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900'
+                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-32`}
+                    />
+                    <button
+                      onClick={() => setShowHistory(!showHistory)}
+                      className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors"
+                      title="View history"
+                    >
+                      <History size={16} />
+                      History ({sessionHistory.length})
+                    </button>
+                    <button
+                      onClick={toggleVotingScale}
+                      className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
+                      title="Switch voting scale"
+                    >
+                      <RefreshCw size={16} />
+                      {votingScale === 'fibonacci' ? 'Switch to T-Shirt' : 'Switch to Fibonacci'}
+                    </button>
+                    <button
+                      onClick={toggleConfidenceVoting}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                        confidenceVotingEnabled
+                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          : 'bg-gray-400 text-white hover:bg-gray-500'
+                      }`}
+                      title="Toggle confidence voting"
+                    >
+                      {confidenceVotingEnabled ? '✓ Confidence: ON' : 'Confidence: OFF'}
+                    </button>
+                    <div className={`text-sm ${darkMode ? 'text-gray-300 bg-gray-700' : 'text-gray-600 bg-gray-100'} px-3 py-2 rounded font-mono`}>
+                      ⏱️ {formatTime(elapsedTime)}
+                    </div>
+                    <button
+                      onClick={handleReveal}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+                    >
+                      {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {revealed ? 'Hide' : 'Reveal'}
+                    </button>
+                    {revealed ? (
+                      <button
+                        onClick={handleReset}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                      >
+                        <ArrowRight size={18} />
+                        Next Story
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReset}
+                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                      >
+                        <RotateCcw size={18} />
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {sortedParticipants.map((participant) => {
+                  const hasVoted = participant.points !== null && 
+                                   participant.points !== undefined && 
+                                   participant.points !== '';
+                  
+                  const isOutlier = revealed && stats && stats.outliers && 
+                                   typeof participant.points === 'number' &&
+                                   stats.outliers.includes(participant.points);
+                  
+                  return (
+                    <div
+                      key={participant.id}
+                      className={`rounded-lg p-4 text-center border-2 relative ${revealed ? 'card-flip-enter' : ''} ${
+                        participant.isModerator 
+                          ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
+                          : participant.isObserver
+                          ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+                          : isOutlier
+                          ? darkMode ? 'bg-red-900 border-red-700 border-dashed' : 'bg-red-50 border-red-300 border-dashed'
+                          : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      {isModerator && participant.id !== currentUserId && (
+                        <button
+                          onClick={() => removeUser(participant.id)}
+                          className={`absolute top-2 right-2 p-1 rounded ${
+                            darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+                          } text-white transition-colors`}
+                          title="Remove user"
+                        >
+                          <UserX size={14} />
+                        </button>
+                      )}
+                      <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-2 break-words ${
+                        participant.name.length > 15 ? 'text-sm leading-tight' : ''
+                      }`} style={{
+                        fontSize: participant.name.length > 20 ? '0.75rem' : undefined
+                      }}>
+                        {participant.name}
+                        {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
+                        {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                        {isOutlier && <span className={`text-xs block ${darkMode ? 'text-red-400' : 'text-red-600'}`}>Outlier</span>}
+                      </p>
+                      {!participant.isModerator && !participant.isObserver && (
+                        <div className={`text-2xl font-bold ${
+                          hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-600' : darkMode ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
+                          {revealed
+                            ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span>{hasVoted ? participant.points : '—'}</span>
+                                {hasVoted && confidenceVotingEnabled && participant.confidence && (
+                                  <span className="text-xs">
+                                    {participant.confidence === 'high' ? '🟢' : 
+                                     participant.confidence === 'medium' ? '🟡' : '🔴'}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                            : (hasVoted ? '✓' : '—')}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-1">
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-br from-white to-slate-50'} rounded-lg shadow-xl p-4 sticky top-4`}>
+              <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Statistics</h2>
+              <div className="space-y-3">
+                <div className={darkMode ? 'bg-blue-900 rounded-lg p-3 shadow-md' : 'bg-blue-50 rounded-lg p-3 shadow-md'}>
+                  <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Voted</p>
+                  <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                    {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
+                  </p>
+                </div>
+                {revealed && stats && (
+                  <>
+                    <div className={`rounded-lg p-3 shadow-md ${
+                      stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
+                      stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
+                      darkMode ? 'bg-red-900' : 'bg-red-50'
+                    }`}>
+                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>
+                        {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
+                      </p>
+                      <p className={`text-xl font-bold ${
+                        stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
+                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
+                        darkMode ? 'text-red-400' : 'text-red-600'
+                      }`}>{stats.average}</p>
+                    </div>
+                    {confidenceVotingEnabled && stats.weightedAverage && (
+                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
+                        <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                          {stats.weightedAverage} → {stats.weightedClosest}
+                        </p>
+                      </div>
+                    )}
+                    {stats.median && (
+                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Median</p>
+                        <p className={`text-xl font-bold ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
+                          {stats.median} → {stats.medianClosest}
+                        </p>
+                      </div>
+                    )}
+                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-3 shadow-md' : 'bg-orange-50 rounded-lg p-3'}>
+                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Suggested</p>
+                      <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
+                        {stats.suggestedEstimate}
+                      </p>
+                    </div>
+                    {stats.consensus && (
+                      <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 shadow-md border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
+                        <p className={`text-xs text-center font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>🎉 Consensus!</p>
+                      </div>
+                    )}
+                    {stats.warnings && stats.warnings.length > 0 && (
+                      <div className="space-y-1">
+                        {stats.warnings.map((warning, idx) => (
+                          <div 
+                            key={idx}
+                            className={`rounded-lg p-2 shadow-md border ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-300' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-300' :
+                                darkMode ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-300'
+                            }`}
+                          >
+                            <p className={`text-xs font-semibold ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'text-yellow-300' : 'text-yellow-700' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'text-red-300' : 'text-red-700' :
+                                darkMode ? 'text-blue-300' : 'text-blue-600'
+                            }`}>
+                              {warning.icon} {warning.message}
+                            </p>
+                            <p className={`text-xs mt-0.5 ${
+                              warning.type === 'uncertainty' ? 
+                                darkMode ? 'text-yellow-200' : 'text-yellow-600' :
+                              warning.type === 'disagreement' ?
+                                darkMode ? 'text-red-200' : 'text-red-600' :
+                                darkMode ? 'text-blue-200' : 'text-blue-600'
+                            }`}>
+                              {warning.detail}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {stats.range && (
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Range: <span className="font-bold">{stats.range.min} - {stats.range.max}</span></p>
+                      </div>
+                    )}
+                    {confidenceVotingEnabled && stats.confidenceBreakdown && (
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Confidence</p>
+                        <div className={`flex justify-between text-xs font-bold ${darkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                          <span>🟢 {stats.confidenceBreakdown.high}</span>
+                          <span>🟡 {stats.confidenceBreakdown.medium}</span>
+                          <span>🔴 {stats.confidenceBreakdown.low}</span>
+                        </div>
+                      </div>
+                    )}
+                    {stats.distribution && stats.distribution.length > 0 && (
+                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
+                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
+                        <div className="space-y-1">
+                          {stats.distribution.map(([vote, count]) => {
+                            const barWidth = (count / stats.maxCount) * 100;
+                            return (
+                              <div key={vote} className="flex items-center gap-1">
+                                <span className={`text-xs font-bold w-6 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
+                                  {vote}
+                                </span>
+                                <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                                  <div 
+                                    className={`h-full ${darkMode ? 'bg-purple-500' : 'bg-purple-400'} transition-all duration-300 flex items-center justify-end pr-1`}
+                                    style={{ width: `${barWidth}%` }}
+                                  >
+                                    <span className="text-xs font-semibold text-white">{count}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* History Modal */}
+        {showHistory && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowHistory(false)}
+            />
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Session History
+                  </h2>
+                  <button
+                    onClick={() => setShowHistory(false)}
+                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={exportToCSV}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={copyHistoryToClipboard}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
+                  >
+                    <FileText size={16} />
+                    Copy to Clipboard
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                {sessionHistory.length === 0 ? (
+                  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+                    No voting history yet. Complete a round to see it here!
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {sessionHistory.map((entry, index) => (
+                      <div
+                        key={entry.timestamp}
+                        className={`p-4 rounded-lg border ${
+                          darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 mr-4">
+                            {editingHistoryId === entry.timestamp ? (
+                              <input
+                                type="text"
+                                value={editingTicketValue}
+                                onChange={(e) => setEditingTicketValue(e.target.value)}
+                                onBlur={() => updateHistoryTicket(entry.timestamp, editingTicketValue)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    updateHistoryTicket(entry.timestamp, editingTicketValue);
+                                  } else if (e.key === 'Escape') {
+                                    setEditingHistoryId(null);
+                                    setEditingTicketValue('');
+                                  }
+                                }}
+                                className={`font-bold text-lg px-2 py-1 border ${
+                                  darkMode 
+                                    ? 'bg-gray-600 border-blue-500 text-white' 
+                                    : 'bg-white border-blue-500 text-gray-800'
+                                } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full`}
+                                autoFocus
+                              />
+                            ) : (
+                              <h3 
+                                className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'} cursor-pointer hover:text-blue-500`}
+                                onClick={() => {
+                                  setEditingHistoryId(entry.timestamp);
+                                  setEditingTicketValue(entry.ticketId);
+                                }}
+                                title="Click to edit ticket"
+                              >
+                                {entry.ticketId}
+                              </h3>
+                            )}
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {new Date(entry.timestamp).toLocaleString()} • Duration: {Math.floor(entry.duration / 60)}:{(entry.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          </div>
+                          {editingEstimateId === entry.timestamp ? (
+                            <input
+                              type="text"
+                              value={editingEstimateValue}
+                              onChange={(e) => setEditingEstimateValue(e.target.value)}
+                              onBlur={() => updateHistoryEstimate(entry.timestamp, editingEstimateValue)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  updateHistoryEstimate(entry.timestamp, editingEstimateValue);
+                                } else if (e.key === 'Escape') {
+                                  setEditingEstimateId(null);
+                                  setEditingEstimateValue('');
+                                }
+                              }}
+                              className={`font-bold text-lg px-2 py-1 border ${
+                                darkMode 
+                                  ? 'bg-gray-600 border-blue-500 text-white' 
+                                  : 'bg-white border-blue-500 text-gray-800'
+                              } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center w-20`}
+                              autoFocus
+                            />
+                          ) : (
+                            <div 
+                              className={`px-3 py-1 rounded font-bold text-lg cursor-pointer hover:ring-2 hover:ring-blue-500 ${
+                                darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'
+                              }`}
+                              onClick={() => {
+                                setEditingEstimateId(entry.timestamp);
+                                setEditingEstimateValue(entry.finalEstimate);
+                              }}
+                              title="Click to edit estimate"
+                            >
+                              {entry.finalEstimate}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {entry.votes.map((vote, vIndex) => (
+                            <span
+                              key={vIndex}
+                              className={`px-3 py-1 rounded text-sm ${
+                                darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              {vote.name}: <strong>{vote.vote}</strong>
+                            </span>
+                          ))}
+                        </div>
+                        <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {entry.participantCount} participants • {entry.votingScale}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+      
+      <footer className="mt-6 text-center">
+        <p 
+          className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+          onClick={() => setShowReleaseNotes(true)}
+          title="View release notes"
+        >
+          Scrumptious v{APP_VERSION}
+        </p>
+      </footer>
 
       {/* Leave Confirmation Modal */}
       {showLeaveConfirm && (
@@ -1939,16 +2673,16 @@ export default function App() {
             onClick={() => setShowLeaveConfirm(false)}
           />
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10`}>
-            <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
               Leave Session?
             </h3>
-            <p className={`mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Are you sure you want to leave this session?
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6`}>
+              Are you sure you want to leave this session? You'll be removed from the participant list.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowLeaveConfirm(false)}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-4 py-2 rounded-lg transition-colors ${
                   darkMode 
                     ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -1958,10 +2692,72 @@ export default function App() {
               </button>
               <button
                 onClick={handleLeaveSession}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Leave Session
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Release Notes Modal */}
+      {showReleaseNotes && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowReleaseNotes(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Release Notes
+                </h2>
+                <button
+                  onClick={() => setShowReleaseNotes(false)}
+                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                  <div
+                    key={version}
+                    className={`p-4 rounded-lg border ${
+                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          Version {version}
+                        </h3>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {notes.date} • {notes.type}
+                        </p>
+                      </div>
+                      {version === APP_VERSION && (
+                        <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {notes.changes.map((change, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mr-2 mt-1">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
