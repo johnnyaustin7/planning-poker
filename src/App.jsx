@@ -1968,18 +1968,18 @@ const handleRenameGroup = async (groupId, newName) => {
                 <Clock size={20} className="text-gray-600" />
                 
                 {!timer?.active ? (
-                  <div className="flex gap-2 flex-wrap">
-                    {[1,2,3,4,5,10,15].map(m => (
-                      <button
-                        key={min}
-                        onClick={() => startTimer(min)}
-                        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-                      >
-                        {min} min
-                      </button>
-                    ))}
-                  </div>
-                ) : (
+  <div className="flex gap-2 flex-wrap">
+    {[1,2,3,4,5,10,15].map(m => (
+      <button
+        key={m}
+        onClick={() => startTimer(m)}
+        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+      >
+        {m} min
+      </button>
+    ))}
+  </div>
+) : (
                   <>
                     <div className="text-2xl font-mono font-bold text-purple-600">
                       {formatTime(timeRemaining)}
