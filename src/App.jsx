@@ -60,8 +60,21 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "3.1.0";
+const APP_VERSION = "3.2.0";
 const RELEASE_NOTES = {
+  "3.2.0": {
+    date: "October 27, 2025",
+    type: "Minor Release",
+    changes: [
+      "🎯 Phase 2 now uses drag-and-drop for intuitive grouping",
+      "🗳️ Vote on both individual items and groups in Phase 2",
+      "✏️ Click group names to rename them (anyone can edit)",
+      "↩️ Drag items out of groups to separate them",
+      "🔄 Drag groups onto each other to merge them",
+      "🎨 Groups stay organized within their original columns",
+      "👆 Items from different columns can be grouped together"
+    ]
+  },
   "3.1.0": {
     date: "October 27, 2025",
     type: "Minor Release",
@@ -151,6 +164,10 @@ export default function App() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const timerInterval = useRef(null);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverItem, setDragOverItem] = useState(null);
+  const [editingGroupId, setEditingGroupId] = useState(null);
+  const [editingGroupName, setEditingGroupName] = useState('');
   
   // Column-based retrospective state (from v2.9.0)
   const [retroItems, setRetroItems] = useState({});
@@ -690,46 +707,195 @@ const addRetroInput = async (columnId) => {
     await dbModule.update(inputRef, { votes: newVotes, voters: newVoters });
   };
 
-  const createRetroGroup = async (itemId) => {
-    if (!db || !dbModule || isObserver) return;
-    
-    const item = retroInputs.find(i => i.id === itemId);
-    if (!item) return;
+  const toggleGroupVote = async (groupId) => {
+  if (!db || !dbModule || isObserver) return;
+  
+  const group = retroGroups.find(g => g.id === groupId);
+  if (!group) return;
+  
+  const hasVoted = group.voters?.includes(currentUserId);
+  const newVotes = hasVoted ? (group.votes || 0) - 1 : (group.votes || 0) + 1;
+  const newVoters = hasVoted 
+    ? (group.voters || []).filter(v => v !== currentUserId)
+    : [...(group.voters || []), currentUserId];
+  
+  const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
+  await dbModule.update(groupRef, { votes: newVotes, voters: newVoters });
+};
 
+const handleDragStart = (e, item, isGroup = false) => {
+  setDraggedItem({ ...item, isGroup });
+  e.dataTransfer.effectAllowed = 'move';
+};
+
+const handleDragOver = (e, targetItem, isGroup = false) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  setDragOverItem({ id: targetItem.id, isGroup });
+};
+
+const handleDragLeave = () => {
+  setDragOverItem(null);
+};
+
+const handleDrop = async (e, targetItem, targetIsGroup) => {
+  e.preventDefault();
+  if (!draggedItem || !db || !dbModule || isObserver) return;
+
+  // Can't drop on itself
+  if (draggedItem.id === targetItem.id && draggedItem.isGroup === targetIsGroup) {
+    setDraggedItem(null);
+    setDragOverItem(null);
+    return;
+  }
+
+  // If dropping item onto another item - create new group
+  if (!draggedItem.isGroup && !targetIsGroup) {
     const groupId = Date.now().toString();
     const newGroup = {
       id: groupId,
-      title: item.text.substring(0, 50) + (item.text.length > 50 ? '...' : ''),
-      items: [item],
-      votes: item.votes
+      title: draggedItem.text.substring(0, 50) + (draggedItem.text.length > 50 ? '...' : ''),
+      items: [draggedItem, targetItem],
+      votes: 0,
+      voters: [],
+      timestamp: Date.now()
     };
 
     const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
     await dbModule.set(groupRef, newGroup);
-    
-    const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemId}`);
-    await dbModule.remove(inputRef);
-  };
 
-  const addToRetroGroup = async (groupId, itemId) => {
-    if (!db || !dbModule || isObserver) return;
-    
-    const item = retroInputs.find(i => i.id === itemId);
-    const group = retroGroups.find(g => g.id === groupId);
-    if (!item || !group) return;
+    // Remove both items from inputs
+    const draggedInputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${draggedItem.id}`);
+    const targetInputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${targetItem.id}`);
+    await dbModule.remove(draggedInputRef);
+    await dbModule.remove(targetInputRef);
+
+  } else if (!draggedItem.isGroup && targetIsGroup) {
+    // Dropping item onto group - add to group
+    const group = retroGroups.find(g => g.id === targetItem.id);
+    if (!group) return;
 
     const updatedGroup = {
       ...group,
-      items: [...group.items, item],
-      votes: group.votes + item.votes
+      items: [...group.items, draggedItem]
+    };
+
+    const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${targetItem.id}`);
+    await dbModule.set(groupRef, updatedGroup);
+
+    // Remove item from inputs
+    const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${draggedItem.id}`);
+    await dbModule.remove(inputRef);
+
+  } else if (draggedItem.isGroup && targetIsGroup) {
+    // Merging two groups
+    const sourceGroup = retroGroups.find(g => g.id === draggedItem.id);
+    const targetGroup = retroGroups.find(g => g.id === targetItem.id);
+    if (!sourceGroup || !targetGroup) return;
+
+    const mergedGroup = {
+      ...targetGroup,
+      items: [...targetGroup.items, ...sourceGroup.items],
+      votes: (targetGroup.votes || 0) + (sourceGroup.votes || 0),
+      voters: [...new Set([...(targetGroup.voters || []), ...(sourceGroup.voters || [])])]
+    };
+
+    const targetGroupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${targetItem.id}`);
+    await dbModule.set(targetGroupRef, mergedGroup);
+
+    // Remove source group
+    const sourceGroupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${draggedItem.id}`);
+    await dbModule.remove(sourceGroupRef);
+  }
+
+  setDraggedItem(null);
+  setDragOverItem(null);
+};
+
+const handleRemoveFromGroup = async (groupId, itemToRemove) => {
+  if (!db || !dbModule || isObserver) return;
+
+  const group = retroGroups.find(g => g.id === groupId);
+  if (!group) return;
+
+  const remainingItems = group.items.filter(item => item.id !== itemToRemove.id);
+
+  if (remainingItems.length === 1) {
+    // Only one item left - convert back to individual item
+    const lastItem = remainingItems[0];
+    const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${lastItem.id}`);
+    await dbModule.set(inputRef, lastItem);
+
+    // Remove the group
+    const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
+    await dbModule.remove(groupRef);
+  } else if (remainingItems.length > 1) {
+    // Update group with remaining items
+    const updatedGroup = {
+      ...group,
+      items: remainingItems
     };
 
     const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
     await dbModule.set(groupRef, updatedGroup);
-    
-    const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemId}`);
-    await dbModule.remove(inputRef);
+  }
+
+  // Add removed item back to inputs
+  const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemToRemove.id}`);
+  await dbModule.set(inputRef, itemToRemove);
+};
+
+const handleRenameGroup = async (groupId, newName) => {
+  if (!db || !dbModule || !newName.trim()) return;
+
+  const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
+  await dbModule.update(groupRef, { title: newName.trim() });
+
+  setEditingGroupId(null);
+  setEditingGroupName('');
+};
+
+  const createRetroGroup = async (itemId) => {
+  if (!db || !dbModule || isObserver) return;
+  
+  const item = retroInputs.find(i => i.id === itemId);
+  if (!item) return;
+
+  const groupId = Date.now().toString();
+  const newGroup = {
+    id: groupId,
+    title: item.text.substring(0, 50) + (item.text.length > 50 ? '...' : ''),
+    items: [item],
+    votes: 0,
+    voters: [],
+    timestamp: Date.now()
   };
+
+  const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
+  await dbModule.set(groupRef, newGroup);
+  
+  const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemId}`);
+  await dbModule.remove(inputRef);
+};
+
+  const addToRetroGroup = async (groupId, itemId) => {
+  if (!db || !dbModule || isObserver) return;
+  
+  const item = retroInputs.find(i => i.id === itemId);
+  const group = retroGroups.find(g => g.id === groupId);
+  if (!item || !group) return;
+
+  const updatedGroup = {
+    ...group,
+    items: [...group.items, item]
+  };
+
+  const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
+  await dbModule.set(groupRef, updatedGroup);
+  
+  const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemId}`);
+  await dbModule.remove(inputRef);
+};
   const addRetroComment = async (groupId) => {
     if (!newCommentText[groupId]?.trim() || !db || !dbModule || isObserver) return;
 
@@ -1840,92 +2006,182 @@ const addRetroInput = async (columnId) => {
   </div>
 )}
           {retroPhase === 'grouping' && (
-  <div className="space-y-6">
-    {retroInputs.length > 0 && (
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
-        <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-          Ungrouped Items ({retroInputs.length})
-        </h2>
-        <div className="space-y-2">
-          {retroInputs.map(input => {
-            const column = currentRetroFormat.columns.find(c => c.id === input.columnId);
-            return (
-              <div 
-                key={input.id} 
-                className={`flex items-center gap-3 p-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg border-l-4`}
-                style={{ borderLeftColor: column?.color || '#6b7280' }}
+  <div className={`grid grid-cols-1 md:grid-cols-${currentRetroFormat.columns.length >= 4 ? '2' : currentRetroFormat.columns.length} gap-4`}>
+    {currentRetroFormat.columns.map(column => {
+      const columnItems = retroInputs.filter(item => item.columnId === column.id);
+      const columnGroups = retroGroups.filter(group => {
+        // A group belongs to a column if its first item is from that column
+        return group.items.length > 0 && group.items[0].columnId === column.id;
+      });
+      
+      return (
+        <div
+          key={column.id}
+          className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 min-h-[400px]`}
+          style={{ borderTop: `4px solid ${column.color}` }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">{column.icon}</span>
+            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              {column.label}
+            </h3>
+            <span className={`ml-auto text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {columnItems.length + columnGroups.length} items
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {/* Individual Items */}
+            {columnItems.map(item => (
+              <div
+                key={item.id}
+                draggable={!isObserver}
+                onDragStart={(e) => handleDragStart(e, item, false)}
+                onDragOver={(e) => handleDragOver(e, item, false)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, item, false)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  !isObserver ? 'cursor-move' : ''
+                } ${
+                  dragOverItem?.id === item.id && !dragOverItem?.isGroup
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-105'
+                    : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                } border-l-4`}
+                style={{ borderLeftColor: column.color }}
               >
-                <span className="text-purple-600 font-bold">{input.votes}</span>
-                <div className="flex-1">
-                  <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{input.text}</p>
-                  {column && (
-                    <span className="text-xs" style={{ color: column.color }}>
-                      {column.icon} {column.label}
-                    </span>
+                <p className={`text-sm mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                  {item.text}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                    Anonymous
+                  </span>
+                  {!isObserver && (
+                    <button
+                      onClick={() => toggleRetroVote(item.id)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                        item.voters?.includes(currentUserId)
+                          ? 'bg-purple-600 text-white scale-110' 
+                          : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
+                    >
+                      <ThumbsUp size={12} />
+                      {item.votes || 0}
+                    </button>
                   )}
                 </div>
-                {!isObserver && (
-                  <>
-                    <button 
-                      onClick={() => createRetroGroup(input.id)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                    >
-                      New Group
-                    </button>
-                    {retroGroups.map(group => (
-                      <button
-                        key={group.id}
-                        onClick={() => addToRetroGroup(group.id, input.id)}
-                        className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-                      >
-                        → {group.title.substring(0, 20)}
-                      </button>
-                    ))}
-                  </>
-                )}
               </div>
-            );
-          })}
-        </div>
-      </div>
-    )}
+            ))}
 
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
-      <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-        Groups ({retroGroups.length})
-      </h2>
-      <div className="space-y-4">
-        {retroGroups.map(group => (
-          <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/30' : 'border-purple-200 bg-purple-50'} rounded-lg p-4`}>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl font-bold text-purple-600">{group.votes}</span>
-              <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {group.title}
-              </h3>
-            </div>
-            <div className="space-y-2 ml-6">
-              {group.items.map(item => {
-                const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
-                return (
-                  <div 
-                    key={item.id} 
-                    className={`flex items-start gap-2 text-sm p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'} border-l-4`}
-                    style={{ borderLeftColor: column?.color || '#6b7280' }}
-                  >
-                    {column && (
-                      <span className="text-xs shrink-0 mt-0.5" style={{ color: column.color }}>
-                        {column.icon}
-                      </span>
-                    )}
-                    <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{item.text}</span>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Groups */}
+            {columnGroups.map(group => (
+              <div
+                key={group.id}
+                draggable={!isObserver}
+                onDragStart={(e) => handleDragStart(e, group, true)}
+                onDragOver={(e) => handleDragOver(e, group, true)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, group, true)}
+                className={`border-2 rounded-lg p-3 transition-all ${
+                  !isObserver ? 'cursor-move' : ''
+                } ${
+                  dragOverItem?.id === group.id && dragOverItem?.isGroup
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-105'
+                    : darkMode ? 'border-purple-700 bg-purple-900/30' : 'border-purple-300 bg-purple-50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  {editingGroupId === group.id ? (
+                    <input
+                      type="text"
+                      value={editingGroupName}
+                      onChange={(e) => setEditingGroupName(e.target.value)}
+                      onBlur={() => handleRenameGroup(group.id, editingGroupName)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
+                        if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
+                      }}
+                      className={`flex-1 px-2 py-1 border ${
+                        darkMode 
+                          ? 'bg-gray-700 border-purple-500 text-white' 
+                          : 'bg-white border-purple-500'
+                      } rounded text-sm font-bold`}
+                      autoFocus
+                    />
+                  ) : (
+                    <h4 
+                      className={`flex-1 font-bold cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+                      onClick={() => {
+                        if (!isObserver) {
+                          setEditingGroupId(group.id);
+                          setEditingGroupName(group.title);
+                        }
+                      }}
+                      title="Click to rename"
+                    >
+                      {group.title}
+                    </h4>
+                  )}
+                  {!isObserver && (
+                    <button
+                      onClick={() => toggleGroupVote(group.id)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                        group.voters?.includes(currentUserId)
+                          ? 'bg-purple-600 text-white scale-110' 
+                          : darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-100'
+                      }`}
+                    >
+                      <ThumbsUp size={12} />
+                      {group.votes || 0}
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {group.items.map(item => {
+                    const itemColumn = currentRetroFormat.columns.find(c => c.id === item.columnId);
+                    return (
+                      <div
+                        key={item.id}
+                        className={`flex items-start gap-2 p-2 rounded text-sm ${
+                          darkMode ? 'bg-gray-800' : 'bg-white'
+                        } border-l-4 group relative`}
+                        style={{ borderLeftColor: itemColumn?.color || '#6b7280' }}
+                      >
+                        {itemColumn && (
+                          <span className="text-xs shrink-0 mt-0.5" style={{ color: itemColumn.color }}>
+                            {itemColumn.icon}
+                          </span>
+                        )}
+                        <span className={`flex-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {item.text}
+                        </span>
+                        {!isObserver && (
+                          <button
+                            onClick={() => handleRemoveFromGroup(group.id, item)}
+                            className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded ${
+                              darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+                            }`}
+                            title="Remove from group"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
+
+          {columnItems.length === 0 && columnGroups.length === 0 && (
+            <p className={`text-center text-sm ${darkMode ? 'text-gray-500' : 'text-gray-400'} py-8`}>
+              No items in this column yet
+            </p>
+          )}
+        </div>
+      );
+    })}
   </div>
 )}
           {retroPhase === 'discussion' && (
@@ -2207,10 +2463,14 @@ const addRetroInput = async (columnId) => {
         )}
 
         <footer className="mt-6 text-center">
-          <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-            Scrumptious v{APP_VERSION}
-          </p>
-        </footer>
+  <p 
+    onClick={() => setShowReleaseNotes(true)}
+    className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+    title="View release notes"
+  >
+    Scrumptious v{APP_VERSION}
+  </p>
+</footer>
       </div>
     );
   }
