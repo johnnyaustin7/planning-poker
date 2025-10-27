@@ -1548,58 +1548,122 @@ const handleRenameGroup = async (groupId, newName) => {
           
           <div className="mt-6 text-center">
   <p 
-    onClick={() => setShowReleaseNotes(true)}
-    className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
-    title="View release notes"
-  >
-    Scrumptious v{APP_VERSION}
-  </p>
-</div>
-        </div>
-        {showFormatSelector && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div 
-              className="absolute inset-0" 
-              onClick={() => setShowFormatSelector(false)}
-            />
-            <div className={`${darkMode ? 'bg-gray-800/95' : 'bg-white/95'} rounded-lg shadow-2xl max-w-2xl w-full relative z-10`}>
-              <div className="p-6 border-b">
-                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Choose Retrospective Format
-                </h2>
-              </div>
-              
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(RETRO_FORMATS).map(([key, format]) => (
-                    <button
-                      key={key}
-                      onClick={() => handleCreateRetroSession(key)}
-                      className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg p-4 text-left transition-all border-2 border-transparent hover:border-purple-500`}
-                    >
-                      <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                        {format.name}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {format.columns.map(col => (
-                          <span
-                            key={col.id}
-                            className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-white text-gray-700'}`}
-                          >
-                            {col.icon} {col.label}
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+          onClick={() => setShowReleaseNotes(true)}
+          className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+          title="View release notes"
+        >
+          Scrumptious v{APP_VERSION}
+        </p>
+      </div>
+    </div>
+    
+    {/* Format Selector Modal */}
+    {showFormatSelector && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="absolute inset-0" 
+          onClick={() => setShowFormatSelector(false)}
+        />
+        <div className={`${darkMode ? 'bg-gray-800/95' : 'bg-white/95'} rounded-lg shadow-2xl max-w-2xl w-full relative z-10`}>
+          <div className="p-6 border-b">
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              Choose Retrospective Format
+            </h2>
+          </div>
+          
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(RETRO_FORMATS).map(([key, format]) => (
+                <button
+                  key={key}
+                  onClick={() => handleCreateRetroSession(key)}
+                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg p-4 text-left transition-all border-2 border-transparent hover:border-purple-500`}
+                >
+                  <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    {format.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {format.columns.map(col => (
+                      <span
+                        key={col.id}
+                        className={`text-xs px-2 py-1 rounded ${darkMode ? 'bg-gray-600 text-gray-200' : 'bg-white text-gray-700'}`}
+                      >
+                        {col.icon} {col.label}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-        )}
+        </div>
       </div>
-    );
-  }
+    )}
+
+    {/* Release Notes Modal */}
+    {showReleaseNotes && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div 
+          className="absolute inset-0" 
+          onClick={() => setShowReleaseNotes(false)}
+        />
+        <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                Release Notes
+              </h2>
+              <button
+                onClick={() => setShowReleaseNotes(false)}
+                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                <span className="text-2xl">&times;</span>
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="space-y-6">
+              {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                <div
+                  key={version}
+                  className={`p-4 rounded-lg border ${
+                    darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        Version {version}
+                      </h3>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {notes.date} • {notes.type}
+                      </p>
+                    </div>
+                    {version === APP_VERSION && (
+                      <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {notes.changes.map((change, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="mr-2 mt-1">•</span>
+                        <span>{change}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+}
 
   // Join page
   if (!hasJoined) {
