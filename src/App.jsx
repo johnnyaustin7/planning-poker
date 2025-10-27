@@ -1546,10 +1546,14 @@ const handleRenameGroup = async (groupId, newName) => {
           </div>
           
           <div className="mt-6 text-center">
-            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Scrumptious v{APP_VERSION}
-            </p>
-          </div>
+  <p 
+    onClick={() => setShowReleaseNotes(true)}
+    className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+    title="View release notes"
+  >
+    Scrumptious v{APP_VERSION}
+  </p>
+</div>
         </div>
         {showFormatSelector && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -1893,14 +1897,14 @@ const handleRenameGroup = async (groupId, newName) => {
           </div>
 
           {/* Timer Control */}
-          {isModerator && (
+          {(isModerator || timer?.active) && (
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 mb-6`}>
               <div className="flex items-center gap-4">
                 <Clock size={20} className="text-gray-600" />
                 
                 {!timer?.active ? (
                   <div className="flex gap-2 flex-wrap">
-                    {[1, 3, 5, 10, 15].map(min => (
+                    {[1,2,3,4,5,10,15].map(m => (
                       <button
                         key={min}
                         onClick={() => startTimer(min)}
@@ -2194,9 +2198,37 @@ const handleRenameGroup = async (groupId, newName) => {
         <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
           <div className="flex items-center gap-3 mb-3">
             <span className="text-2xl font-bold text-purple-600">{group.votes}</span>
-            <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              {group.title}
-            </h3>
+            {editingGroupId === group.id ? (
+  <input
+    type="text"
+    value={editingGroupName}
+    onChange={(e) => setEditingGroupName(e.target.value)}
+    onBlur={() => handleRenameGroup(group.id, editingGroupName)}
+    onKeyPress={(e) => {
+      if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
+      if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
+    }}
+    className={`flex-1 px-2 py-1 border ${
+      darkMode 
+        ? 'bg-gray-700 border-purple-500 text-white' 
+        : 'bg-white border-purple-500'
+    } rounded text-sm font-bold`}
+    autoFocus
+  />
+) : (
+  <h3 
+    className={`font-bold text-lg cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+    onClick={() => {
+      if (!isObserver) {
+        setEditingGroupId(group.id);
+        setEditingGroupName(group.title);
+      }
+    }}
+    title="Click to rename"
+  >
+    {group.title}
+  </h3>
+)}
           </div>
           
           <div className="space-y-2 ml-6 mb-4">
@@ -2816,6 +2848,68 @@ const handleRenameGroup = async (groupId, newName) => {
                 >
                   Leave Session
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Release Notes Modal */}
+        {showReleaseNotes && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div 
+              className="absolute inset-0" 
+              onClick={() => setShowReleaseNotes(false)}
+            />
+            <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Release Notes
+                  </h2>
+                  <button
+                    onClick={() => setShowReleaseNotes(false)}
+                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                  >
+                    <span className="text-2xl">&times;</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-6">
+                  {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                    <div
+                      key={version}
+                      className={`p-4 rounded-lg border ${
+                        darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                            Version {version}
+                          </h3>
+                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {notes.date} • {notes.type}
+                          </p>
+                        </div>
+                        {version === APP_VERSION && (
+                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                      <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {notes.changes.map((change, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="mr-2 mt-1">•</span>
+                            <span>{change}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
