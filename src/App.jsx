@@ -128,7 +128,7 @@ const initializeFirebase = async () => {
 export default function App() {
   // Core state
   const [userName, setUserName] = useState('');
-  const [isModerator, setIsModerator] = useState(false);
+  const [isModerator, setIsModerator] = useState(true);
   const [isObserver, setIsObserver] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [sessionId, setSessionId] = useState('');
