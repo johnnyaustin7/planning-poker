@@ -2558,7 +2558,7 @@ const handleRenameGroup = async (groupId, newName) => {
             </div>
           </div>
         )}
-        
+
 {/* Release Notes Modal */}
         {showReleaseNotes && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -2621,7 +2621,6 @@ const handleRenameGroup = async (groupId, newName) => {
           </div>
         )}
 
-        <footer className="mt-6 text-center">
         <footer className="mt-6 text-center">
   <p 
     onClick={() => setShowReleaseNotes(true)}
