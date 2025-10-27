@@ -559,18 +559,19 @@ export default function App() {
     }
   };
   const handleLeaveSession = async () => {
-    if (!db || !dbModule || !currentUserId) return;
-    
-    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
-    await dbModule.remove(participantRef);
-    
-    setHasJoined(false);
-    setSessionId('');
-    setSelectedPoint(null);
-    setShowLeaveConfirm(false);
-    setWasRemoved(false);
-    setCurrentUserId(null);
-  };
+  if (!db || !dbModule || !currentUserId) return;
+  
+  const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
+  await dbModule.remove(participantRef);
+  
+  setHasJoined(false);
+  setSessionId('');
+  setSelectedPoint(null);
+  setShowLeaveConfirm(false);
+  setWasRemoved(false);
+  setCurrentUserId(null);
+  setShowReleaseNotes(false);
+};
 
   const removeUser = async (userId) => {
     if (!isModerator || !db || !dbModule) return;
@@ -678,7 +679,7 @@ const addRetroInput = async (columnId) => {
     id: inputId,
     text: newInputText.trim(),
     author: 'Anonymous',
-    columnId: columnId,  // NEW: Store which column this belongs to
+    columnId: columnId,  
     votes: 0,
     voters: [],
     timestamp: Date.now()
@@ -688,7 +689,7 @@ const addRetroInput = async (columnId) => {
   await dbModule.set(inputRef, input);
   
   setNewInputText('');
-  setSelectedColumn(null);  // NEW: Close the modal after adding
+  setSelectedColumn(null);  
 };
 
   const toggleRetroVote = async (inputId) => {
