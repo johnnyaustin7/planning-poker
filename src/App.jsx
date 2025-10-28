@@ -126,6 +126,34 @@ const PieChart = ({ stats, darkMode }) => {
           const percentage = (count / total) * 100;
           const angle = (percentage / 100) * 360;
           
+          // Special case: if this is 100% (consensus), draw a full circle
+          if (angle >= 359.9) {
+            return (
+              <g key={vote}>
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill={colors[index % colors.length]}
+                  stroke="white"
+                  strokeWidth="2"
+                  className="transition-all duration-300 hover:opacity-80"
+                />
+                <text
+                  x="100"
+                  y="100"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize="24"
+                  fontWeight="bold"
+                >
+                  {vote}
+                </text>
+              </g>
+            );
+          }
+          
           const startAngle = currentAngle;
           const endAngle = currentAngle + angle;
           
@@ -3398,7 +3426,7 @@ if (!revealed) {
         </div>
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
-            {!isModerator && !isObserver && !revealed && (
+            {!isModerator && !isObserver && (
               <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
@@ -3416,6 +3444,7 @@ if (!revealed) {
                     </span>
                   </div>
                 </div>
+                {!revealed && (
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                   {currentScale.map((point) => (
                     <button
@@ -3433,6 +3462,7 @@ if (!revealed) {
         </button>
       ))}
     </div>
+    )}
     
     {confidenceVotingEnabled && (
       <div className="mt-6">
@@ -3571,23 +3601,8 @@ if (!revealed) {
                 )}
               </div>
               {revealed && showPieChart && stats ? (
-                <div>
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    {ticketNumber && (
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
-                          {ticketNumber}
-                        </span>
-                      </div>
-                    )}
-                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center py-4">
-                    <PieChart stats={stats} darkMode={darkMode} />
-                  </div>
+                <div className="flex items-center justify-center py-8">
+                  <PieChart stats={stats} darkMode={darkMode} />
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
