@@ -1459,7 +1459,7 @@ if (!revealed) {
     const max = Math.max(...numericVotes);
     const range = numericVotes.length > 1 ? { min, max } : null;
     const spread = max - min;
-    
+     
     let spreadType = 'tight';
     if (spread > 5) spreadType = 'wide';
     else if (spread > 2) spreadType = 'moderate';
