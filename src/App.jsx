@@ -120,8 +120,8 @@ const PieChart = ({ stats, darkMode }) => {
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
   
   return (
-    <div className="flex flex-col items-center gap-6 fade-in">
-      <svg width="320" height="320" viewBox="0 0 200 200" className="drop-shadow-lg">
+    <div className="flex flex-col items-center gap-6">
+      <svg width="320" height="320" viewBox="0 0 200 200" className="drop-shadow-lg pie-chart-grow">
         {stats.distribution.map(([vote, count], index) => {
           const percentage = (count / total) * 100;
           const angle = (percentage / 100) * 360;
@@ -3259,6 +3259,19 @@ if (!revealed) {
         .modal-enter {
           animation: slideUp 0.3s ease-out;
         }
+        @keyframes pieGrow {
+          from {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .pie-chart-grow {
+          animation: pieGrow 0.5s ease-out;
+        }
       `}</style>
       <div className="max-w-6xl mx-auto">
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
@@ -3558,8 +3571,23 @@ if (!revealed) {
                 )}
               </div>
               {revealed && showPieChart && stats ? (
-                <div className="flex items-center justify-center py-8">
-                  <PieChart stats={stats} darkMode={darkMode} />
+                <div>
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    {ticketNumber && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
+                          {ticketNumber}
+                        </span>
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center py-4">
+                    <PieChart stats={stats} darkMode={darkMode} />
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
