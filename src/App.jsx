@@ -120,8 +120,8 @@ const PieChart = ({ stats, darkMode }) => {
   const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
   
   return (
-    <div className="flex flex-col items-center gap-6">
-      <svg width="300" height="300" viewBox="0 0 200 200">
+    <div className="flex flex-col items-center gap-6 fade-in">
+      <svg width="320" height="320" viewBox="0 0 200 200" className="drop-shadow-lg">
         {stats.distribution.map(([vote, count], index) => {
           const percentage = (count / total) * 100;
           const angle = (percentage / 100) * 360;
@@ -457,7 +457,7 @@ export default function App() {
         const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
         await dbModule.update(sessionRef, { revealed: true });
         setShowPieChart(true);
-      }, 500);
+      }, 200);
       
       return () => clearTimeout(timer);
     }
@@ -3471,20 +3471,11 @@ if (!revealed) {
   </div>
 )}
 
-{/* Pie Chart - visible to everyone when revealed */}
-{revealed && showPieChart && stats && (
-  <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
-    <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Vote Distribution</h2>
-    <div className="flex items-center justify-center py-8">
-      <PieChart stats={stats} darkMode={darkMode} />
-    </div>
-  </div>
-)}
-
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Votes</h2>
-                {isModerator && (
+                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {revealed && showPieChart ? 'Vote Distribution' : 'Votes'}
+                </h2>                {isModerator && (
                   <div className="flex gap-2 items-center flex-wrap">
                     <input
                       type="text"
@@ -3565,8 +3556,13 @@ if (!revealed) {
                   </div>
                 )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {sortedParticipants.map((participant) => {
+              {revealed && showPieChart && stats ? (
+                <div className="flex items-center justify-center py-8">
+                  <PieChart stats={stats} darkMode={darkMode} />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {sortedParticipants.map((participant) => {
                   const hasVoted = participant.points !== null && 
                                    participant.points !== undefined && 
                                    participant.points !== '';
@@ -3632,6 +3628,7 @@ if (!revealed) {
                   );
                 })}
               </div>
+              )}
             </div>
           </div>
 
