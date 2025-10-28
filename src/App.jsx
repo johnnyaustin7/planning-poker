@@ -111,6 +111,86 @@ const RELEASE_NOTES = {
   }
 };
 
+const PieChart = ({ stats, darkMode }) => {
+  if (!stats || !stats.distribution) return null;
+  
+  const total = stats.distribution.reduce((sum, [_, count]) => sum + count, 0);
+  let currentAngle = -90; // Start at top
+  
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+  
+  return (
+    <div className="flex flex-col items-center gap-6">
+      <svg width="300" height="300" viewBox="0 0 200 200">
+        {stats.distribution.map(([vote, count], index) => {
+          const percentage = (count / total) * 100;
+          const angle = (percentage / 100) * 360;
+          
+          const startAngle = currentAngle;
+          const endAngle = currentAngle + angle;
+          
+          const startRad = (startAngle * Math.PI) / 180;
+          const endRad = (endAngle * Math.PI) / 180;
+          
+          const x1 = 100 + 80 * Math.cos(startRad);
+          const y1 = 100 + 80 * Math.sin(startRad);
+          const x2 = 100 + 80 * Math.cos(endRad);
+          const y2 = 100 + 80 * Math.sin(endRad);
+          
+          const largeArc = angle > 180 ? 1 : 0;
+          
+          const path = `M 100 100 L ${x1} ${y1} A 80 80 0 ${largeArc} 1 ${x2} ${y2} Z`;
+          
+          // Calculate label position
+          const midAngle = (startAngle + endAngle) / 2;
+          const midRad = (midAngle * Math.PI) / 180;
+          const labelX = 100 + 50 * Math.cos(midRad);
+          const labelY = 100 + 50 * Math.sin(midRad);
+          
+          currentAngle = endAngle;
+          
+          return (
+            <g key={vote}>
+              <path
+                d={path}
+                fill={colors[index % colors.length]}
+                stroke="white"
+                strokeWidth="2"
+                className="transition-all duration-300 hover:opacity-80"
+              />
+              <text
+                x={labelX}
+                y={labelY}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill="white"
+                fontSize="16"
+                fontWeight="bold"
+              >
+                {vote}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      
+      <div className="flex flex-wrap gap-3 justify-center">
+        {stats.distribution.map(([vote, count], index) => (
+          <div key={vote} className="flex items-center gap-2">
+            <div
+              className="w-4 h-4 rounded"
+              style={{ backgroundColor: colors[index % colors.length] }}
+            />
+            <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {vote}: {count} ({((count / total) * 100).toFixed(0)}%)
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 let firebaseApp = null;
 let database = null;
 
@@ -193,6 +273,7 @@ export default function App() {
   const [selectedConfidence, setSelectedConfidence] = useState(null);
   const [confidenceVotingEnabled, setConfidenceVotingEnabled] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showPieChart, setShowPieChart] = useState(false);
   useEffect(() => {
     const init = async () => {
       const { db: firebaseDb, dbModule: firebaseDbModule } = await initializeFirebase();
@@ -1048,21 +1129,26 @@ const handleRenameGroup = async (groupId, newName) => {
   };
 
   const handleReveal = async () => {
-    if (!db || !dbModule) return;
-    
-    if (navigator.vibrate) {
-      navigator.vibrate(20);
-    }
-    
-    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-    const updates = { revealed: !revealed };
-    
-    if (isFirstRound && !revealed) {
-      updates.isFirstRound = false;
-    }
-    
-    await dbModule.update(sessionRef, updates);
-  };
+  if (!db || !dbModule) return;
+  
+  if (navigator.vibrate) {
+    navigator.vibrate(20);
+  }
+  
+  const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+  const updates = { revealed: !revealed };
+  
+  if (isFirstRound && !revealed) {
+    updates.isFirstRound = false;
+  }
+  
+  // Show pie chart when revealing
+  if (!revealed) {
+    setShowPieChart(true);
+  }
+  
+  await dbModule.update(sessionRef, updates);
+};
 
   const handleReset = async () => {
     if (!db || !dbModule) return;
@@ -1100,6 +1186,7 @@ const handleRenameGroup = async (groupId, newName) => {
     
     setSelectedPoint(null);
     setSelectedConfidence(null);
+    setShowPieChart(false);
     setResetTime(Date.now());
     setElapsedTime(0);
     setTicketNumber('');
@@ -1307,9 +1394,11 @@ const handleRenameGroup = async (groupId, newName) => {
       .map(p => p.points)
       .filter(p => p !== null && p !== undefined && p !== '');
     
-    const uniqueVotes = new Set(allVotes);
-    const consensus = uniqueVotes.size === 1 && allVotes.length > 1;
-    
+    // Filter out "No QA" votes for consensus check
+    const votesForConsensus = allVotes.filter(v => v !== 'No QA');
+    const uniqueVotes = new Set(votesForConsensus);
+    const consensus = uniqueVotes.size === 1 && votesForConsensus.length > 1;';./,;'
+      
     const min = Math.min(...numericVotes);
     const max = Math.max(...numericVotes);
     const range = numericVotes.length > 1 ? { min, max } : null;
@@ -3286,23 +3375,29 @@ const handleRenameGroup = async (groupId, newName) => {
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                  {currentScale.map((point) => (
-                    <button
-                      key={point}
-                      onClick={() => handleSelectPoint(point)}
-                      className={`aspect-square rounded-lg font-bold text-xl transition-all ${
-                        selectedPoint === point
-                          ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
-                          : darkMode
-                          ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                      } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
-                    >
-                      {point}
-                    </button>
-                  ))}
-                </div>
+                {!revealed || !showPieChart ? (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                    {currentScale.map((point) => (
+                      <button
+                        key={point}
+                        onClick={() => handleSelectPoint(point)}
+                        className={`aspect-square rounded-lg font-bold text-xl transition-all ${
+                          selectedPoint === point
+                            ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
+                            : darkMode
+                            ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+                        } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
+                      >
+                        {point}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center py-12">
+                    <PieChart stats={stats} darkMode={darkMode} />
+                  </div>
+                )}
                 
                 {confidenceVotingEnabled && (
                   <div className="mt-6">
