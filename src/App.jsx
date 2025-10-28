@@ -357,6 +357,7 @@ export default function App() {
         // Load planning poker data
         if (data.sessionType === 'estimation' || !data.sessionType) {
           setRevealed(data.revealed || false);
+          setShowPieChart(data.revealed || false);
           setVotingScale(data.votingScale || 'fibonacci');
           setConfidenceVotingEnabled(data.confidenceVotingEnabled || false);
           
