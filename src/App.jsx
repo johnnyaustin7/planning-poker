@@ -438,6 +438,31 @@ export default function App() {
       setQrCodeUrl(qrUrl);
     }
   }, [sessionId]);
+
+  // ADD THIS NEW useEffect HERE:
+  // Auto-reveal when all participants have voted (except first round)
+  useEffect(() => {
+    if (!sessionId || !db || !dbModule || isFirstRound || revealed) return;
+    
+    const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+    if (votingParticipants.length === 0) return;
+    
+    const allVoted = votingParticipants.every(p => 
+      p.points !== null && p.points !== undefined && p.points !== ''
+    );
+    
+    if (allVoted && isModerator) {
+      // Auto-reveal after a short delay
+      const timer = setTimeout(async () => {
+        const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+        await dbModule.update(sessionRef, { revealed: true });
+        setShowPieChart(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [participants, isFirstRound, revealed, sessionId, db, dbModule, isModerator]);
+
   const generateSessionId = () => {
     const words = [
       'BANANA', 'CASTLE', 'DRAGON', 'FOREST', 'GALAXY', 'HAMMER',
@@ -3359,27 +3384,27 @@ if (!revealed) {
         </div>
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
-            {!isModerator && !isObserver && (
-  <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
-    <div className="flex items-center justify-between mb-4">
-      <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
-      <div className="flex items-center gap-3">
-        {ticketNumber && (
-          <div className="flex items-center gap-2">
-            <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-            <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
-              {ticketNumber}
-            </span>
-          </div>
-        )}
-        <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
-        </span>
-      </div>
-    </div>
-    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-      {currentScale.map((point) => (
-        <button
+            {!isModerator && !isObserver && !revealed && (
+              <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
+                  <div className="flex items-center gap-3">
+                    {ticketNumber && (
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
+                          {ticketNumber}
+                        </span>
+                      </div>
+                    )}
+                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                  {currentScale.map((point) => (
+                    <button
           key={point}
           onClick={() => handleSelectPoint(point)}
           className={`aspect-square rounded-lg font-bold text-xl transition-all ${
