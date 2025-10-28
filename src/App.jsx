@@ -1142,10 +1142,12 @@ const handleRenameGroup = async (groupId, newName) => {
     updates.isFirstRound = false;
   }
   
-  // Show pie chart when revealing
-  if (!revealed) {
-    setShowPieChart(true);
-  }
+  // Show pie chart when revealing, hide when hiding
+if (!revealed) {
+  setShowPieChart(true);
+} else {
+  setShowPieChart(false);
+}
   
   await dbModule.update(sessionRef, updates);
 };
@@ -3358,97 +3360,101 @@ const handleRenameGroup = async (groupId, newName) => {
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
             {!isModerator && !isObserver && (
-              <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
-                  <div className="flex items-center gap-3">
-                    {ticketNumber && (
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
-                          {ticketNumber}
-                        </span>
-                      </div>
-                    )}
-                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
-                    </span>
-                  </div>
-                </div>
-                {!revealed || !showPieChart ? (
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                    {currentScale.map((point) => (
-                      <button
-                        key={point}
-                        onClick={() => handleSelectPoint(point)}
-                        className={`aspect-square rounded-lg font-bold text-xl transition-all ${
-                          selectedPoint === point
-                            ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
-                            : darkMode
-                            ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                        } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
-                      >
-                        {point}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center py-12">
-                    <PieChart stats={stats} darkMode={darkMode} />
-                  </div>
-                )}
-                
-                {confidenceVotingEnabled && (
-                  <div className="mt-6">
-                    <label className={`block text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>
-                      How confident are you?
-                    </label>
-                    <div className="grid grid-cols-3 gap-3">
-                      <button
-                        onClick={() => handleSelectConfidence('high')}
-                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
-                          selectedConfidence === 'high'
-                            ? 'bg-green-600 text-white scale-105 shadow-lg'
-                            : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                        }`}
-                      >
-                        🟢 High
-                      </button>
-                      <button
-                        onClick={() => handleSelectConfidence('medium')}
-                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
-                          selectedConfidence === 'medium'
-                            ? 'bg-yellow-600 text-white scale-105 shadow-lg'
-                            : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                        }`}
-                      >
-                        🟡 Medium
-                      </button>
-                      <button
-                        onClick={() => handleSelectConfidence('low')}
-                        className={`py-3 px-4 rounded-lg font-semibold transition-all ${
-                          selectedConfidence === 'low'
-                            ? 'bg-red-600 text-white scale-105 shadow-lg'
-                            : darkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
-                        }`}
-                      >
-                        🔴 Low
-                      </button>
-                    </div>
-                    <p className={`text-xs mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                      High: Very familiar • Medium: Some uncertainty • Low: Just guessing
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+  <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+    <div className="flex items-center justify-between mb-4">
+      <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
+      <div className="flex items-center gap-3">
+        {ticketNumber && (
+          <div className="flex items-center gap-2">
+            <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
+            <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
+              {ticketNumber}
+            </span>
+          </div>
+        )}
+        <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          {votingScale === 'fibonacci' ? 'Fibonacci' : 'T-Shirt Sizing'}
+        </span>
+      </div>
+    </div>
+    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+      {currentScale.map((point) => (
+        <button
+          key={point}
+          onClick={() => handleSelectPoint(point)}
+          className={`aspect-square rounded-lg font-bold text-xl transition-all ${
+            selectedPoint === point
+              ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
+              : darkMode
+              ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+          } ${shouldFlicker && selectedPoint === null && (confidenceVotingEnabled ? selectedConfidence === null : true) ? 'animate-flicker' : ''}`}
+        >
+          {point}
+        </button>
+      ))}
+    </div>
+    
+    {confidenceVotingEnabled && (
+      <div className="mt-6">
+        <label className={`block text-sm font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>
+          How confident are you?
+        </label>
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => handleSelectConfidence('high')}
+            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+              selectedConfidence === 'high'
+                ? 'bg-green-600 text-white scale-105 shadow-lg'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+            }`}
+          >
+            🟢 High
+          </button>
+          <button
+            onClick={() => handleSelectConfidence('medium')}
+            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+              selectedConfidence === 'medium'
+                ? 'bg-yellow-600 text-white scale-105 shadow-lg'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+            }`}
+          >
+            🟡 Medium
+          </button>
+          <button
+            onClick={() => handleSelectConfidence('low')}
+            className={`py-3 px-4 rounded-lg font-semibold transition-all ${
+              selectedConfidence === 'low'
+                ? 'bg-red-600 text-white scale-105 shadow-lg'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:scale-105'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
+            }`}
+          >
+            🔴 Low
+          </button>
+        </div>
+        <p className={`text-xs mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          High: Very familiar • Medium: Some uncertainty • Low: Just guessing
+        </p>
+      </div>
+    )}
+  </div>
+)}
+
+{/* Pie Chart - visible to everyone when revealed */}
+{revealed && showPieChart && stats && (
+  <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
+    <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Vote Distribution</h2>
+    <div className="flex items-center justify-center py-8">
+      <PieChart stats={stats} darkMode={darkMode} />
+    </div>
+  </div>
+)}
 
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 ${!isModerator && !isObserver ? 'mt-6' : ''}`}>
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
