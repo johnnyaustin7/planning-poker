@@ -1804,11 +1804,11 @@ if (!revealed) {
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>scrumptious</h1>
+            <div className="flex items-center justify-center mb-4 relative">
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`absolute right-0 p-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -2005,11 +2005,11 @@ if (!revealed) {
       <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>scrumptious</h1>
+            <div className="flex items-center justify-center mb-4 relative">
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`absolute right-0 p-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
