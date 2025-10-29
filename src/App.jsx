@@ -2978,28 +2978,73 @@ if (!revealed) {
           <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
             Individual Items
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {[...retroInputs].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(item => {
               const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
               return (
                 <div 
                   key={item.id} 
-                  className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border-l-4`}
-                  style={{ borderLeftColor: column?.color || '#6b7280' }}
+                  className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
                 >
-                  <div className="flex items-start gap-2 mb-2">
-                    {column && (
-                      <span className="text-lg shrink-0" style={{ color: column.color }}>
-                        {column.icon}
-                      </span>
-                    )}
-                    <p className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                      {item.text}
-                    </p>
-                    <span className="text-lg font-bold text-purple-600">{item.votes || 0}</span>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-2xl font-bold text-purple-600">{item.votes || 0}</span>
+                    <div className="flex items-start gap-2 flex-1">
+                      {column && (
+                        <span className="text-lg shrink-0" style={{ color: column.color }}>
+                          {column.icon}
+                        </span>
+                      )}
+                      <div className="flex-1">
+                        <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
+                          {item.text}
+                        </p>
+                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {column?.label || 'Unknown'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-7`}>
-                    {column?.label || 'Unknown'}
+
+                  {/* Comments Section for Individual Items */}
+                  <div className="ml-6 mt-4 border-t pt-4">
+                    <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      <MessageSquare size={16} />
+                      Comments ({Object.keys(retroComments[item.id] || {}).length})
+                    </h4>
+                    
+                    <div className="space-y-2 mb-3">
+                      {Object.values(retroComments[item.id] || {}).map(comment => (
+                        <div key={comment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 rounded text-sm`}>
+                          <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
+                          <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                            {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {!isObserver && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newCommentText[item.id] || ''}
+                          onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
+                          onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
+                          placeholder="Add a comment..."
+                          className={`flex-1 px-3 py-2 border ${
+                            darkMode 
+                              ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
+                              : 'bg-white border-gray-300'
+                          } rounded text-sm`}
+                        />
+                        <button 
+                          onClick={() => addRetroComment(item.id)}
+                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                        >
+                          Comment
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
