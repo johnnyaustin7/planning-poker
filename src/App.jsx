@@ -3354,15 +3354,13 @@ if (!revealed) {
           <p 
             onClick={() => setShowReleaseNotes(true)}
             className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
-    title="View release notes"
-  >
-    scrumptious v{APP_VERSION}
-  </p>
+            title="View release notes"
+          >
+          scrumptious v{APP_VERSION}
+          </p>
 
-</footer>
-      </div>
-    );
-  }
+        </footer>
+
   // COLUMN-BASED RETROSPECTIVE VIEW
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat) {
     return (
