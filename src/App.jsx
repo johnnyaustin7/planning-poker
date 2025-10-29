@@ -3797,6 +3797,7 @@ if (!revealed) {
             scrumptious v{APP_VERSION}
           </p>
         </footer>
+      </div>  
     );
   }
   // PLANNING POKER SESSION VIEW
