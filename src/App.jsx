@@ -2387,6 +2387,14 @@ if (!revealed) {
   const currentRetroFormat = retroFormat ? RETRO_FORMATS[retroFormat] : null;
   // RETROSPECTIVE SESSION VIEW with phased approach
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat && retroPhase) {
+    console.log('Phased retro rendering:', { 
+      retroPhase, 
+      selectedColumn, 
+      retroFormat,
+      isObserver,
+      newInputText 
+    });
+    
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50'} p-4`}>
         <style>{`
