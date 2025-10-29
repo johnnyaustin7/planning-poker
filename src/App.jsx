@@ -2385,18 +2385,21 @@ if (!revealed) {
 
   // Get current retro format
   const currentRetroFormat = retroFormat ? RETRO_FORMATS[retroFormat] : null;
+  
+  // Debug log
+  console.log('Retro check:', { 
+    sessionType, 
+    retroFormat, 
+    currentRetroFormat: !!currentRetroFormat, 
+    retroPhase,
+    hasAllConditions: !!(sessionType === 'retrospective' && retroFormat && currentRetroFormat && retroPhase)
+  });
+  
   // RETROSPECTIVE SESSION VIEW with phased approach
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat && retroPhase) {
-    console.log('Phased retro rendering:', { 
-      retroPhase, 
-      selectedColumn, 
-      retroFormat,
-      isObserver,
-      newInputText 
-    });
-    
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50'} p-4`}>
+        <div className="max-w-7xl mx-auto">
         <style>{`
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -2586,7 +2589,7 @@ if (!revealed) {
 {retroPhase === 'input' && (isModerator || timer?.active) && (
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 mb-6`}>
               <div className="flex items-center gap-4">
-                <Clock size={20} className="text-gray-600" />
+                <Clock size={20} className={darkMode ? 'text-white' : 'text-gray-600'} />
                 
                 {!timer?.active ? (
   <div className="flex gap-2 flex-wrap">
@@ -2594,15 +2597,19 @@ if (!revealed) {
       <button
         key={m}
         onClick={() => startTimer(m)}
-        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-      >
+            className={`px-3 py-1 rounded text-sm ${
+      darkMode 
+        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+        : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+    }`}
+  >
         {m} min
       </button>
     ))}
   </div>
 ) : (
   <>
-    <div className="text-2xl font-mono font-bold text-purple-600">
+    <div className={`text-2xl font-mono ${darkMode ? 'text-white' : 'text-gray-600'}`}>
       {formatTime(timeRemaining)}
     </div>
     {isModerator && (
@@ -2648,17 +2655,20 @@ if (!revealed) {
 
           {/* Add Item Button */}
           {!isObserver && (
-            <button
-              onClick={() => setSelectedColumn(column.id)}
-              className={`w-full mb-4 py-2 px-4 rounded-lg border-2 border-dashed transition-colors ${
-                darkMode 
-                  ? 'border-gray-600 hover:border-gray-500 text-gray-400 hover:text-gray-300' 
-                  : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700'
-              }`}
-            >
-              + Add Item
-            </button>
-          )}
+  <button
+    onClick={() => {
+      console.log('Add Item clicked, setting column:', column.id);
+      setSelectedColumn(column.id);
+    }}
+    className={`w-full mb-4 py-2 px-4 rounded-lg border-2 border-dashed transition-colors ${
+      darkMode 
+        ? 'border-gray-600 hover:border-gray-500 text-gray-400 hover:text-gray-300' 
+        : 'border-gray-300 hover:border-gray-400 text-gray-600 hover:text-gray-700'
+    }`}
+  >
+    + Add Item
+  </button>
+)}
 
           {/* Items List */}
           <div className="space-y-2">
@@ -3063,26 +3073,11 @@ if (!revealed) {
           </div>
         );
       })}
-
-      {/* Empty State */}
-      {retroGroups.length === 0 && retroInputs.length === 0 && (
-        <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-          No items to discuss yet. Add items in Phase 1 and group them in Phase 2.
-        </p>
-      )}
     </div>
   </div>
 )}
-
-      {/* Empty State */}
-      {retroGroups.length === 0 && retroInputs.length === 0 && (
-        <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-          No items to discuss yet. Add items in Phase 1 and group them in Phase 2.
-        </p>
-      )}
     </div>
   </div>
-)}
 
           {/* Participants List */}
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mt-6`}>
@@ -3121,9 +3116,9 @@ if (!revealed) {
             </div>
           </div>
 
-          {/* Add Item Modal */}
-          {selectedColumn && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        {/* Add Item Modal */}
+        {selectedColumn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
             <div 
               className="absolute inset-0" 
               onClick={() => {
@@ -3131,7 +3126,7 @@ if (!revealed) {
                 setNewInputText('');
               }}
             />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10 modal-enter`}>
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[10000] modal-enter`}>
               <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
                 Add Item
               </h3>
@@ -3172,6 +3167,7 @@ if (!revealed) {
             </div>
           </div>
         )}
+
         {/* Share Modal */}
         {showShareModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -3191,7 +3187,6 @@ if (!revealed) {
                   <X size={24} />
                 </button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -3201,7 +3196,6 @@ if (!revealed) {
                     {sessionId}
                   </div>
                 </div>
-
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     Share Link
@@ -3226,7 +3220,6 @@ if (!revealed) {
                     </button>
                   </div>
                 </div>
-
                 <button 
                   onClick={() => setShowQR(!showQR)}
                   className="w-full px-4 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center justify-center gap-2"
@@ -3234,7 +3227,6 @@ if (!revealed) {
                   <Share2 size={20} />
                   {showQR ? 'Hide' : 'Show'} QR Code
                 </button>
-
                 {showQR && qrCodeUrl && (
                   <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded">
                     <img src={qrCodeUrl} alt="QR Code" className="mx-auto border-2 border-gray-300 rounded" />
@@ -3281,7 +3273,7 @@ if (!revealed) {
           </div>
         )}
 
-{/* Release Notes Modal */}
+        {/* Release Notes Modal */}
         {showReleaseNotes && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div 
@@ -3313,7 +3305,6 @@ if (!revealed) {
                   </button>
                 </div>
               </div>
-              
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-6">
                   {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
@@ -3365,10 +3356,12 @@ if (!revealed) {
             className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
             title="View release notes"
           >
-          scrumptious v{APP_VERSION}
+            scrumptious v{APP_VERSION}
           </p>
-
         </footer>
+      </div>
+    );
+  }
 
   // COLUMN-BASED RETROSPECTIVE VIEW
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat && !retroPhase) {
