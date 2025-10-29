@@ -3499,7 +3499,11 @@ if (!revealed) {
             </div>
           </div>
           {/* Retrospective Columns */}
-          <div className={`grid grid-cols-1 md:grid-cols-${currentRetroFormat.columns.length >= 4 ? '2' : currentRetroFormat.columns.length} gap-4 mb-6`}>
+          <div className={`grid grid-cols-1 gap-4 mb-6 ${
+  currentRetroFormat.columns.length === 2 ? 'md:grid-cols-2' :
+  currentRetroFormat.columns.length === 3 ? 'md:grid-cols-3' :
+  'md:grid-cols-2'
+}`}>
             {currentRetroFormat.columns.map(column => {
               const columnItems = Object.values(retroItems).filter(item => item.columnId === column.id);
               const sortedItems = columnItems.sort((a, b) => (b.votes || 0) - (a.votes || 0));
