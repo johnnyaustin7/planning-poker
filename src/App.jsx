@@ -104,7 +104,7 @@ const RELEASE_NOTES = {
     type: "Minor Release",
     changes: [
       "🔄 Added Retrospective functionality",
-      "🎨 Rebranded to 'Scrumptious' - unified agile ceremony toolkit",
+      "🎨 Rebranded to 'Scrumptious: Agile Ceremonies, Simplified",
       "📋 Four retrospective formats: Start/Stop/Continue, WWW/WDGW, Sailboat, 4Qs",
       "🎯 Unified session creation - choose ceremony type from landing page",
       "🔗 Auto-detection of session type when joining"
@@ -1805,7 +1805,7 @@ if (!revealed) {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Scrumptious</h1>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -1886,7 +1886,7 @@ if (!revealed) {
           className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
           title="View release notes"
         >
-          Scrumptious v{APP_VERSION}
+          scrumptious v{APP_VERSION}
         </p>
       </div>
     </div>
@@ -2006,7 +2006,7 @@ if (!revealed) {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>Scrumptious</h1>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} flex-1 text-center`}>scrumptious</h1>
               <button
                 onClick={toggleDarkMode}
                 className={`p-2 rounded-lg transition-colors ${
@@ -2962,7 +2962,7 @@ if (!revealed) {
     className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
     title="View release notes"
   >
-    Scrumptious v{APP_VERSION}
+    scrumptious v{APP_VERSION}
   </p>
 </footer>
       </div>
@@ -3382,7 +3382,7 @@ if (!revealed) {
             className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
             title="View release notes"
           >
-            Scrumptious v{APP_VERSION}
+            scrumptious v{APP_VERSION}
           </p>
         </footer>
       </div>
@@ -3494,7 +3494,7 @@ if (!revealed) {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-r from-white to-blue-50'} rounded-lg shadow-xl p-4 sm:p-6 mb-6`}>
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Scrumptious: Planning Poker</h1>
+              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>scrumptious: Planning Poker</h1>
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={toggleDarkMode}
@@ -4158,7 +4158,7 @@ if (!revealed) {
           onClick={() => setShowReleaseNotes(true)}
           title="View release notes"
         >
-          Scrumptious v{APP_VERSION}
+          scrumptious v{APP_VERSION}
         </p>
       </footer>
 
