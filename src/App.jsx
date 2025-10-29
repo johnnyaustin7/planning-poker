@@ -2868,7 +2868,8 @@ if (!revealed) {
   </div>
 )}
           
-  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+  {retroPhase === 'discussion' && (
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
     <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
       Discussion
     </h2>
