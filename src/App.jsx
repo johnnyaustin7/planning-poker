@@ -2604,8 +2604,11 @@ if (!revealed) {
         Stop
       </button>
     )}
-  </>
-)}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Phase Content */}
           {retroPhase === 'input' && (
@@ -3099,7 +3102,7 @@ if (!revealed) {
               ))}
             </div>
           </div>
-        </div>
+        
         {/* Add Item Modal */}
         {selectedColumn && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -3333,6 +3336,11 @@ if (!revealed) {
           </div>
         )}
 
+        {/* How It Works Modal */}
+        {showHowItWorks && (
+          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
+        )}
+
         <footer className="mt-6 text-center">
   <p 
     onClick={() => setShowReleaseNotes(true)}
@@ -3341,6 +3349,7 @@ if (!revealed) {
   >
     scrumptious v{APP_VERSION}
   </p>
+
 </footer>
       </div>
     );
@@ -3763,6 +3772,11 @@ if (!revealed) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* How It Works Modal */}
+        {showHowItWorks && (
+          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
         )}
 
         <footer className="mt-6 text-center">
@@ -4540,6 +4554,11 @@ if (!revealed) {
         )}
       </div>
       
+      {/* How It Works Modal */}
+        {showHowItWorks && (
+          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
+        )}
+        
       <footer className="mt-6 text-center">
         <p 
           className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
