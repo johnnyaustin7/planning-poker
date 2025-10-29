@@ -3351,9 +3351,9 @@ if (!revealed) {
         )}
 
         <footer className="mt-6 text-center">
-  <p 
-    onClick={() => setShowReleaseNotes(true)}
-    className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+          <p 
+            onClick={() => setShowReleaseNotes(true)}
+            className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
     title="View release notes"
   >
     scrumptious v{APP_VERSION}
@@ -3790,13 +3790,13 @@ if (!revealed) {
 
         <footer className="mt-6 text-center">
           <p 
+            onClick={() => setShowReleaseNotes(true)}
             className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
             title="View release notes"
           >
             scrumptious v{APP_VERSION}
           </p>
         </footer>
-      </div>
     );
   }
   // PLANNING POKER SESSION VIEW
