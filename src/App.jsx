@@ -408,6 +408,266 @@ const PieChart = ({ stats, darkMode }) => {
   );
 };
 
+const HowItWorks = ({ darkMode, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div 
+        className="absolute inset-0" 
+        onClick={onClose}
+      />
+      <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              How It Works
+            </h2>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+            >
+              <span className="text-2xl">&times;</span>
+            </button>
+          </div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-8">
+            {/* Overview Section */}
+            <section>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                Overview
+              </h3>
+              <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Scrumptious is your all-in-one agile ceremony toolkit. Whether you're running Planning Poker estimation sessions or facilitating team retrospectives, Scrumptious provides a collaborative, real-time environment that works seamlessly across devices.
+              </p>
+              <div className={`grid grid-cols-1 md:grid-cols-4 gap-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div className="text-2xl mb-1">1️⃣</div>
+                  <div className="font-semibold">Create a session</div>
+                  <div className="text-sm">Choose your ceremony type</div>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div className="text-2xl mb-1">2️⃣</div>
+                  <div className="font-semibold">Share instantly</div>
+                  <div className="text-sm">QR codes or links</div>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div className="text-2xl mb-1">3️⃣</div>
+                  <div className="font-semibold">Facilitate</div>
+                  <div className="text-sm">Real-time collaboration</div>
+                </div>
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div className="text-2xl mb-1">4️⃣</div>
+                  <div className="font-semibold">Export</div>
+                  <div className="text-sm">Save your results</div>
+                </div>
+              </div>
+            </section>
+
+            {/* Planning Poker Section */}
+            <section className={`border-t pt-6 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                🃏 Planning Poker
+              </h3>
+              
+              <div className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <h4 className="font-semibold mb-2">What is Planning Poker?</h4>
+                <p className="text-sm">
+                  Planning Poker is a consensus-based estimation technique where team members simultaneously reveal their estimates to avoid anchoring bias. Scrumptious adds confidence weighting and analytics to help teams reach better consensus faster.
+                </p>
+              </div>
+
+              <details className={`mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Setting up a session
+                </summary>
+                <ul className={`mt-3 space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <li>• Choose Planning Poker from the home screen</li>
+                  <li>• Select your card deck (Fibonacci, T-shirt sizes, or custom values)</li>
+                  <li>• Generate a unique session code or use the QR code for instant team access</li>
+                  <li>• Set yourself as moderator or join as a participant</li>
+                </ul>
+              </details>
+
+              <details className={`mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Running the estimation
+                </summary>
+                <ol className={`mt-3 space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <li><strong>1. Present the story</strong> - Moderator shares what's being estimated</li>
+                  <li><strong>2. Team votes</strong> - Each participant selects their estimate card and confidence level</li>
+                  <li><strong>3. Reveal</strong> - All votes are revealed simultaneously to prevent bias</li>
+                  <li><strong>4. Discuss</strong> - Team discusses differences, especially outliers</li>
+                  <li><strong>5. Re-vote if needed</strong> - Repeat until consensus is reached</li>
+                  <li><strong>6. Record</strong> - Moderator records the final estimate</li>
+                </ol>
+              </details>
+
+              <details className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Key features
+                </summary>
+                <ul className={`mt-3 space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <li>• <strong>Confidence weighting:</strong> Participants indicate how confident they are in their estimates</li>
+                  <li>• <strong>Consensus detection:</strong> Automatic highlighting when the team reaches agreement</li>
+                  <li>• <strong>Observer mode:</strong> Stakeholders can watch without influencing votes</li>
+                  <li>• <strong>Vote history:</strong> Track all rounds of voting for each story</li>
+                  <li>• <strong>Mobile optimized:</strong> Works seamlessly on phones, tablets, and desktops</li>
+                </ul>
+              </details>
+            </section>
+
+            {/* Retrospectives Section */}
+            <section className={`border-t pt-6 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                🔄 Retrospectives
+              </h3>
+              
+              <div className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <h4 className="font-semibold mb-2">What are Retrospectives?</h4>
+                <p className="text-sm">
+                  Retrospectives are regular team reflections where you discuss what went well, what didn't, and what to improve. Scrumptious supports multiple retrospective formats with structured workflows to keep your retros focused and productive.
+                </p>
+              </div>
+
+              <details className={`mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  Choosing your format
+                </summary>
+                <div className={`mt-3 space-y-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Start/Stop/Continue</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Start: What should we begin doing?</li>
+                      <li>• Stop: What should we stop doing?</li>
+                      <li>• Continue: What's working that we should keep doing?</li>
+                    </ul>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Glad/Sad/Mad</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Glad: What made us happy or proud?</li>
+                      <li>• Sad: What disappointed or concerned us?</li>
+                      <li>• Mad: What frustrated us or needs immediate attention?</li>
+                    </ul>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Went Well/To Improve</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Went Well: Celebrate successes and wins</li>
+                      <li>• To Improve: Identify areas for growth</li>
+                    </ul>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>4Ls: Liked/Learned/Lacked/Longed For</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Liked: What did we enjoy or appreciate?</li>
+                      <li>• Learned: What insights did we gain?</li>
+                      <li>• Lacked: What was missing or insufficient?</li>
+                      <li>• Longed For: What do we wish we had?</li>
+                    </ul>
+                  </div>
+                </div>
+              </details>
+
+              <details className={`mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  The phased workflow
+                </summary>
+                <div className={`mt-3 space-y-2 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Phase 1: Brainstorming ⏱️</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Team members privately add their thoughts to each category</li>
+                      <li>• Set a timer (default 5 minutes, customizable)</li>
+                      <li>• All submissions are anonymous during this phase</li>
+                      <li>• Ideas appear in real-time as teammates add them</li>
+                    </ul>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Phase 2: Grouping 🎯</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Review all submitted ideas together</li>
+                      <li>• Drag and drop similar items to group related themes</li>
+                      <li>• Discuss and refine as you organize</li>
+                      <li>• Identify patterns and common threads</li>
+                      <li>• Optional timer to maintain focus</li>
+                    </ul>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    <strong>Phase 3: Voting 🗳️</strong>
+                    <ul className="ml-4 mt-1">
+                      <li>• Each team member gets a set number of votes (customizable)</li>
+                      <li>• Vote on which grouped themes or items are most important</li>
+                      <li>• Real-time vote tallies with pie chart visualization</li>
+                      <li>• Use results to prioritize action items</li>
+                    </ul>
+                  </div>
+                </div>
+              </details>
+
+              <details className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
+                <summary className={`font-semibold cursor-pointer ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  After the retrospective
+                </summary>
+                <ul className={`mt-3 space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <li>• <strong>Review results:</strong> See voting outcomes with visual analytics</li>
+                  <li>• <strong>Export data:</strong> Download retrospective results as CSV for documentation</li>
+                  <li>• <strong>Action tracking:</strong> Use voting results to prioritize follow-up items</li>
+                </ul>
+              </details>
+            </section>
+
+            {/* Tips Section */}
+            <section className={`border-t pt-6 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                💡 Tips for Success
+              </h3>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <h4 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>For Planning Poker:</h4>
+                  <ul className={`space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Encourage discussion of outlier estimates before re-voting</li>
+                    <li>• Use confidence levels to identify when someone needs more information</li>
+                    <li>• Keep stories small enough to estimate in a single session</li>
+                    <li>• Let the team decide when consensus is "good enough"</li>
+                  </ul>
+                </div>
+                
+                <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <h4 className={`font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>For Retrospectives:</h4>
+                  <ul className={`space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Set a positive, blameless tone at the start</li>
+                    <li>• Actually use the timers - they prevent over-analysis</li>
+                    <li>• Focus on actionable outcomes, not just venting</li>
+                    <li>• Follow up on action items from previous retros</li>
+                    <li>• Rotate formats to keep retrospectives fresh</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* Technical Notes */}
+            <section className={`border-t pt-6 ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                ⚙️ Technical Notes
+              </h3>
+              <ul className={`space-y-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <li>• <strong>No accounts required:</strong> Jump right in, no sign-up needed</li>
+                <li>• <strong>Browser-based:</strong> Works in any modern browser, no installation</li>
+                <li>• <strong>Real-time sync:</strong> Firebase-powered instant updates</li>
+                <li>• <strong>Mobile-friendly:</strong> Fully responsive design works on any device</li>
+                <li>• <strong>Data privacy:</strong> Sessions are temporary and not permanently stored</li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 let firebaseApp = null;
 let database = null;
 
@@ -440,6 +700,7 @@ export default function App() {
   const [wasRemoved, setWasRemoved] = useState(false);
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [showTypeMenu, setShowTypeMenu] = useState(false);
@@ -1943,10 +2204,21 @@ if (!revealed) {
         />
         <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                Release Notes
-              </h2>
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+        Release Notes
+      </h2>
+      <button
+        onClick={() => {
+          setShowReleaseNotes(false);
+          setShowHowItWorks(true);
+        }}
+        className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+      >
+        How It Works →
+      </button>
+    </div>
               <button
                 onClick={() => setShowReleaseNotes(false)}
                 className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -1993,9 +2265,14 @@ if (!revealed) {
             </div>
           </div>
         </div>
-      </div>
-    )}
-  </div>
+</div>
+      )}
+
+      {/* How It Works Modal */}
+      {showHowItWorks && (
+        <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
+      )}
+    </div>
 );
 }
 
@@ -2594,41 +2871,42 @@ if (!revealed) {
       Discussion
     </h2>
     <div className="space-y-6">
-      {[...retroGroups].sort((a, b) => b.votes - a.votes).map(group => (
+      {/* Show Groups */}
+      {[...retroGroups].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(group => (
         <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl font-bold text-purple-600">{group.votes}</span>
+            <span className="text-2xl font-bold text-purple-600">{group.votes || 0}</span>
             {editingGroupId === group.id ? (
-  <input
-    type="text"
-    value={editingGroupName}
-    onChange={(e) => setEditingGroupName(e.target.value)}
-    onBlur={() => handleRenameGroup(group.id, editingGroupName)}
-    onKeyPress={(e) => {
-      if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
-      if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
-    }}
-    className={`flex-1 px-2 py-1 border ${
-      darkMode 
-        ? 'bg-gray-700 border-purple-500 text-white' 
-        : 'bg-white border-purple-500'
-    } rounded text-sm font-bold`}
-    autoFocus
-  />
-) : (
-  <h3 
-    className={`font-bold text-lg cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
-    onClick={() => {
-      if (!isObserver) {
-        setEditingGroupId(group.id);
-        setEditingGroupName(group.title);
-      }
-    }}
-    title="Click to rename"
-  >
-    {group.title}
-  </h3>
-)}
+              <input
+                type="text"
+                value={editingGroupName}
+                onChange={(e) => setEditingGroupName(e.target.value)}
+                onBlur={() => handleRenameGroup(group.id, editingGroupName)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
+                  if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
+                }}
+                className={`flex-1 px-2 py-1 border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-purple-500 text-white' 
+                    : 'bg-white border-purple-500'
+                } rounded text-sm font-bold`}
+                autoFocus
+              />
+            ) : (
+              <h3 
+                className={`font-bold text-lg cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+                onClick={() => {
+                  if (!isObserver) {
+                    setEditingGroupId(group.id);
+                    setEditingGroupName(group.title);
+                  }
+                }}
+                title="Click to rename"
+              >
+                {group.title}
+              </h3>
+            )}
           </div>
           
           <div className="space-y-2 ml-6 mb-4">
@@ -2693,6 +2971,49 @@ if (!revealed) {
           </div>
         </div>
       ))}
+
+      {/* Show Ungrouped Items */}
+      {retroInputs.length > 0 && (
+        <div>
+          <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            Individual Items
+          </h3>
+          <div className="space-y-3">
+            {[...retroInputs].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(item => {
+              const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
+              return (
+                <div 
+                  key={item.id} 
+                  className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} border-l-4`}
+                  style={{ borderLeftColor: column?.color || '#6b7280' }}
+                >
+                  <div className="flex items-start gap-2 mb-2">
+                    {column && (
+                      <span className="text-lg shrink-0" style={{ color: column.color }}>
+                        {column.icon}
+                      </span>
+                    )}
+                    <p className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      {item.text}
+                    </p>
+                    <span className="text-lg font-bold text-purple-600">{item.votes || 0}</span>
+                  </div>
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} ml-7`}>
+                    {column?.label || 'Unknown'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {retroGroups.length === 0 && retroInputs.length === 0 && (
+        <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+          No items to discuss yet. Add items in Phase 1 and group them in Phase 2.
+        </p>
+      )}
     </div>
   </div>
 )}
