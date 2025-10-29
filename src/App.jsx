@@ -2574,7 +2574,7 @@ if (!revealed) {
           </div>
 
           {/* Timer Control */}
-          {(isModerator || timer?.active) && (
+{retroPhase === 'input' && (isModerator || timer?.active) && (
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 mb-6`}>
               <div className="flex items-center gap-4">
                 <Clock size={20} className="text-gray-600" />
@@ -2592,21 +2592,20 @@ if (!revealed) {
     ))}
   </div>
 ) : (
-                  <>
-                    <div className="text-2xl font-mono font-bold text-purple-600">
-                      {formatTime(timeRemaining)}
-                    </div>
-                    <button 
-                      onClick={stopTimer}
-                      className="px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Stop
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+  <>
+    <div className="text-2xl font-mono font-bold text-purple-600">
+      {formatTime(timeRemaining)}
+    </div>
+    {isModerator && (
+      <button 
+        onClick={stopTimer}
+        className="px-4 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+      >
+        Stop
+      </button>
+    )}
+  </>
+)}
 
           {/* Phase Content */}
           {retroPhase === 'input' && (
@@ -2865,7 +2864,7 @@ if (!revealed) {
     })}
   </div>
 )}
-          {retroPhase === 'discussion' && (
+          
   <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6`}>
     <h2 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
       Discussion
@@ -2973,85 +2972,86 @@ if (!revealed) {
       ))}
 
       {/* Show Ungrouped Items */}
-      {retroInputs.length > 0 && (
-        <div>
-          <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-            Individual Items
-          </h3>
-          <div className="space-y-4">
-            {[...retroInputs].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(item => {
-              const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
-              return (
-                <div 
-                  key={item.id} 
-                  className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl font-bold text-purple-600">{item.votes || 0}</span>
-                    <div className="flex items-start gap-2 flex-1">
-                      {column && (
-                        <span className="text-lg shrink-0" style={{ color: column.color }}>
-                          {column.icon}
-                        </span>
-                      )}
-                      <div className="flex-1">
-                        <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-                          {item.text}
-                        </p>
-                        <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {column?.label || 'Unknown'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Comments Section for Individual Items */}
-                  <div className="ml-6 mt-4 border-t pt-4">
-                    <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                      <MessageSquare size={16} />
-                      Comments ({Object.keys(retroComments[item.id] || {}).length})
-                    </h4>
-                    
-                    <div className="space-y-2 mb-3">
-                      {Object.values(retroComments[item.id] || {}).map(comment => (
-                        <div key={comment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 rounded text-sm`}>
-                          <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
-                          <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                            {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {!isObserver && (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={newCommentText[item.id] || ''}
-                          onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
-                          onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
-                          placeholder="Add a comment..."
-                          className={`flex-1 px-3 py-2 border ${
-                            darkMode 
-                              ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
-                              : 'bg-white border-gray-300'
-                          } rounded text-sm`}
-                        />
-                        <button 
-                          onClick={() => addRetroComment(item.id)}
-                          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
-                        >
-                          Comment
-                        </button>
-                      </div>
-                    )}
-                  </div>
+      {retroInputs.map(item => {
+        const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
+        return (
+          <div 
+            key={item.id} 
+            className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-2xl font-bold text-purple-600">{item.votes || 0}</span>
+              <div className="flex items-start gap-2 flex-1">
+                {column && (
+                  <span className="text-lg shrink-0" style={{ color: column.color }}>
+                    {column.icon}
+                  </span>
+                )}
+                <div className="flex-1">
+                  <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
+                    {item.text}
+                  </p>
+                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {column?.label || 'Unknown'}
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+
+            {/* Comments Section for Individual Items */}
+            <div className="ml-6 mt-4 border-t pt-4">
+              <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                <MessageSquare size={16} />
+                Comments ({Object.keys(retroComments[item.id] || {}).length})
+              </h4>
+              
+              <div className="space-y-2 mb-3">
+                {Object.values(retroComments[item.id] || {}).map(comment => (
+                  <div key={comment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 rounded text-sm`}>
+                    <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
+                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                      {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {!isObserver && (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newCommentText[item.id] || ''}
+                    onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
+                    onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
+                    placeholder="Add a comment..."
+                    className={`flex-1 px-3 py-2 border ${
+                      darkMode 
+                        ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300'
+                    } rounded text-sm`}
+                  />
+                  <button 
+                    onClick={() => addRetroComment(item.id)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                  >
+                    Comment
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        );
+      })}
+
+      {/* Empty State */}
+      {retroGroups.length === 0 && retroInputs.length === 0 && (
+        <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+          No items to discuss yet. Add items in Phase 1 and group them in Phase 2.
+        </p>
       )}
+    </div>
+  </div>
+)}
 
       {/* Empty State */}
       {retroGroups.length === 0 && retroInputs.length === 0 && (
@@ -3270,9 +3270,20 @@ if (!revealed) {
             <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    Release Notes
-                  </h2>
+                  <div>
+                    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      Release Notes
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowReleaseNotes(false);
+                        setShowHowItWorks(true);
+                      }}
+                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+                    >
+                      How It Works →
+                    </button>
+                  </div>
                   <button
                     onClick={() => setShowReleaseNotes(false)}
                     className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -3691,9 +3702,20 @@ if (!revealed) {
             <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
               <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    Release Notes
-                  </h2>
+                  <div>
+                    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      Release Notes
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowReleaseNotes(false);
+                        setShowHowItWorks(true);
+                      }}
+                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+                    >
+                      How It Works →
+                    </button>
+                  </div>
                   <button
                     onClick={() => setShowReleaseNotes(false)}
                     className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -4573,10 +4595,21 @@ if (!revealed) {
           />
           <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Release Notes
-                </h2>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      Release Notes
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowReleaseNotes(false);
+                        setShowHowItWorks(true);
+                      }}
+                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+                    >
+                      How It Works →
+                    </button>
+                  </div>
                 <button
                   onClick={() => setShowReleaseNotes(false)}
                   className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
