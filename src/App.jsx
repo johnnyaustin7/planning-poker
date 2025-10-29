@@ -2612,7 +2612,11 @@ if (!revealed) {
 
           {/* Phase Content */}
           {retroPhase === 'input' && (
-  <div className={`grid grid-cols-1 md:grid-cols-${currentRetroFormat.columns.length >= 4 ? '2' : currentRetroFormat.columns.length} gap-4`}>
+  <div className={`grid grid-cols-1 gap-4 ${
+  currentRetroFormat.columns.length === 2 ? 'md:grid-cols-2' :
+  currentRetroFormat.columns.length === 3 ? 'md:grid-cols-3' :
+  'md:grid-cols-2'
+}`}>
     {currentRetroFormat.columns.map(column => {
       const columnItems = retroInputs.filter(item => item.columnId === column.id);
       
@@ -2689,7 +2693,11 @@ if (!revealed) {
   </div>
 )}
           {retroPhase === 'grouping' && (
-  <div className={`grid grid-cols-1 md:grid-cols-${currentRetroFormat.columns.length >= 4 ? '2' : currentRetroFormat.columns.length} gap-4`}>
+  <div className={`grid grid-cols-1 gap-4 ${
+  currentRetroFormat.columns.length === 2 ? 'md:grid-cols-2' :
+  currentRetroFormat.columns.length === 3 ? 'md:grid-cols-3' :
+  'md:grid-cols-2'
+}`}>
     {currentRetroFormat.columns.map(column => {
       const columnItems = retroInputs.filter(item => item.columnId === column.id);
       const columnGroups = retroGroups.filter(group => {
@@ -3355,7 +3363,7 @@ if (!revealed) {
       </div>
     );
   }
-  // COLUMN-BASED RETROSPECTIVE VIEW (from v2.9.0 - better for input phase)
+  // COLUMN-BASED RETROSPECTIVE VIEW
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat) {
     return (
       <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'} p-4`}>
