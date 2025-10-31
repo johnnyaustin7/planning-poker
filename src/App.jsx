@@ -66,13 +66,8 @@ const RELEASE_NOTES = {
     date: "October 31, 2025",
     type: "Minor Release",
     changes: [
-      "🎨 Updated color palette with cohesive gradient from turquoise to purple",
-      "📊 Statistics panel now uses gradient colors for better visual hierarchy",
+      "🎨 Updated color palette",
       "🔒 Voting interface hides completely when votes are revealed",
-      "🎯 Suggested estimate now stands out with purple highlight",
-      "💜 Moderator badges updated to purple theme",
-      "🎫 Improved ticket number readability with white text on purple",
-      "🔴 Reset button changed to red for clearer destructive action indication"
     ]
   },
   "3.2.0": {
@@ -421,8 +416,7 @@ const PieChart = ({ stats, darkMode }) => {
   );
 };
 
-const HowItWorks = ({ darkMode, onClose }) => {
-  return (
+const HowItWorks = ({ darkMode, onClose }) => {  return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div 
         className="absolute inset-0" 
@@ -435,7 +429,7 @@ const HowItWorks = ({ darkMode, onClose }) => {
               How It Works
             </h2>
             <button
-  onClick={() => setShowReleaseNotes(false)}
+  onClick={onClose}
   className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
     darkMode 
       ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
@@ -449,10 +443,37 @@ const HowItWorks = ({ darkMode, onClose }) => {
         </div>
         
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-8">
-            {/* Overview Section */}
-            <section>
-              <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+  <div className="space-y-8">
+    {/* About Section */}
+    <section>
+      <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+        About Scrumptious
+      </h3>
+      <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+        Scrumptious is a web-based toolkit for agile teams to run Planning Poker estimation sessions and team Retrospectives.
+      </p>
+      <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+        No accounts required. No permanent data storage. Just simple, effective collaboration tools for your team.
+      </p>
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+        <div>
+          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>Version</div>
+          <div className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{APP_VERSION}</div>
+        </div>
+        <div>
+          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>Created by</div>
+          <div className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Johnny Austin</div>
+        </div>
+        <div>
+          <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-1`}>Built with</div>
+          <div className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>React, Firebase, Tailwind CSS</div>
+        </div>
+      </div>
+    </section>
+
+    {/* Overview Section */}
+    <section>
+      <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                 Overview
               </h3>
               <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -2391,10 +2412,12 @@ if (!revealed) {
 </div>
       )}
 
-      {/* How It Works Modal */}
-        {showHowItWorks && (
-          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
-        )}
+      {showHowItWorks && (
+  <HowItWorks 
+    darkMode={darkMode} 
+    onClose={() => setShowHowItWorks(false)} 
+  />
+)}
 
 {/* Feedback Modal */}
       {showFeedbackModal && (
@@ -2685,10 +2708,13 @@ if (!revealed) {
         </div>
       )}
 
-      {/* How It Works Modal */}
       {showHowItWorks && (
-        <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
-      )}
+  <HowItWorks 
+    darkMode={darkMode} 
+    onClose={() => setShowHowItWorks(false)} 
+    
+  />
+)}
       
         </div>
       </div>
@@ -3607,7 +3633,7 @@ if (!revealed) {
 </button>
                   </div>
                   <button
-  onClick={() => setShowReleaseNotes(false)}
+  onClick={onClose}
   className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
     darkMode 
       ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
@@ -3659,10 +3685,13 @@ if (!revealed) {
           </div>
         )}
 
-        {/* How It Works Modal */}
         {showHowItWorks && (
-          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
-        )}
+  <HowItWorks 
+    darkMode={darkMode} 
+    onClose={() => setShowHowItWorks(false)} 
+    
+  />
+)}
 
         <footer className="mt-6 text-center">
   <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -4167,10 +4196,13 @@ if (!revealed) {
           </div>
         )}
 
-        {/* How It Works Modal */}
         {showHowItWorks && (
-          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
-        )}
+  <HowItWorks 
+    darkMode={darkMode} 
+    onClose={() => setShowHowItWorks(false)} 
+    
+  />
+)}
 
         <footer className="mt-6 text-center">
   <div className="flex items-center justify-center gap-3 flex-wrap">
@@ -4989,10 +5021,13 @@ if (!revealed) {
         )}
       </div>
       
-      {/* How It Works Modal */}
-        {showHowItWorks && (
-          <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
-        )}
+      {showHowItWorks && (
+  <HowItWorks 
+    darkMode={darkMode} 
+    onClose={() => setShowHowItWorks(false)} 
+    
+  />
+)}
 
       <footer className="mt-6 text-center">
   <div className="flex items-center justify-center gap-3 flex-wrap">
