@@ -727,9 +727,12 @@ export default function App() {
   const [editingGroupId, setEditingGroupId] = useState(null);
   const [editingGroupName, setEditingGroupName] = useState('');
   
-  // Column-based retrospective state (from v2.9.0)
+  // Column-based retrospective state
   const [retroItems, setRetroItems] = useState({});
   const [selectedColumn, setSelectedColumn] = useState(null);
+
+  // Feedback
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Planning poker state
   const [selectedPoint, setSelectedPoint] = useState(null);
@@ -753,13 +756,23 @@ export default function App() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showPieChart, setShowPieChart] = useState(false);
   useEffect(() => {
-    const init = async () => {
-      const { db: firebaseDb, dbModule: firebaseDbModule } = await initializeFirebase();
-      setDb(firebaseDb);
-      setDbModule(firebaseDbModule);
-    };
-    init();
-  }, []);
+  const init = async () => {
+    const { db: firebaseDb, dbModule: firebaseDbModule } = await initializeFirebase();
+    setDb(firebaseDb);
+    setDbModule(firebaseDbModule);
+    
+    // Connection Monitoring
+    const connectedRef = firebaseDbModule.ref(firebaseDb, '.info/connected');
+    firebaseDbModule.onValue(connectedRef, (snapshot) => {
+      if (snapshot.val() === true) {
+        console.log('🟢 Firebase CONNECTED');
+      } else {
+        console.log('🔴 Firebase DISCONNECTED');
+      }
+    });
+  };
+  init();
+}, []);
 
   useEffect(() => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -780,167 +793,191 @@ export default function App() {
   }, []);
 
   // Main Firebase sync useEffect
-  useEffect(() => {
-    if (!sessionId || !db || !dbModule) return;
+useEffect(() => {
+  if (!sessionId || !db || !dbModule) return;
 
-    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+  const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+  
+  const unsubscribe = dbModule.onValue(sessionRef, (snapshot) => {
+    const data = snapshot.val();
     
-    const unsubscribe = dbModule.onValue(sessionRef, (snapshot) => {
-      const data = snapshot.val();
+    if (data) {
+      const newParticipants = Object.values(data.participants || {});
       
-      if (data) {
-        const newParticipants = Object.values(data.participants || {});
-        setParticipants(newParticipants);
+      // VOTE LOSS DETECTION
+      if (data.sessionType === 'estimation' || !data.sessionType) {
+        const oldVoteCount = participants.filter(p => !p.isModerator && !p.isObserver && p.points !== null).length;
+        const newVoteCount = newParticipants.filter(p => !p.isModerator && !p.isObserver && p.points !== null).length;
         
-        if (data.sessionType) {
-          setSessionType(data.sessionType);
-        }
-        
-        // Load retrospective data
-        if (data.sessionType === 'retrospective') {
-          if (data.retroFormat) {
-            setRetroFormat(data.retroFormat);
-          }
-          if (data.retroPhase) {
-            setRetroPhase(data.retroPhase);
-          }
-          if (data.retroInputs) {
-            setRetroInputs(Object.values(data.retroInputs));
-          } else {
-            setRetroInputs([]);
-          }
-          if (data.retroGroups) {
-            setRetroGroups(Object.values(data.retroGroups));
-          } else {
-            setRetroGroups([]);
-          }
-          if (data.retroComments) {
-            setRetroComments(data.retroComments);
-          } else {
-            setRetroComments({});
-          }
-          if (data.timer) {
-            setTimer(data.timer);
-            if (data.timer.active && data.timer.startTime) {
-              const elapsed = Math.floor((Date.now() - data.timer.startTime) / 1000);
-              const remaining = Math.max(0, data.timer.duration * 60 - elapsed);
-              setTimeRemaining(remaining);
-            }
-          }
-          // Load column-based retro items
-          if (data.retroItems) {
-            setRetroItems(data.retroItems);
-          }
-        }
-        // Load planning poker data
-        if (data.sessionType === 'estimation' || !data.sessionType) {
-          setRevealed(data.revealed || false);
-          setShowPieChart(data.revealed || false);
-          setVotingScale(data.votingScale || 'fibonacci');
-          setConfidenceVotingEnabled(data.confidenceVotingEnabled || false);
-          
-          if (data.history) {
-            const historyArray = Object.values(data.history).sort((a, b) => b.timestamp - a.timestamp);
-            setSessionHistory(historyArray);
-          }
-          
-          if (data.currentTicket !== undefined) {
-            setTicketNumber(data.currentTicket);
-          } else {
-            setTicketNumber('');
-          }
-          
-          if (data.determinedPoints) {
-            setDeterminedPoints(data.determinedPoints);
-          }
-          
-          if (data.isFirstRound !== undefined) {
-            setIsFirstRound(data.isFirstRound);
-          }
-        }
-        
-        // Check if current user still exists
-        if (currentUserId && hasJoined) {
-          if (!data.participants || !data.participants[currentUserId]) {
-            if (!wasRemoved) {
-              setWasRemoved(true);
-            }
-            setHasJoined(false);
-            setSelectedPoint(null);
-            return;
-          }
-          
-          const currentUser = data.participants[currentUserId];
-          if (data.sessionType === 'estimation' || !data.sessionType) {
-            setSelectedPoint(currentUser.points);
-            setSelectedConfidence(confidenceVotingEnabled ? currentUser.confidence : null);
-          }
-          setIsModerator(currentUser.isModerator || false);
-          setIsObserver(currentUser.isObserver || false);
+        if (newVoteCount < oldVoteCount && !data.revealed) {
+          console.error('⚠️ VOTE LOSS DETECTED!', {
+            timestamp: new Date().toISOString(),
+            lostVotes: oldVoteCount - newVoteCount,
+            before: oldVoteCount,
+            after: newVoteCount
+          });
         }
       }
-    });
+      
+      setParticipants(newParticipants);
+      
+      if (data.sessionType) {
+        setSessionType(data.sessionType);
+      }
+      
+      // Load retrospective data
+      if (data.sessionType === 'retrospective') {
+        if (data.retroFormat) {
+          setRetroFormat(data.retroFormat);
+        }
+        if (data.retroPhase) {
+          setRetroPhase(data.retroPhase);
+        }
+        if (data.retroInputs) {
+          setRetroInputs(Object.values(data.retroInputs));
+        } else {
+          setRetroInputs([]);
+        }
+        if (data.retroGroups) {
+          setRetroGroups(Object.values(data.retroGroups));
+        } else {
+          setRetroGroups([]);
+        }
+        if (data.retroComments) {
+          setRetroComments(data.retroComments);
+        } else {
+          setRetroComments({});
+        }
+        if (data.timer) {
+          setTimer(data.timer);
+          if (data.timer.active && data.timer.startTime) {
+            const elapsed = Math.floor((Date.now() - data.timer.startTime) / 1000);
+            const remaining = Math.max(0, data.timer.duration * 60 - elapsed);
+            setTimeRemaining(remaining);
+          }
+        }
+        // Load column-based retro items
+        if (data.retroItems) {
+          setRetroItems(data.retroItems);
+        }
+      }
+      // Load planning poker data
+      if (data.sessionType === 'estimation' || !data.sessionType) {
+        setRevealed(data.revealed || false);
+        setShowPieChart(data.revealed || false);
+        setVotingScale(data.votingScale || 'fibonacci');
+        setConfidenceVotingEnabled(data.confidenceVotingEnabled || false);
+        
+        if (data.history) {
+          const historyArray = Object.values(data.history).sort((a, b) => b.timestamp - a.timestamp);
+          setSessionHistory(historyArray);
+        }
+        
+        if (data.currentTicket !== undefined) {
+          setTicketNumber(data.currentTicket);
+        } else {
+          setTicketNumber('');
+        }
+        
+        if (data.determinedPoints) {
+          setDeterminedPoints(data.determinedPoints);
+        }
+        
+        if (data.isFirstRound !== undefined) {
+          setIsFirstRound(data.isFirstRound);
+        }
+      }
+      
+      // Check if current user still exists
+      if (currentUserId && hasJoined) {
+        if (!data.participants || !data.participants[currentUserId]) {
+          if (!wasRemoved) {
+            setWasRemoved(true);
+          }
+          setHasJoined(false);
+          setSelectedPoint(null);
+          return;
+        }
+        
+        const currentUser = data.participants[currentUserId];
+        if (data.sessionType === 'estimation' || !data.sessionType) {
+          setSelectedPoint(currentUser.points);
+          setSelectedConfidence(confidenceVotingEnabled ? currentUser.confidence : null);
+        }
+        setIsModerator(currentUser.isModerator || false);
+        setIsObserver(currentUser.isObserver || false);
+      }
+    }
+  });
 
-    return () => unsubscribe();
+  return () => unsubscribe();
   }, [sessionId, currentUserId, db, dbModule, hasJoined, wasRemoved, confidenceVotingEnabled]);
 
   // Timer countdown
-  useEffect(() => {
-    if (!timer?.active || timeRemaining <= 0) {
-      if (timerInterval.current) clearInterval(timerInterval.current);
-      return;
-    }
-    
-    timerInterval.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          clearInterval(timerInterval.current);
-          if (isModerator && db && dbModule) {
-            const sessionRef = dbModule.ref(db, `sessions/${sessionId}/timer`);
-            dbModule.update(sessionRef, { active: false });
-          }
-          return 0;
+useEffect(() => {
+  if (!timer?.active || timeRemaining <= 0) {
+    if (timerInterval.current) clearInterval(timerInterval.current);
+    return;
+  }
+  
+  timerInterval.current = setInterval(() => {
+    setTimeRemaining(prev => {
+      if (prev <= 1) {
+        clearInterval(timerInterval.current);
+        if (isModerator && db && dbModule) {
+          const sessionRef = dbModule.ref(db, `sessions/${sessionId}/timer`);
+          dbModule.update(sessionRef, { active: false });
         }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => {
-      if (timerInterval.current) clearInterval(timerInterval.current);
-    };
-  }, [timer?.active, timeRemaining, isModerator, db, dbModule, sessionId]);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+  
+  return () => {
+    if (timerInterval.current) clearInterval(timerInterval.current);
+  };
+}, [timer?.active, timeRemaining, isModerator, db, dbModule, sessionId]);
 
-  useEffect(() => {
-    if (sessionId) {
-      const currentUrl = window.location.origin + window.location.pathname + '?session=' + sessionId;
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
-      setQrCodeUrl(qrUrl);
-    }
-  }, [sessionId]);
+// QR Code generation useEffect
+useEffect(() => {
+  if (sessionId) {
+    const currentUrl = window.location.origin + window.location.pathname + '?session=' + sessionId;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}`;
+    setQrCodeUrl(qrUrl);
+  }
+}, [sessionId]);
 
-  // ADD THIS NEW useEffect HERE:
   // Auto-reveal when all participants have voted (except first round)
-  useEffect(() => {
-    if (!sessionId || !db || !dbModule || isFirstRound || revealed) return;
+useEffect(() => {
+  if (!sessionId || !db || !dbModule || isFirstRound || revealed) return;
+  
+  const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
+  if (votingParticipants.length === 0) return;
+  
+  const allVoted = votingParticipants.every(p => {
+    const hasVote = p.points !== null && p.points !== undefined && p.points !== '';
     
-    const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
-    if (votingParticipants.length === 0) return;
-    
-    const allVoted = votingParticipants.every(p => 
-      p.points !== null && p.points !== undefined && p.points !== ''
-    );
-    
-    if (allVoted && isModerator) {
-      // Auto-reveal after a short delay
-      const timer = setTimeout(async () => {
-        const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
-        await dbModule.update(sessionRef, { revealed: true });
-        setShowPieChart(true);
-      }, 200);
-      
-      return () => clearTimeout(timer);
+    // If confidence voting is enabled, also check for confidence
+    if (confidenceVotingEnabled) {
+      const hasConfidence = p.confidence !== null && p.confidence !== undefined && p.confidence !== '';
+      return hasVote && hasConfidence;
     }
-  }, [participants, isFirstRound, revealed, sessionId, db, dbModule, isModerator]);
+    
+    return hasVote;
+  });
+  
+  if (allVoted && isModerator) {
+    // Auto-reveal after a short delay
+    const timer = setTimeout(async () => {
+      const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+      await dbModule.update(sessionRef, { revealed: true });
+      setShowPieChart(true);
+    }, 200);
+    
+    return () => clearTimeout(timer);
+  }
+}, [participants, isFirstRound, revealed, sessionId, db, dbModule, isModerator, confidenceVotingEnabled]);
 
   const generateSessionId = () => {
     const words = [
@@ -1324,6 +1361,51 @@ const handleDragLeave = () => {
   setDragOverItem(null);
 };
 
+// Feedback form controls
+const getMailtoLink = (type) => {
+  const email = 'jaustin@softwriters.com'; // Whatever email this should send to
+  const subject = encodeURIComponent(`Scrumptious - ${type === 'bug' ? 'Bug Report' : 'Feature Request'}`);
+  const body = encodeURIComponent(`
+Hello,
+
+${type === 'bug' ? `I found a bug in Scrumptious:
+
+Description:
+[Please describe the bug here]
+
+Steps to Reproduce:
+1. 
+2. 
+3. 
+
+Expected Behavior:
+[What should have happened]
+
+Actual Behavior:
+[What actually happened]` : `I have a feature request for Scrumptious:
+
+Feature Description:
+[Describe the feature you'd like]
+
+Problem It Solves:
+[What problem would this solve?]
+
+Additional Context:
+[Any other details]`}
+
+---
+Environment Details (auto-generated):
+- Version: ${APP_VERSION}
+- Session Type: ${sessionType || 'Not in session'}
+- Session ID: ${sessionId || 'N/A'}
+- Browser: ${navigator.userAgent}
+- Dark Mode: ${darkMode ? 'Enabled' : 'Disabled'}
+- Timestamp: ${new Date().toLocaleString()}
+  `.trim());
+  
+  return `mailto:${email}?subject=${subject}&body=${body}`;
+};
+
 const handleDrop = async (e, targetItem, targetIsGroup) => {
   e.preventDefault();
   if (!draggedItem || !db || !dbModule || isObserver) return;
@@ -1540,7 +1622,7 @@ const handleRenameGroup = async (groupId, newName) => {
     a.click();
   };
 
-  // Column-based retrospective functions (from v2.9.0)
+  // Column-based retrospective functions
   const handleAddRetroItem = async (columnId) => {
     if (!newInputText.trim() || !db || !dbModule || !currentUserId) return;
     
@@ -1582,18 +1664,23 @@ const handleRenameGroup = async (groupId, newName) => {
   };
   // Planning poker functions
   const handleSelectPoint = async (point) => {
-    if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
-    
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-    
-    const newPoint = selectedPoint === point ? null : point;
-    setSelectedPoint(newPoint);
-    
+  if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
+  
+  if (navigator.vibrate) {
+    navigator.vibrate(10);
+  }
+  
+  const newPoint = selectedPoint === point ? null : point;
+  
+  // Optimistically update UI immediately
+  setSelectedPoint(newPoint);
+  
+  try {
     if (!confidenceVotingEnabled) {
+      // Write to Firebase with error handling
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       await dbModule.update(participantRef, { points: newPoint });
+      console.log('✅ Vote saved:', newPoint);
     } else if (newPoint !== null && selectedConfidence !== null) {
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
       const updates = { points: newPoint };
@@ -1601,8 +1688,14 @@ const handleRenameGroup = async (groupId, newName) => {
         updates.confidence = selectedConfidence;
       }
       await dbModule.update(participantRef, updates);
+      console.log('✅ Vote with confidence saved:', newPoint, selectedConfidence);
     }
-  };
+  } catch (error) {
+    console.error('❌ Vote save failed:', error);
+    // Revert optimistic update on failure
+    setSelectedPoint(selectedPoint === point ? null : selectedPoint);
+  }
+};
 
   const handleSelectConfidence = async (confidence) => {
     if (!currentUserId || isModerator || isObserver || !db || !dbModule) return;
@@ -2205,20 +2298,27 @@ if (!revealed) {
         <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
   <div className="flex items-center justify-between">
-    <div>
-      <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-        Release Notes
-      </h2>
-      <button
-        onClick={() => {
-          setShowReleaseNotes(false);
-          setShowHowItWorks(true);
-        }}
-        className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
-      >
-        How It Works →
-      </button>
-    </div>
+  <div>
+    <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+      Release Notes
+    </h2>
+    <button
+      onClick={() => {
+        setShowReleaseNotes(false);
+        setShowHowItWorks(true);
+      }}
+      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+    >
+      How It Works →
+    </button>
+    <button
+  onClick={() => setShowFeedbackModal(true)}
+  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+>
+  <MessageSquare size={14} />
+  Report Issue
+</button>
+  </div>
               <button
                 onClick={() => setShowReleaseNotes(false)}
                 className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -2273,6 +2373,50 @@ if (!revealed) {
           <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
         )}
 
+{/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowFeedbackModal(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[70] modal-enter`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Report an Issue
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 text-sm`}>
+              This will open your email client with environment details pre-filled.
+            </p>
+            
+            <div className="space-y-3">
+              
+                <a href={getMailtoLink('bug')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">🐛</span>
+                Report Bug
+              </a>
+              
+              
+                <a href={getMailtoLink('feature')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">✨</span>
+                Request Feature
+              </a>
+              
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className={`w-full px-4 py-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
@@ -2370,7 +2514,7 @@ if (!revealed) {
   </label>
 </div>
             
-            <button
+<button
   onClick={handleJoin}
   disabled={!userName.trim()}
   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
@@ -2378,23 +2522,153 @@ if (!revealed) {
   Join Session
 </button>
           </div>
+          
+          <div className="mt-6 text-center">
+            <p 
+              onClick={() => setShowReleaseNotes(true)}
+              className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+              title="View release notes"
+            >
+              scrumptious v{APP_VERSION}
+            </p>
+          </div>
+{/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowFeedbackModal(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[70] modal-enter`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Report an Issue
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 text-sm`}>
+              This will open your email client with environment details pre-filled.
+            </p>
+            
+            <div className="space-y-3">
+              
+                <a href={getMailtoLink('bug')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">🐛</span>
+                Report Bug
+              </a>
+              
+              
+                <a href={getMailtoLink('feature')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">✨</span>
+                Request Feature
+              </a>
+              
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className={`w-full px-4 py-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Release Notes Modal */}
+      {showReleaseNotes && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowReleaseNotes(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800/95 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl'} rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col relative z-10 modal-enter border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'}`}>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    Release Notes
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setShowReleaseNotes(false);
+                      setShowHowItWorks(true);
+                    }}
+                    className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+                  >
+                    How It Works →
+                  </button>
+                  <button
+                    onClick={() => setShowFeedbackModal(true)}
+                    className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+                  >
+                    <MessageSquare size={14} />
+                    Report Issue
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowReleaseNotes(false)}
+                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                >
+                  <span className="text-2xl">&times;</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                {Object.entries(RELEASE_NOTES).map(([version, notes]) => (
+                  <div
+                    key={version}
+                    className={`p-4 rounded-lg border ${
+                      darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                          Version {version}
+                        </h3>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {notes.date} • {notes.type}
+                        </p>
+                      </div>
+                      {version === APP_VERSION && (
+                        <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <ul className={`space-y-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {notes.changes.map((change, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="mr-2 mt-1">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* How It Works Modal */}
+      {showHowItWorks && (
+        <HowItWorks darkMode={darkMode} onClose={() => setShowHowItWorks(false)} />
+      )}
+      
         </div>
       </div>
     );
   }
-
   // Get current retro format
   const currentRetroFormat = retroFormat ? RETRO_FORMATS[retroFormat] : null;
-  
-  // Debug log
-  console.log('Retro check:', { 
-    sessionType, 
-    retroFormat, 
-    currentRetroFormat: !!currentRetroFormat, 
-    retroPhase,
-    hasAllConditions: !!(sessionType === 'retrospective' && retroFormat && currentRetroFormat && retroPhase)
-  });
-  
+    
   // RETROSPECTIVE SESSION VIEW with phased approach
   if (sessionType === 'retrospective' && retroFormat && currentRetroFormat && retroPhase) {
     return (
@@ -3295,7 +3569,14 @@ if (!revealed) {
                       className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
                     >
                       How It Works →
-                    </button>
+    </button>
+    <button
+  onClick={() => setShowFeedbackModal(true)}
+  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+>
+  <MessageSquare size={14} />
+  Report Issue
+</button>
                   </div>
                   <button
                     onClick={() => setShowReleaseNotes(false)}
@@ -3351,14 +3632,68 @@ if (!revealed) {
         )}
 
         <footer className="mt-6 text-center">
-          <p 
-            onClick={() => setShowReleaseNotes(true)}
-            className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
-            title="View release notes"
-          >
-            scrumptious v{APP_VERSION}
-          </p>
-        </footer>
+  <div className="flex items-center justify-center gap-3 flex-wrap">
+    <p 
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+      onClick={() => setShowReleaseNotes(true)}
+      title="View release notes"
+    >
+      scrumptious v{APP_VERSION}
+    </p>
+    <span className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
+    <button
+      onClick={() => setShowFeedbackModal(true)}
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} underline flex items-center gap-1`}
+    >
+      <MessageSquare size={12} />
+      Report Issue
+    </button>
+  </div>
+</footer>
+{/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowFeedbackModal(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[70] modal-enter`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Report an Issue
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 text-sm`}>
+              This will open your email client with environment details pre-filled.
+            </p>
+            
+            <div className="space-y-3">
+              
+                <a href={getMailtoLink('bug')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">🐛</span>
+                Report Bug
+              </a>
+              
+              
+                <a href={getMailtoLink('feature')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">✨</span>
+                Request Feature
+              </a>
+              
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className={`w-full px-4 py-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
@@ -3736,7 +4071,14 @@ if (!revealed) {
                       className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
                     >
                       How It Works →
-                    </button>
+    </button>
+    <button
+  onClick={() => setShowFeedbackModal(true)}
+  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+>
+  <MessageSquare size={14} />
+  Report Issue
+</button>
                   </div>
                   <button
                     onClick={() => setShowReleaseNotes(false)}
@@ -3793,14 +4135,68 @@ if (!revealed) {
         )}
 
         <footer className="mt-6 text-center">
-          <p 
-            onClick={() => setShowReleaseNotes(true)}
-            className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
-            title="View release notes"
-          >
-            scrumptious v{APP_VERSION}
-          </p>
-        </footer>
+  <div className="flex items-center justify-center gap-3 flex-wrap">
+    <p 
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+      onClick={() => setShowReleaseNotes(true)}
+      title="View release notes"
+    >
+      scrumptious v{APP_VERSION}
+    </p>
+    <span className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
+    <button
+      onClick={() => setShowFeedbackModal(true)}
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} underline flex items-center gap-1`}
+    >
+      <MessageSquare size={12} />
+      Report Issue
+    </button>
+  </div>
+</footer>
+{/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowFeedbackModal(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[70] modal-enter`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Report an Issue
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 text-sm`}>
+              This will open your email client with environment details pre-filled.
+            </p>
+            
+            <div className="space-y-3">
+              
+                <a href={getMailtoLink('bug')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">🐛</span>
+                Report Bug
+              </a>
+              
+              
+                <a href={getMailtoLink('feature')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">✨</span>
+                Request Feature
+              </a>
+              
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className={`w-full px-4 py-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>  
     );
   }
@@ -4236,12 +4632,12 @@ if (!revealed) {
                       {isModerator && participant.id !== currentUserId && (
                         <button
                           onClick={() => removeUser(participant.id)}
-                          className={`absolute top-2 right-2 p-1 rounded ${
+                          className={`absolute top-2 right-2 p-0.5 rounded ${
                             darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
                           } text-white transition-colors`}
                           title="Remove user"
                         >
-                          <UserX size={14} />
+                          <UserX size={9} />
                         </button>
                       )}
                       <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} mb-2 break-words ${
@@ -4574,14 +4970,24 @@ if (!revealed) {
         )}
 
       <footer className="mt-6 text-center">
-        <p 
-          className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
-          onClick={() => setShowReleaseNotes(true)}
-          title="View release notes"
-        >
-          scrumptious v{APP_VERSION}
-        </p>
-      </footer>
+  <div className="flex items-center justify-center gap-3 flex-wrap">
+    <p 
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} cursor-pointer underline`}
+      onClick={() => setShowReleaseNotes(true)}
+      title="View release notes"
+    >
+      scrumptious v{APP_VERSION}
+    </p>
+    <span className={`text-xs ${darkMode ? 'text-gray-600' : 'text-gray-300'}`}>•</span>
+    <button
+      onClick={() => setShowFeedbackModal(true)}
+      className={`text-xs ${darkMode ? 'text-gray-500 hover:text-gray-400' : 'text-gray-400 hover:text-gray-500'} underline flex items-center gap-1`}
+    >
+      <MessageSquare size={12} />
+      Report Issue
+    </button>
+  </div>
+</footer>
 
       {/* Leave Confirmation Modal */}
       {showLeaveConfirm && (
@@ -4634,15 +5040,22 @@ if (!revealed) {
                       Release Notes
                     </h2>
                     <button
-                      onClick={() => {
-                        setShowReleaseNotes(false);
-                        setShowHowItWorks(true);
-                      }}
-                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
-                    >
-                      How It Works →
-                    </button>
-                  </div>
+      onClick={() => {
+        setShowReleaseNotes(false);
+        setShowHowItWorks(true);
+      }}
+      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+    >
+      How It Works →
+    </button>
+    <button
+      onClick={() => setShowFeedbackModal(true)}
+      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+    >
+      <MessageSquare size={14} />
+      Report Issue
+    </button>
+  </div>
                 <button
                   onClick={() => setShowReleaseNotes(false)}
                   className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -4691,6 +5104,52 @@ if (!revealed) {
           </div>
         </div>
       )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setShowFeedbackModal(false)}
+          />
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[70] modal-enter`}>
+            <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+              Report an Issue
+            </h3>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-6 text-sm`}>
+              This will open your email client with environment details pre-filled.
+            </p>
+            
+            <div className="space-y-3">
+              
+                <a href={getMailtoLink('bug')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">🐛</span>
+                Report Bug
+              </a>
+              
+              
+                <a href={getMailtoLink('feature')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                onClick={() => setShowFeedbackModal(false)}
+              >
+                <span className="text-xl">✨</span>
+                Request Feature
+              </a>
+              
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className={`w-full px-4 py-2 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg transition-colors`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
