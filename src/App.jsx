@@ -21,7 +21,7 @@ const RETRO_FORMATS = {
     columns: [
       { id: 'start', label: 'Start', color: '#10b981', icon: '▶️', prompt: 'What should we start doing?' },
       { id: 'stop', label: 'Stop', color: '#ef4444', icon: '⏹️', prompt: 'What should we stop doing?' },
-      { id: 'continue', label: 'Continue', color: '#3b82f6', icon: '➡️', prompt: 'What should we keep doing?' }
+      { id: 'continue', label: 'Continue', color: '#f59e0b', icon: '➡️', prompt: 'What should we keep doing?' }
     ]
   },
   'glad-sad-mad': {
@@ -45,7 +45,7 @@ const RETRO_FORMATS = {
       { id: 'liked', label: 'Liked', color: '#10b981', icon: '❤️', prompt: 'What did you like?' },
       { id: 'learned', label: 'Learned', color: '#3b82f6', icon: '💡', prompt: 'What did you learn?' },
       { id: 'lacked', label: 'Lacked', color: '#f59e0b', icon: '⚠️', prompt: 'What was missing?' },
-      { id: 'longed', label: 'Longed For', color: '#8b5cf6', icon: '✨', prompt: 'What did you wish for?' }
+      { id: 'longed', label: 'Longed For', color: '#ef4444', icon: '✨', prompt: 'What did you wish for?' }
     ]
   }
 };
@@ -306,7 +306,7 @@ const PieChart = ({ stats, darkMode }) => {
   const total = stats.distribution.reduce((sum, [_, count]) => sum + count, 0);
   let currentAngle = -90; // Start at top
   
-  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
+  const colors = ['#5FC4C3', '#6DC9CF', '#7FD0DA', '#92D8E5', '#A8DFEF', '#C0E6F8', '#9B7FE5'];
   
   return (
     <div className="flex flex-col items-center gap-6">
@@ -422,11 +422,16 @@ const HowItWorks = ({ darkMode, onClose }) => {
               How It Works
             </h2>
             <button
-              onClick={onClose}
-              className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-            >
-              <span className="text-2xl">&times;</span>
-            </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
           </div>
         </div>
         
@@ -2176,9 +2181,9 @@ if (!revealed) {
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => handleCreateSession('estimation')}
-                className={`${darkMode ? 'bg-gray-700 hover:border-blue-400' : 'bg-white hover:border-blue-500'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
+                className={`${darkMode ? 'bg-gray-700 hover:border-blue-400' : 'bg-white hover:border-[#B96AE9]'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
               >
-                <div className="text-4xl mb-2">🃏</div>
+                <div className="text-4xl mb-2">🎯</div>
                 <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                   Planning Poker
                 </h3>
@@ -2189,9 +2194,9 @@ if (!revealed) {
 
               <button
                 onClick={() => handleCreateSession('retrospective')}
-                className={`${darkMode ? 'bg-gray-700 hover:border-purple-400' : 'bg-white hover:border-purple-500'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
+                className={`${darkMode ? 'bg-gray-700 hover:border-purple-400' : 'bg-white hover:border-[#B96AE9]'} rounded-lg p-6 shadow-lg hover:shadow-xl transition-all border-2 border-transparent text-center`}
               >
-                <div className="text-4xl mb-2">🔄</div>
+                <div className="text-4xl mb-2">💡</div>
                 <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                   Retrospective
                 </h3>
@@ -2221,7 +2226,7 @@ if (!revealed) {
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 text-gray-900'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-3`}
+                } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
                 maxLength={6}
               />
               <button
@@ -2265,7 +2270,7 @@ if (!revealed) {
                 <button
                   key={key}
                   onClick={() => handleCreateRetroSession(key)}
-                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg p-4 text-left transition-all border-2 border-transparent hover:border-purple-500`}
+                  className={`${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg p-4 text-left transition-all border-2 border-transparent hover:border-[#B96AE9]`}
                 >
                   <h3 className={`text-lg font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                     {format.name}
@@ -2307,24 +2312,29 @@ if (!revealed) {
         setShowReleaseNotes(false);
         setShowHowItWorks(true);
       }}
-      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+      className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline block`}
     >
       How It Works →
     </button>
     <button
   onClick={() => setShowFeedbackModal(true)}
-  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+  className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline flex items-center gap-1`}
 >
   <MessageSquare size={14} />
   Report Issue
 </button>
   </div>
               <button
-                onClick={() => setShowReleaseNotes(false)}
-                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              >
-                <span className="text-2xl">&times;</span>
-              </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
             </div>
           </div>
           
@@ -2347,7 +2357,7 @@ if (!revealed) {
                       </p>
                     </div>
                     {version === APP_VERSION && (
-                      <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                      <span className="px-3 py-1 bg-[#B96AE9] text-white text-xs font-semibold rounded">
                         Current
                       </span>
                     )}
@@ -2400,7 +2410,7 @@ if (!revealed) {
               
               
                 <a href={getMailtoLink('feature')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors font-semibold"
                 onClick={() => setShowFeedbackModal(false)}
               >
                 <span className="text-xl">✨</span>
@@ -2440,7 +2450,7 @@ if (!revealed) {
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
               <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>Session ID:</p>
-              <code className={`${darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'} px-3 py-1 rounded font-mono text-lg font-bold`}>{sessionId}</code>
+              <code className={`${darkMode ? 'bg-[#9B7FE5] text-blue-200' : 'bg-[#B8E0DC] text-blue-800'} px-3 py-1 rounded font-mono text-lg font-bold`}>{sessionId}</code>
               <button
                 onClick={copySessionId}
                 className={`p-2 rounded transition-colors ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -2481,7 +2491,7 @@ if (!revealed) {
                 darkMode 
                   ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                   : 'bg-white border-gray-300 text-gray-900'
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4`}
+              } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-4`}
               autoFocus
             />
             
@@ -2495,7 +2505,7 @@ if (!revealed) {
           setIsObserver(e.target.checked);
           if (e.target.checked) setIsModerator(false);
         }}
-        className="w-4 h-4 text-blue-600 rounded"
+        className="w-4 h-4 text-[#5CBDC0] rounded"
       />
       <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Observer</span>
     </label>
@@ -2508,7 +2518,7 @@ if (!revealed) {
         setIsModerator(e.target.checked);
         if (e.target.checked) setIsObserver(false);
       }}
-      className="w-4 h-4 text-blue-600 rounded"
+      className="w-4 h-4 text-[#5CBDC0] rounded"
     />
     <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Moderator</span>
   </label>
@@ -2517,7 +2527,7 @@ if (!revealed) {
 <button
   onClick={handleJoin}
   disabled={!userName.trim()}
-  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+  className="w-full bg-gradient-to-r from-[#B96AE9] to-[#D255EA] text-white py-3 rounded-lg font-semibold hover:from-[#D255EA] hover:to-[#D255EA] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
 >
   Join Session
 </button>
@@ -2559,7 +2569,7 @@ if (!revealed) {
               
               
                 <a href={getMailtoLink('feature')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors font-semibold"
                 onClick={() => setShowFeedbackModal(false)}
               >
                 <span className="text-xl">✨</span>
@@ -2596,24 +2606,29 @@ if (!revealed) {
                       setShowReleaseNotes(false);
                       setShowHowItWorks(true);
                     }}
-                    className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+                    className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline block`}
                   >
                     How It Works →
                   </button>
                   <button
                     onClick={() => setShowFeedbackModal(true)}
-                    className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+                    className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline flex items-center gap-1`}
                   >
                     <MessageSquare size={14} />
                     Report Issue
                   </button>
                 </div>
                 <button
-                  onClick={() => setShowReleaseNotes(false)}
-                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                >
-                  <span className="text-2xl">&times;</span>
-                </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
               </div>
             </div>
             
@@ -2636,7 +2651,7 @@ if (!revealed) {
                         </p>
                       </div>
                       {version === APP_VERSION && (
-                        <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                        <span className="px-3 py-1 bg-[#B96AE9] text-white text-xs font-semibold rounded">
                           Current
                         </span>
                       )}
@@ -2697,7 +2712,7 @@ if (!revealed) {
                     Retrospective: {currentRetroFormat.name}
                   </h1>
                   <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{sessionId}</code>
+                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>{sessionId}</code>
                   </p>
                 </div>
                 
@@ -2713,7 +2728,7 @@ if (!revealed) {
                   
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                    className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] flex items-center gap-2"
                   >
                     <Share2 size={18} />
                     Share
@@ -2760,14 +2775,14 @@ if (!revealed) {
                     maxLength={30}
                     className={`px-2 py-1 border ${
                       darkMode 
-                        ? 'bg-gray-700 border-purple-500 text-white' 
-                        : 'border-purple-500'
+                        ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                        : 'border-[#B96AE9]'
                     } rounded text-sm`}
                     autoFocus
                   />
                 ) : (
                   <span 
-                    className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-purple-600'} cursor-pointer hover:underline`}
+                    className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-[#B96AE9]'} cursor-pointer hover:underline`}
                     onClick={handleStartEditName}
                   >
                     {userName}
@@ -2826,22 +2841,22 @@ if (!revealed) {
               </div>
               {/* Phase Indicator */}
               <div className="flex items-center gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className={`flex items-center gap-2 ${retroPhase === 'input' ? 'text-purple-600 font-bold' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'input' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${retroPhase === 'input' ? 'text-[#B96AE9] font-bold' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'input' ? 'bg-[#B96AE9] text-white' : 'bg-gray-200'}`}>
                     1
                   </div>
                   <span>Input</span>
                 </div>
                 <ChevronRight size={20} className="text-gray-400" />
-                <div className={`flex items-center gap-2 ${retroPhase === 'grouping' ? 'text-purple-600 font-bold' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'grouping' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${retroPhase === 'grouping' ? 'text-[#B96AE9] font-bold' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'grouping' ? 'bg-[#B96AE9] text-white' : 'bg-gray-200'}`}>
                     2
                   </div>
                   <span>Grouping</span>
                 </div>
                 <ChevronRight size={20} className="text-gray-400" />
-                <div className={`flex items-center gap-2 ${retroPhase === 'discussion' ? 'text-purple-600 font-bold' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'discussion' ? 'bg-purple-600 text-white' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${retroPhase === 'discussion' ? 'text-[#B96AE9] font-bold' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${retroPhase === 'discussion' ? 'bg-[#B96AE9] text-white' : 'bg-gray-200'}`}>
                     3
                   </div>
                   <span>Discussion</span>
@@ -2850,7 +2865,7 @@ if (!revealed) {
                 {isModerator && retroPhase !== 'discussion' && (
                   <button 
                     onClick={advanceRetroPhase}
-                    className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    className="ml-auto px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA]"
                   >
                     Next Phase →
                   </button>
@@ -2968,7 +2983,7 @@ if (!revealed) {
                       onClick={() => toggleRetroVote(item.id)}
                       className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
                         item.voters?.includes(currentUserId)
-                          ? 'bg-purple-600 text-white' 
+                          ? 'bg-[#B96AE9] text-white' 
                           : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -3028,7 +3043,7 @@ if (!revealed) {
                   !isObserver ? 'cursor-move' : ''
                 } ${
                   dragOverItem?.id === item.id && !dragOverItem?.isGroup
-                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-105'
+                    ? 'border-[#B96AE9] bg-purple-50 dark:bg-purple-900/20 scale-105'
                     : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
                 } border-l-4`}
                 style={{ borderLeftColor: column.color }}
@@ -3045,7 +3060,7 @@ if (!revealed) {
                       onClick={() => toggleRetroVote(item.id)}
                       className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
                         item.voters?.includes(currentUserId)
-                          ? 'bg-purple-600 text-white scale-110' 
+                          ? 'bg-[#B96AE9] text-white scale-110' 
                           : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -3070,7 +3085,7 @@ if (!revealed) {
                   !isObserver ? 'cursor-move' : ''
                 } ${
                   dragOverItem?.id === group.id && dragOverItem?.isGroup
-                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 scale-105'
+                    ? 'border-[#B96AE9] bg-purple-50 dark:bg-purple-900/20 scale-105'
                     : darkMode ? 'border-purple-700 bg-purple-900/30' : 'border-purple-300 bg-purple-50'
                 }`}
               >
@@ -3087,14 +3102,14 @@ if (!revealed) {
                       }}
                       className={`flex-1 px-2 py-1 border ${
                         darkMode 
-                          ? 'bg-gray-700 border-purple-500 text-white' 
-                          : 'bg-white border-purple-500'
+                          ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                          : 'bg-white border-[#B96AE9]'
                       } rounded text-sm font-bold`}
                       autoFocus
                     />
                   ) : (
                     <h4 
-                      className={`flex-1 font-bold cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+                      className={`flex-1 font-bold cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
                       onClick={() => {
                         if (!isObserver) {
                           setEditingGroupId(group.id);
@@ -3111,7 +3126,7 @@ if (!revealed) {
                       onClick={() => toggleGroupVote(group.id)}
                       className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
                         group.voters?.includes(currentUserId)
-                          ? 'bg-purple-600 text-white scale-110' 
+                          ? 'bg-[#B96AE9] text-white scale-110' 
                           : darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-100'
                       }`}
                     >
@@ -3179,7 +3194,7 @@ if (!revealed) {
       {[...retroGroups].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(group => (
         <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl font-bold text-purple-600">{group.votes || 0}</span>
+            <span className="text-2xl font-bold text-[#B96AE9]">{group.votes || 0}</span>
             {editingGroupId === group.id ? (
               <input
                 type="text"
@@ -3192,14 +3207,14 @@ if (!revealed) {
                 }}
                 className={`flex-1 px-2 py-1 border ${
                   darkMode 
-                    ? 'bg-gray-700 border-purple-500 text-white' 
-                    : 'bg-white border-purple-500'
+                    ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                    : 'bg-white border-[#B96AE9]'
                 } rounded text-sm font-bold`}
                 autoFocus
               />
             ) : (
               <h3 
-                className={`font-bold text-lg cursor-pointer hover:text-purple-600 ${darkMode ? 'text-white' : 'text-gray-800'}`}
+                className={`font-bold text-lg cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
                 onClick={() => {
                   if (!isObserver) {
                     setEditingGroupId(group.id);
@@ -3266,7 +3281,7 @@ if (!revealed) {
                 />
                 <button 
                   onClick={() => addRetroComment(group.id)}
-                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                  className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
                 >
                   Comment
                 </button>
@@ -3285,7 +3300,7 @@ if (!revealed) {
             className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl font-bold text-purple-600">{item.votes || 0}</span>
+              <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
               <div className="flex items-start gap-2 flex-1">
                 {column && (
                   <span className="text-lg shrink-0" style={{ color: column.color }}>
@@ -3337,7 +3352,7 @@ if (!revealed) {
                   />
                   <button 
                     onClick={() => addRetroComment(item.id)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm"
+                    className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
                   >
                     Comment
                   </button>
@@ -3364,7 +3379,7 @@ if (!revealed) {
                   key={participant.id}
                   className={`rounded-lg p-3 text-center border-2 relative ${
                     participant.isModerator 
-                      ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
+                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                       : participant.isObserver
                       ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                       : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
@@ -3383,8 +3398,8 @@ if (!revealed) {
                   <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
                     {participant.name}
                   </p>
-                  {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
-                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
                 </div>
               ))}
             </div>
@@ -3433,7 +3448,7 @@ if (!revealed) {
                 <button
                   onClick={() => addRetroInput(selectedColumn)}
                   disabled={!newInputText.trim()}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Add Item
                 </button>
@@ -3487,7 +3502,7 @@ if (!revealed) {
                     />
                     <button 
                       onClick={copySessionId}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2"
+                      className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] flex items-center gap-2"
                     >
                       <Copy size={16} />
                       Copy
@@ -3496,7 +3511,7 @@ if (!revealed) {
                 </div>
                 <button 
                   onClick={() => setShowQR(!showQR)}
-                  className="w-full px-4 py-3 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] flex items-center justify-center gap-2"
                 >
                   <Share2 size={20} />
                   {showQR ? 'Hide' : 'Show'} QR Code
@@ -3566,24 +3581,29 @@ if (!revealed) {
                         setShowReleaseNotes(false);
                         setShowHowItWorks(true);
                       }}
-                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+                      className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline`}
                     >
                       How It Works →
     </button>
     <button
   onClick={() => setShowFeedbackModal(true)}
-  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+  className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline flex items-center gap-1`}
 >
   <MessageSquare size={14} />
   Report Issue
 </button>
                   </div>
                   <button
-                    onClick={() => setShowReleaseNotes(false)}
-                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-6">
@@ -3605,7 +3625,7 @@ if (!revealed) {
                           </p>
                         </div>
                         {version === APP_VERSION && (
-                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                          <span className="px-3 py-1 bg-[#B96AE9] text-white text-xs font-semibold rounded">
                             Current
                           </span>
                         )}
@@ -3677,7 +3697,7 @@ if (!revealed) {
               
               
                 <a href={getMailtoLink('feature')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors font-semibold"
                 onClick={() => setShowFeedbackModal(false)}
               >
                 <span className="text-xl">✨</span>
@@ -3725,7 +3745,7 @@ if (!revealed) {
                     Retrospective: {currentRetroFormat.name}
                   </h1>
                   <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>{sessionId}</code>
+                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>{sessionId}</code>
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -3766,15 +3786,15 @@ if (!revealed) {
                       maxLength={30}
                       className={`px-2 py-1 border ${
                         darkMode 
-                          ? 'bg-gray-700 border-purple-500 text-white' 
-                          : 'border-purple-500'
+                          ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                          : 'border-[#B96AE9]'
                       } rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none text-sm`}
                       autoFocus
                     />
                   </span>
                 ) : (
                   <span 
-                    className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-purple-600'} cursor-pointer hover:underline`}
+                    className={`font-semibold ${darkMode ? 'text-purple-300' : 'text-[#B96AE9]'} cursor-pointer hover:underline`}
                     onClick={handleStartEditName}
                     title="Click to edit name"
                   >
@@ -3782,7 +3802,7 @@ if (!revealed) {
                   </span>
                 )}!
                 <div className="inline-flex items-center gap-2 ml-2">
-                  {isModerator && <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded shadow-sm">Moderator</span>}
+                  {isModerator && <span className="px-2 py-0.5 bg-[#9B7FE5] text-white text-xs rounded shadow-sm">Moderator</span>}
                   {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
                   {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Participant</span>}
                   {!isModerator && (
@@ -3933,7 +3953,7 @@ if (!revealed) {
                   key={participant.id}
                   className={`rounded-lg p-3 text-center border-2 relative ${
                     participant.isModerator 
-                      ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
+                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                       : participant.isObserver
                       ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                       : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
@@ -3953,8 +3973,8 @@ if (!revealed) {
                   <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
                     {participant.name}
                   </p>
-                  {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
-                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
                 </div>
               ))}
             </div>
@@ -4004,7 +4024,7 @@ if (!revealed) {
                 <button
                   onClick={() => handleAddRetroItem(selectedColumn)}
                   disabled={!newInputText.trim()}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Add Item
                 </button>
@@ -4068,24 +4088,29 @@ if (!revealed) {
                         setShowReleaseNotes(false);
                         setShowHowItWorks(true);
                       }}
-                      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline`}
+                      className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline`}
                     >
                       How It Works →
     </button>
     <button
   onClick={() => setShowFeedbackModal(true)}
-  className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+  className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline flex items-center gap-1`}
 >
   <MessageSquare size={14} />
   Report Issue
 </button>
                   </div>
                   <button
-                    onClick={() => setShowReleaseNotes(false)}
-                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
                 </div>
               </div>
               
@@ -4108,7 +4133,7 @@ if (!revealed) {
                           </p>
                         </div>
                         {version === APP_VERSION && (
-                          <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                          <span className="px-3 py-1 bg-[#B96AE9] text-white text-xs font-semibold rounded">
                             Current
                           </span>
                         )}
@@ -4180,7 +4205,7 @@ if (!revealed) {
               
               
                 <a href={getMailtoLink('feature')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors font-semibold"
                 onClick={() => setShowFeedbackModal(false)}
               >
                 <span className="text-xl">✨</span>
@@ -4317,15 +4342,15 @@ if (!revealed) {
                 >
                   {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                 </button>
-                <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-blue-100'} px-2 sm:px-3 py-2 rounded text-sm`}>
+                <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-[#B8E0DC]'} px-2 sm:px-3 py-2 rounded text-sm`}>
                   <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} hidden sm:inline`}>Session:</span>
-                  <code className={`font-mono font-bold ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>{sessionId}</code>
+                  <code className={`font-mono font-bold ${darkMode ? 'text-[#B8E0DC]' : 'text-blue-800'}`}>{sessionId}</code>
                   <button
                     onClick={copySessionId}
-                    className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-blue-200'}`}
+                    className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-[#9DD5D1]'}`}
                     title="Copy Session Link"
                   >
-                    {showCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className={darkMode ? 'text-blue-400' : 'text-blue-600'} />}
+                    {showCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className={darkMode ? 'text-[#7DC9C8]' : 'text-[#5CBDC0]'} />}
                   </button>
                 </div>
                 <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
@@ -4358,15 +4383,15 @@ if (!revealed) {
                     maxLength={30}
                     className={`px-2 py-1 border ${
                       darkMode 
-                        ? 'bg-gray-700 border-blue-500 text-white' 
-                        : 'border-blue-500'
-                    } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm`}
+                        ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                        : 'border-[#B96AE9]'
+                    } rounded focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none text-sm`}
                     autoFocus
                   />
                 </span>
               ) : (
                 <span 
-                  className={`font-semibold ${darkMode ? 'text-blue-300' : 'text-blue-600'} cursor-pointer hover:underline`}
+                  className={`font-semibold ${darkMode ? 'text-[#B8E0DC]' : 'text-[#5CBDC0]'} cursor-pointer hover:underline`}
                   onClick={handleStartEditName}
                   title="Click to edit name"
                 >
@@ -4374,7 +4399,7 @@ if (!revealed) {
                 </span>
               )}!
               <div className="inline-flex items-center gap-2 ml-2">
-                {isModerator && <span className="px-2 py-0.5 bg-orange-500 text-white text-xs rounded shadow-sm">Moderator</span>}
+                {isModerator && <span className="px-2 py-0.5 bg-[#9B7FE5] text-white text-xs rounded shadow-sm">Moderator</span>}
                 {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
                 {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Voter</span>}
                 {!isModerator && (
@@ -4427,17 +4452,17 @@ if (!revealed) {
         </div>
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2">
-            {!isModerator && !isObserver && (
-              <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
+            {!isModerator && !isObserver && !revealed && (
+  <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-white'} rounded-lg shadow-xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Select Your Estimate</h2>
                   <div className="flex items-center gap-3">
                     {ticketNumber && (
                       <div className="flex items-center gap-2">
                         <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Ticket:</span>
-                        <span className={`px-2 py-1 text-xs font-mono ${darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'} rounded font-semibold`}>
-                          {ticketNumber}
-                        </span>
+                        <span className="px-2 py-1 text-xs font-mono bg-[#9B7FE5] text-white rounded font-semibold">
+  {ticketNumber}
+</span>
                       </div>
                     )}
                     <span className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -4446,14 +4471,15 @@ if (!revealed) {
                   </div>
                 </div>
                 {!revealed && (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+      <>
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                   {currentScale.map((point) => (
                     <button
           key={point}
           onClick={() => handleSelectPoint(point)}
           className={`aspect-square rounded-lg font-bold text-xl transition-all ${
             selectedPoint === point
-              ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white scale-105 shadow-lg'
+              ? 'bg-gradient-to-br from-[#B96AE9] to-[#D255EA] text-white scale-105 shadow-lg'
               : darkMode
               ? 'bg-gray-700 text-white hover:bg-gray-600 hover:scale-105'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105'
@@ -4513,6 +4539,8 @@ if (!revealed) {
         </p>
       </div>
     )}
+      </>
+    )}
   </div>
 )}
 
@@ -4531,7 +4559,7 @@ if (!revealed) {
                         darkMode 
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                           : 'bg-white border-gray-300 text-gray-900'
-                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-40`}
+                      } rounded-lg text-sm focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none w-40`}
                     />
                     <input
                       type="text"
@@ -4542,16 +4570,19 @@ if (!revealed) {
                         darkMode 
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                           : 'bg-white border-gray-300 text-gray-900'
-                      } rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-32`}
+                      } rounded-lg text-sm focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none w-32`}
                     />
                     <button
-                      onClick={() => setShowHistory(!showHistory)}
-                      className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors"
-                      title="View history"
-                    >
-                      <History size={16} />
-                      History ({sessionHistory.length})
-                    </button>
+  onClick={() => setShowHistory(!showHistory)}
+  className="flex items-center gap-2 px-3 py-2 text-white rounded-lg text-sm font-semibold transition-colors"
+  style={{ backgroundColor: '#7FD0DA' }}
+  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#6DC9CF'}
+  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#7FD0DA'}
+  title="View history"
+>
+  <History size={16} />
+  History ({sessionHistory.length})
+</button>
                     <button
                       onClick={toggleVotingScale}
                       className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors"
@@ -4576,7 +4607,7 @@ if (!revealed) {
                     </div>
                     <button
                       onClick={handleReveal}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#B96AE9] to-[#D255EA] text-white rounded-lg font-semibold hover:from-[#D255EA] hover:to-[#D255EA] transition-all shadow-md"
                     >
                       {revealed ? <EyeOff size={18} /> : <Eye size={18} />}
                       {revealed ? 'Hide' : 'Reveal'}
@@ -4592,7 +4623,7 @@ if (!revealed) {
                     ) : (
                       <button
                         onClick={handleReset}
-                        className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
                       >
                         <RotateCcw size={18} />
                         Reset
@@ -4621,7 +4652,7 @@ if (!revealed) {
                       key={participant.id}
                       className={`rounded-lg p-4 text-center border-2 relative ${revealed ? 'card-flip-enter' : ''} ${
                         participant.isModerator 
-                          ? darkMode ? 'bg-orange-900 border-orange-700' : 'bg-orange-50 border-orange-200'
+                          ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                           : participant.isObserver
                           ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
                           : isOutlier
@@ -4646,13 +4677,13 @@ if (!revealed) {
                         fontSize: participant.name.length > 20 ? '0.75rem' : undefined
                       }}>
                         {participant.name}
-                        {participant.isModerator && <span className={`text-xs block ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>Moderator</span>}
-                        {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-purple-600'}`}>Observer</span>}
+                        {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+                        {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
                         {isOutlier && <span className={`text-xs block ${darkMode ? 'text-red-400' : 'text-red-600'}`}>Outlier</span>}
                       </p>
                       {!participant.isModerator && !participant.isObserver && (
                         <div className={`text-2xl font-bold ${
-                          hasVoted ? darkMode ? 'text-blue-400' : 'text-blue-600' : darkMode ? 'text-gray-500' : 'text-gray-400'
+                          hasVoted ? darkMode ? 'text-[#7DC9C8]' : 'text-[#5CBDC0]' : darkMode ? 'text-gray-500' : 'text-gray-400'
                         }`}>
                           {revealed
                             ? (
@@ -4681,130 +4712,106 @@ if (!revealed) {
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-gradient-to-br from-white to-slate-50'} rounded-lg shadow-xl p-4 sticky top-4`}>
               <h2 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-3`}>Statistics</h2>
               <div className="space-y-3">
-                <div className={darkMode ? 'bg-blue-900 rounded-lg p-3 shadow-md' : 'bg-blue-50 rounded-lg p-3 shadow-md'}>
-                  <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Voted</p>
-                  <p className={`text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                    {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
-                  </p>
-                </div>
+                <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#5FC4C3' }}>
+  <p className="text-xs text-white mb-1">Voted</p>
+  <p className="text-xl font-bold text-white">
+    {votingParticipants.filter(p => p.points !== null && p.points !== undefined && p.points !== '').length} / {votingParticipants.length}
+  </p>
+</div>
                 {revealed && stats && (
                   <>
-                    <div className={`rounded-lg p-3 shadow-md ${
-                      stats.spreadType === 'tight' ? darkMode ? 'bg-green-900' : 'bg-green-50' :
-                      stats.spreadType === 'moderate' ? darkMode ? 'bg-yellow-900' : 'bg-yellow-50' :
-                      darkMode ? 'bg-red-900' : 'bg-red-50'
-                    }`}>
-                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>
-                        {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
-                      </p>
-                      <p className={`text-xl font-bold ${
-                        stats.spreadType === 'tight' ? darkMode ? 'text-green-400' : 'text-green-600' :
-                        stats.spreadType === 'moderate' ? darkMode ? 'text-yellow-400' : 'text-yellow-600' :
-                        darkMode ? 'text-red-400' : 'text-red-600'
-                      }`}>{stats.average}</p>
-                    </div>
+                    <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#6DC9CF' }}>
+  <p className="text-xs text-white mb-1">
+    {confidenceVotingEnabled && stats.weightedAverage ? 'Traditional Avg' : 'Average'}
+  </p>
+  <p className="text-xl font-bold text-white">{stats.average}</p>
+</div>
                     {confidenceVotingEnabled && stats.weightedAverage && (
-                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-indigo-900' : 'bg-indigo-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Weighted Avg</p>
-                        <p className={`text-xl font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                          {stats.weightedAverage} → {stats.weightedClosest}
-                        </p>
-                      </div>
-                    )}
+  <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#7FD0DA' }}>
+    <p className="text-xs text-white mb-1">Weighted Avg</p>
+    <p className="text-xl font-bold text-white">
+      {stats.weightedAverage} → {stats.weightedClosest}
+    </p>
+  </div>
+)}
                     {stats.median && (
-                      <div className={`rounded-lg p-3 shadow-md ${darkMode ? 'bg-teal-900' : 'bg-teal-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Median</p>
-                        <p className={`text-xl font-bold ${darkMode ? 'text-teal-400' : 'text-teal-600'}`}>
-                          {stats.median} → {stats.medianClosest}
-                        </p>
-                      </div>
-                    )}
-                    <div className={darkMode ? 'bg-orange-900 rounded-lg p-3 shadow-md' : 'bg-orange-50 rounded-lg p-3'}>
-                      <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Suggested</p>
-                      <p className={`text-2xl font-bold ${darkMode ? 'text-orange-400' : 'text-orange-600'}`}>
-                        {stats.suggestedEstimate}
-                      </p>
-                    </div>
+  <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#92D8E5' }}>
+    <p className="text-xs text-white mb-1">Median</p>
+    <p className="text-xl font-bold text-white">
+      {stats.median} → {stats.medianClosest}
+    </p>
+  </div>
+)}
+                    <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#9B7FE5' }}>
+  <p className="text-xs text-white mb-1">Suggested</p>
+  <p className="text-2xl font-bold text-white">
+    {stats.suggestedEstimate}
+  </p>
+</div>
                     {stats.consensus && (
                       <div className={`${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-lg p-2 shadow-md border ${darkMode ? 'border-green-600' : 'border-green-400'}`}>
                         <p className={`text-xs text-center font-bold ${darkMode ? 'text-green-400' : 'text-green-700'}`}>🎉 Consensus!</p>
                       </div>
                     )}
                     {stats.warnings && stats.warnings.length > 0 && (
-                      <div className="space-y-1">
-                        {stats.warnings.map((warning, idx) => (
-                          <div 
-                            key={idx}
-                            className={`rounded-lg p-2 shadow-md border ${
-                              warning.type === 'uncertainty' ? 
-                                darkMode ? 'bg-yellow-900 border-yellow-700' : 'bg-yellow-50 border-yellow-300' :
-                              warning.type === 'disagreement' ?
-                                darkMode ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-300' :
-                                darkMode ? 'bg-blue-900 border-blue-700' : 'bg-blue-50 border-blue-300'
-                            }`}
-                          >
-                            <p className={`text-xs font-semibold ${
-                              warning.type === 'uncertainty' ? 
-                                darkMode ? 'text-yellow-300' : 'text-yellow-700' :
-                              warning.type === 'disagreement' ?
-                                darkMode ? 'text-red-300' : 'text-red-700' :
-                                darkMode ? 'text-blue-300' : 'text-blue-600'
-                            }`}>
-                              {warning.icon} {warning.message}
-                            </p>
-                            <p className={`text-xs mt-0.5 ${
-                              warning.type === 'uncertainty' ? 
-                                darkMode ? 'text-yellow-200' : 'text-yellow-600' :
-                              warning.type === 'disagreement' ?
-                                darkMode ? 'text-red-200' : 'text-red-600' :
-                                darkMode ? 'text-blue-200' : 'text-blue-600'
-                            }`}>
-                              {warning.detail}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {stats.range && (
-                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Range: <span className="font-bold">{stats.range.min} - {stats.range.max}</span></p>
-                      </div>
-                    )}
+  <div className="space-y-1">
+    {stats.warnings.map((warning, idx) => (
+      <div 
+        key={idx}
+        className="rounded-lg p-2 shadow-md border"
+        style={{
+          backgroundColor: '#C0E6F8',
+          borderColor: '#92D8E5'
+        }}
+      >
+        <p className="text-xs font-semibold text-gray-800">
+          {warning.icon} {warning.message}
+        </p>
+        <p className="text-xs mt-0.5 text-gray-700">
+          {warning.detail}
+        </p>
+      </div>
+    ))}
+  </div>
+)}
                     {confidenceVotingEnabled && stats.confidenceBreakdown && (
-                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-cyan-900' : 'bg-cyan-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-1`}>Confidence</p>
-                        <div className={`flex justify-between text-xs font-bold ${darkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
-                          <span>🟢 {stats.confidenceBreakdown.high}</span>
-                          <span>🟡 {stats.confidenceBreakdown.medium}</span>
-                          <span>🔴 {stats.confidenceBreakdown.low}</span>
-                        </div>
-                      </div>
-                    )}
+  <div className="rounded-lg p-2 shadow-md" style={{ backgroundColor: '#D8EDFF' }}>
+    <p className="text-xs text-gray-800 mb-1">Confidence</p>
+    <div className="flex justify-between text-xs font-bold text-gray-700">
+      <span>🟢 {stats.confidenceBreakdown.high}</span>
+      <span>🟡 {stats.confidenceBreakdown.medium}</span>
+      <span>🔴 {stats.confidenceBreakdown.low}</span>
+    </div>
+  </div>
+)}
                     {stats.distribution && stats.distribution.length > 0 && (
-                      <div className={`rounded-lg p-2 shadow-md ${darkMode ? 'bg-purple-900' : 'bg-purple-50'}`}>
-                        <p className={`text-xs ${darkMode ? 'text-gray-100' : 'text-gray-600'} mb-2 font-semibold`}>Distribution</p>
-                        <div className="space-y-1">
-                          {stats.distribution.map(([vote, count]) => {
-                            const barWidth = (count / stats.maxCount) * 100;
-                            return (
-                              <div key={vote} className="flex items-center gap-1">
-                                <span className={`text-xs font-bold w-6 ${darkMode ? 'text-purple-300' : 'text-purple-700'}`}>
-                                  {vote}
-                                </span>
-                                <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
-                                  <div 
-                                    className={`h-full ${darkMode ? 'bg-purple-500' : 'bg-purple-400'} transition-all duration-300 flex items-center justify-end pr-1`}
-                                    style={{ width: `${barWidth}%` }}
-                                  >
-                                    <span className="text-xs font-semibold text-white">{count}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+  <div className="rounded-lg p-2 shadow-md" style={{ backgroundColor: '#9B7FE5' }}>
+    <p className="text-xs text-white mb-2 font-semibold">Distribution</p>
+    <div className="space-y-1">
+      {stats.distribution.map(([vote, count]) => {
+        const barWidth = (count / stats.maxCount) * 100;
+        return (
+          <div key={vote} className="flex items-center gap-1">
+            <span className="text-xs font-bold w-6 text-white">
+              {vote}
+            </span>
+            <div className="flex-1 h-4 rounded overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}>
+              <div 
+                className="h-full flex items-center justify-end pr-1 transition-all duration-300"
+                style={{ 
+                  width: `${barWidth}%`,
+                  backgroundColor: 'rgba(255,255,255,0.8)'
+                }}
+              >
+                <span className="text-xs font-semibold text-purple-900">{count}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
                   </>
                 )}
               </div>
@@ -4826,11 +4833,16 @@ if (!revealed) {
                     Session History
                   </h2>
                   <button
-                    onClick={() => setShowHistory(false)}
-                    className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                  >
-                    <span className="text-2xl">&times;</span>
-                  </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
                 </div>
                 <div className="flex gap-2 mt-4">
                   <button
@@ -4842,7 +4854,7 @@ if (!revealed) {
                   </button>
                   <button
                     onClick={copyHistoryToClipboard}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#B96AE9] transition-colors"
                   >
                     <FileText size={16} />
                     Copy to Clipboard
@@ -4882,9 +4894,9 @@ if (!revealed) {
                                 }}
                                 className={`font-bold text-lg px-2 py-1 border ${
                                   darkMode 
-                                    ? 'bg-gray-600 border-blue-500 text-white' 
-                                    : 'bg-white border-blue-500 text-gray-800'
-                                } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full`}
+                                    ? 'bg-gray-600 border-[#B96AE9] text-white' 
+                                    : 'bg-white border-[#B96AE9] text-gray-800'
+                                } rounded focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none w-full`}
                                 autoFocus
                               />
                             ) : (
@@ -4919,15 +4931,15 @@ if (!revealed) {
                               }}
                               className={`font-bold text-lg px-2 py-1 border ${
                                 darkMode 
-                                  ? 'bg-gray-600 border-blue-500 text-white' 
-                                  : 'bg-white border-blue-500 text-gray-800'
-                              } rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center w-20`}
+                                  ? 'bg-gray-600 border-[#B96AE9] text-white' 
+                                  : 'bg-white border-[#B96AE9] text-gray-800'
+                              } rounded focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none text-center w-20`}
                               autoFocus
                             />
                           ) : (
                             <div 
-                              className={`px-3 py-1 rounded font-bold text-lg cursor-pointer hover:ring-2 hover:ring-blue-500 ${
-                                darkMode ? 'bg-blue-900 text-blue-300' : 'bg-blue-100 text-blue-600'
+                              className={`px-3 py-1 rounded font-bold text-lg cursor-pointer hover:ring-2 hover:ring-[#B96AE9] ${
+                                darkMode ? 'bg-[#9B7FE5] text-[#B8E0DC]' : 'bg-[#B8E0DC] text-[#5CBDC0]'
                               }`}
                               onClick={() => {
                                 setEditingEstimateId(entry.timestamp);
@@ -5044,24 +5056,29 @@ if (!revealed) {
         setShowReleaseNotes(false);
         setShowHowItWorks(true);
       }}
-      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline block`}
+      className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline block`}
     >
       How It Works →
     </button>
     <button
       onClick={() => setShowFeedbackModal(true)}
-      className={`text-sm mt-1 ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} underline flex items-center gap-1`}
+      className={`text-sm mt-1 ${darkMode ? 'text-[#7DC9C8] hover:text-[#B8E0DC]' : 'text-[#5CBDC0] hover:text-blue-700'} underline flex items-center gap-1`}
     >
       <MessageSquare size={14} />
       Report Issue
     </button>
   </div>
                 <button
-                  onClick={() => setShowReleaseNotes(false)}
-                  className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                >
-                  <span className="text-2xl">&times;</span>
-                </button>
+  onClick={() => setShowReleaseNotes(false)}
+  className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
+    darkMode 
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+  }`}
+  title="Close"
+>
+  <X size={20} />
+</button>
               </div>
             </div>
             
@@ -5084,7 +5101,7 @@ if (!revealed) {
                         </p>
                       </div>
                       {version === APP_VERSION && (
-                        <span className="px-3 py-1 bg-blue-600 text-white text-xs font-semibold rounded">
+                        <span className="px-3 py-1 bg-[#B96AE9] text-white text-xs font-semibold rounded">
                           Current
                         </span>
                       )}
@@ -5132,7 +5149,7 @@ if (!revealed) {
               
               
                 <a href={getMailtoLink('feature')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors font-semibold"
                 onClick={() => setShowFeedbackModal(false)}
               >
                 <span className="text-xl">✨</span>
