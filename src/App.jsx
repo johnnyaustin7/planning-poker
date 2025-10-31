@@ -2194,7 +2194,7 @@ if (!revealed) {
   // Landing page
   if (!sessionId) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-[#E8F6F6] via-[#B8E0DC] to-[#D4C5F9]'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-4 relative">
@@ -2470,7 +2470,7 @@ if (!revealed) {
   // Join page
   if (!hasJoined) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-slate-100'} flex items-center justify-center p-4`}>
+      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-[#E8F6F6] via-[#B8E0DC] to-[#D4C5F9]'} flex items-center justify-center p-4`}>
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 max-w-md w-full`}>
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-4 relative">
