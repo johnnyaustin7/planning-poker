@@ -60,8 +60,21 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "3.2.0";
+const APP_VERSION = "3.3.0";
 const RELEASE_NOTES = {
+  "3.3.0": {
+    date: "October 31, 2025",
+    type: "Minor Release",
+    changes: [
+      "🎨 Updated color palette with cohesive gradient from turquoise to purple",
+      "📊 Statistics panel now uses gradient colors for better visual hierarchy",
+      "🔒 Voting interface hides completely when votes are revealed",
+      "🎯 Suggested estimate now stands out with purple highlight",
+      "💜 Moderator badges updated to purple theme",
+      "🎫 Improved ticket number readability with white text on purple",
+      "🔴 Reset button changed to red for clearer destructive action indication"
+    ]
+  },
   "3.2.0": {
     date: "October 27, 2025",
     type: "Minor Release",
