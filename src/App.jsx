@@ -754,6 +754,7 @@ export default function App() {
   const [retroInputs, setRetroInputs] = useState([]);
   const [retroGroups, setRetroGroups] = useState([]);
   const [retroComments, setRetroComments] = useState({});
+  const [retroReactions, setRetroReactions] = useState({});
   const [newInputText, setNewInputText] = useState('');
   const [newCommentText, setNewCommentText] = useState({});
   const [timer, setTimer] = useState(null);
@@ -886,6 +887,11 @@ useEffect(() => {
           setRetroComments(data.retroComments);
         } else {
           setRetroComments({});
+        }
+        if (data.retroReactions) {
+          setRetroReactions(data.retroReactions);
+        } else {
+          setRetroReactions({});
         }
         if (data.timer) {
           setTimer(data.timer);
@@ -3287,10 +3293,34 @@ if (!revealed) {
               >
                 {group.title}
               </h3>
-            )}
+          )}
+        </div>
+        
+        {/* ADD EMOJI REACTIONS HERE */}
+        {!isObserver && (
+          <div className="flex flex-wrap gap-2 mb-3 ml-6">
+            {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
+              const reactions = retroReactions[group.id]?.[emoji] || [];
+              const userHasReacted = hasReacted(group.id, emoji);
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => toggleReaction(group.id, emoji)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-sm transition-all ${
+                    userHasReacted
+                      ? 'bg-[#B96AE9] text-white scale-110'
+                      : darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  <span>{emoji}</span>
+                  {reactions.length > 0 && <span className="text-xs font-semibold">{reactions.length}</span>}
+                </button>
+              );
+            })}
           </div>
-          
-          <div className="space-y-2 ml-6 mb-4">
+        )}
+        
+        <div className="space-y-2 ml-6 mb-4">
             {group.items.map(item => {
               const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
               return (
