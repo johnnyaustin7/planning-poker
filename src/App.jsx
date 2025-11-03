@@ -1618,7 +1618,30 @@ const handleRenameGroup = async (groupId, newName) => {
 
     setNewCommentText({ ...newCommentText, [groupId]: '' });
   };
+const toggleReaction = async (groupId, emoji) => {
+  if (!db || !dbModule || isObserver || !currentUserId) return;
+  
+  const reactionPath = `sessions/${sessionId}/retroReactions/${groupId}/${emoji}`;
+  const reactionRef = dbModule.ref(db, reactionPath);
+  const snapshot = await dbModule.get(reactionRef);
+  
+  let users = snapshot.exists() ? snapshot.val() : [];
+  
+  if (users.includes(currentUserId)) {
+    users = users.filter(id => id !== currentUserId);
+  } else {
+    users = [...users, currentUserId];
+  }
+  
+  await dbModule.set(reactionRef, users);
+};
 
+const hasReacted = (groupId, emoji) => {
+  if (!retroReactions || !retroReactions[groupId] || !retroReactions[groupId][emoji]) {
+    return false;
+  }
+  return retroReactions[groupId][emoji].includes(currentUserId);
+};
   const advanceRetroPhase = async () => {
     if (!isModerator || !db || !dbModule) return;
     
