@@ -724,7 +724,7 @@ const initializeFirebase = async () => {
 export default function App() {
   // Core state
   const [userName, setUserName] = useState('');
-  const [isModerator, setIsModerator] = useState(true);
+  const [isModerator, setIsModerator] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [sessionId, setSessionId] = useState('');
@@ -743,6 +743,9 @@ export default function App() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [showTypeMenu, setShowTypeMenu] = useState(false);
+  const [showModeratorTypeMenu, setShowModeratorTypeMenu] = useState(null);
+  const [historyCopied, setHistoryCopied] = useState(false);
+  const [retroReactions, setRetroReactions] = useState({});
   
   // Session type state
   const [sessionType, setSessionType] = useState(null);
@@ -886,6 +889,11 @@ useEffect(() => {
           setRetroComments(data.retroComments);
         } else {
           setRetroComments({});
+        }
+        if (data.retroReactions) {
+          setRetroReactions(data.retroReactions);
+        } else {
+          setRetroReactions({});
         }
         if (data.timer) {
           setTimer(data.timer);
@@ -1241,9 +1249,39 @@ useEffect(() => {
     await dbModule.remove(participantRef);
   };
 
-  const changeUserType = async (newType) => {
-    if (!currentUserId || isModerator || !db || !dbModule) return;
+  const changeUserType = async (newType, targetUserId = null) => {
+  if (!db || !dbModule) return;
+  
+  // If moderator is changing someone else's type
+  if (isModerator && targetUserId) {
+    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${targetUserId}`);
     
+    if (newType === 'voter') {
+      await dbModule.update(participantRef, { 
+        isObserver: false,
+        isModerator: false,
+        points: null
+      });
+    } else if (newType === 'observer') {
+      await dbModule.update(participantRef, { 
+        isObserver: true,
+        isModerator: false,
+        points: null
+      });
+    } else if (newType === 'moderator') {
+      await dbModule.update(participantRef, { 
+        isObserver: false,
+        isModerator: true,
+        points: null
+      });
+    }
+    
+    setShowModeratorTypeMenu(null);
+    return;
+  }
+  
+  // Original code for users changing their own type
+  if (currentUserId && !isModerator) {
     const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
     
     if (newType === 'voter') {
@@ -1262,7 +1300,8 @@ useEffect(() => {
     }
     
     setShowTypeMenu(false);
-  };
+  }
+};
 
   const copySessionId = () => {
     const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
@@ -1619,6 +1658,24 @@ const handleRenameGroup = async (groupId, newName) => {
     setNewCommentText({ ...newCommentText, [groupId]: '' });
   };
 
+const toggleReaction = async (groupId, emoji) => {
+  if (!db || !dbModule || isObserver || !currentUserId) return;
+  
+  const reactionPath = `sessions/${sessionId}/retroReactions/${groupId}/${emoji}`;
+  const reactionRef = dbModule.ref(db, reactionPath);
+  const snapshot = await dbModule.get(reactionRef);
+  
+  let users = snapshot.exists() ? snapshot.val() : [];
+  
+  if (users.includes(currentUserId)) {
+    users = users.filter(id => id !== currentUserId);
+  } else {
+    users = [...users, currentUserId];
+  }
+  
+  await dbModule.set(reactionRef, users);
+};
+
   const advanceRetroPhase = async () => {
     if (!isModerator || !db || !dbModule) return;
     
@@ -1628,38 +1685,70 @@ const handleRenameGroup = async (groupId, newName) => {
   };
 
   const exportRetroToCSV = () => {
-    let csv = 'Retrospective Export\n\n';
-    csv += `Session: ${sessionId}\n`;
-    csv += `Format: ${RETRO_FORMATS[retroFormat]?.name}\n`;
-    csv += `Date: ${new Date().toLocaleString()}\n\n`;
-
-    csv += 'Groups and Items\n';
-    csv += 'Group Title,Item,Votes\n';
-    
-    retroGroups.forEach(group => {
-      group.items.forEach((item, idx) => {
-        csv += `"${idx === 0 ? group.title : ''}","${item.text}",${item.votes}\n`;
-      });
-      csv += `,,Total: ${group.votes}\n\n`;
+  const currentFormat = RETRO_FORMATS[retroFormat];
+  let csv = 'Retrospective Export - Scrumptious\n\n';
+  
+  // SESSION DETAILS
+  csv += 'SESSION DETAILS\n';
+  csv += `Session Code,${sessionId}\n`;
+  csv += `Format,${currentFormat?.name || 'Unknown'}\n`;
+  csv += `Date,${new Date().toLocaleString()}\n`;
+  csv += `Participants,${participants.length}\n`;
+  csv += `Total Groups,${retroGroups.length}\n`;
+  csv += `Total Individual Items,${retroInputs.length}\n`;
+  csv += '\n';
+  
+  // GROUPS AND THEIR ITEMS
+  csv += 'GROUPED ITEMS\n';
+  csv += 'Group Title,Group Votes,Item Text,Item Category,Item Author\n';
+  
+  retroGroups.forEach(group => {
+    group.items.forEach((item, idx) => {
+      const column = currentFormat?.columns.find(c => c.id === item.columnId);
+      const groupTitle = idx === 0 ? group.title : '';
+      const groupVotes = idx === 0 ? (group.votes || 0) : '';
+      csv += `"${groupTitle}",${groupVotes},"${item.text}","${column?.label || 'Unknown'}","Anonymous"\n`;
     });
-
-    csv += '\nComments\n';
-    csv += 'Group,Comment,Author,Timestamp\n';
+    csv += '\n'; // Empty line between groups
+  });
+  
+  // INDIVIDUAL (UNGROUPED) ITEMS
+  if (retroInputs.length > 0) {
+    csv += 'INDIVIDUAL ITEMS\n';
+    csv += 'Item Text,Category,Votes,Author\n';
     
-    Object.entries(retroComments).forEach(([groupId, comments]) => {
-      const group = retroGroups.find(g => g.id === groupId);
+    retroInputs.forEach(item => {
+      const column = currentFormat?.columns.find(c => c.id === item.columnId);
+      csv += `"${item.text}","${column?.label || 'Unknown'}",${item.votes || 0},"Anonymous"\n`;
+    });
+    csv += '\n';
+  }
+  
+  // COMMENTS
+  const hasComments = Object.keys(retroComments).length > 0;
+  if (hasComments) {
+    csv += 'COMMENTS\n';
+    csv += 'Associated With,Comment,Author,Timestamp\n';
+    
+    Object.entries(retroComments).forEach(([itemId, comments]) => {
+      const group = retroGroups.find(g => g.id === itemId);
+      const item = retroInputs.find(i => i.id === itemId);
+      const associatedWith = group ? `Group: ${group.title}` : item ? `Item: ${item.text.substring(0, 30)}...` : 'Unknown';
+      
       Object.values(comments).forEach(comment => {
-        csv += `"${group?.title || ''}","${comment.text}",${comment.author},${new Date(comment.timestamp).toLocaleString()}\n`;
+        csv += `"${associatedWith}","${comment.text}","${comment.author}","${new Date(comment.timestamp).toLocaleString()}"\n`;
       });
     });
+  }
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `retro-${sessionId}-${Date.now()}.csv`;
-    a.click();
-  };
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `retro-${sessionId}-${Date.now()}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 
   // Column-based retrospective functions
   const handleAddRetroItem = async (columnId) => {
@@ -1946,22 +2035,22 @@ if (!revealed) {
   };
 
   const copyHistoryToClipboard = () => {
-    if (sessionHistory.length === 0) {
-      alert('No history to copy yet!');
-      return;
-    }
+  if (sessionHistory.length === 0) {
+    return;
+  }
 
-    const text = sessionHistory.map(entry => {
-      const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
-      const date = new Date(entry.timestamp).toLocaleString();
-      const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
-      
-      return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
-    }).join('\n');
+  const text = sessionHistory.map(entry => {
+    const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
+    const date = new Date(entry.timestamp).toLocaleString();
+    const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
+    
+    return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
+  }).join('\n');
 
-    navigator.clipboard.writeText(text);
-    alert('History copied to clipboard!');
-  };
+  navigator.clipboard.writeText(text);
+  setHistoryCopied(true);
+  setTimeout(() => setHistoryCopied(false), 2000);
+};
   const calculateAverage = () => {
     const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
     
@@ -2251,18 +2340,18 @@ if (!revealed) {
             
             <div>
               <input
-                type="text"
-                value={sessionIdInput}
-                onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter Session ID"
-                className={`w-full px-4 py-3 border ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
-                maxLength={6}
-              />
+  type="text"
+  value={sessionIdInput}
+  onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
+  onKeyPress={handleKeyPress}
+  placeholder="Enter Session ID"
+  className={`w-full px-4 py-3 border ${
+    darkMode 
+      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+      : 'bg-white border-gray-300 text-gray-900'
+  } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
+  maxLength={20}
+/>
               <button
                 onClick={handleJoinSession}
                 disabled={!sessionIdInput.trim()}
@@ -2962,7 +3051,9 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
     {currentRetroFormat.columns.map(column => {
-      const columnItems = retroInputs.filter(item => item.columnId === column.id);
+      const columnItems = retroInputs
+      .filter(item => item.columnId === column.id)
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
       
       return (
         <div
@@ -3046,7 +3137,9 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
     {currentRetroFormat.columns.map(column => {
-      const columnItems = retroInputs.filter(item => item.columnId === column.id);
+      const columnItems = retroInputs
+      .filter(item => item.columnId === column.id)
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
       const columnGroups = retroGroups.filter(group => {
         // A group belongs to a column if its first item is from that column
         return group.items.length > 0 && group.items[0].columnId === column.id;
@@ -3096,16 +3189,14 @@ if (!revealed) {
                   </span>
                   {!isObserver && (
                     <button
-                      onClick={() => toggleRetroVote(item.id)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
-                        item.voters?.includes(currentUserId)
-                          ? 'bg-[#B96AE9] text-white scale-110' 
-                          : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
-                      }`}
-                    >
-                      <ThumbsUp size={12} />
-                      {item.votes || 0}
-                    </button>
+  key={emoji}
+  onClick={() => toggleReaction(group.id, emoji)}
+  className={`px-2 py-1 text-lg transition-all ${
+    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
+  }`}
+>
+  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
+</button>
                   )}
                 </div>
               </div>
@@ -3233,39 +3324,62 @@ if (!revealed) {
       {[...retroGroups].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(group => (
         <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl font-bold text-[#B96AE9]">{group.votes || 0}</span>
-            {editingGroupId === group.id ? (
-              <input
-                type="text"
-                value={editingGroupName}
-                onChange={(e) => setEditingGroupName(e.target.value)}
-                onBlur={() => handleRenameGroup(group.id, editingGroupName)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
-                  if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
-                }}
-                className={`flex-1 px-2 py-1 border ${
-                  darkMode 
-                    ? 'bg-gray-700 border-[#B96AE9] text-white' 
-                    : 'bg-white border-[#B96AE9]'
-                } rounded text-sm font-bold`}
-                autoFocus
-              />
-            ) : (
-              <h3 
-                className={`font-bold text-lg cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
-                onClick={() => {
-                  if (!isObserver) {
-                    setEditingGroupId(group.id);
-                    setEditingGroupName(group.title);
-                  }
-                }}
-                title="Click to rename"
-              >
-                {group.title}
-              </h3>
-            )}
-          </div>
+  <span className="text-2xl font-bold text-[#B96AE9]">{group.votes || 0}</span>
+  <div className="flex-1">
+    {editingGroupId === group.id ? (
+      <input
+        type="text"
+        value={editingGroupName}
+        onChange={(e) => setEditingGroupName(e.target.value)}
+        onBlur={() => handleRenameGroup(group.id, editingGroupName)}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
+          if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
+        }}
+        className={`w-full px-2 py-1 border ${
+          darkMode 
+            ? 'bg-gray-700 border-[#B96AE9] text-white' 
+            : 'bg-white border-[#B96AE9]'
+        } rounded text-sm font-bold`}
+        autoFocus
+      />
+    ) : (
+      <h3 
+        className={`font-bold text-lg cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
+        onClick={() => {
+          if (!isObserver) {
+            setEditingGroupId(group.id);
+            setEditingGroupName(group.title);
+          }
+        }}
+        title="Click to rename"
+      >
+        {group.title}
+      </h3>
+    )}
+    {!isObserver && (
+      <div className="flex gap-1 mt-2">
+        {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
+          const reactions = retroReactions[group.id]?.[emoji] || [];
+          const hasReacted = reactions.includes(currentUserId);
+          const count = reactions.length;
+          
+          return (
+            <button
+  key={emoji}
+  onClick={() => toggleReaction(group.id, emoji)}
+  className={`px-2 py-1 text-lg transition-all ${
+    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
+  }`}
+>
+  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
+</button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</div>
           
           <div className="space-y-2 ml-6 mb-4">
             {group.items.map(item => {
@@ -3339,23 +3453,44 @@ if (!revealed) {
             className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
-              <div className="flex items-start gap-2 flex-1">
-                {column && (
-                  <span className="text-lg shrink-0" style={{ color: column.color }}>
-                    {column.icon}
-                  </span>
-                )}
-                <div className="flex-1">
-                  <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-                    {item.text}
-                  </p>
-                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {column?.label || 'Unknown'}
-                  </p>
-                </div>
-              </div>
-            </div>
+  <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
+  <div className="flex items-start gap-2 flex-1">
+    {column && (
+      <span className="text-lg shrink-0" style={{ color: column.color }}>
+        {column.icon}
+      </span>
+    )}
+    <div className="flex-1">
+      <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
+        {item.text}
+      </p>
+      <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+        {column?.label || 'Unknown'}
+      </p>
+      {!isObserver && (
+        <div className="flex gap-1 mt-2">
+          {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
+            const reactions = retroReactions[item.id]?.[emoji] || [];
+            const hasReacted = reactions.includes(currentUserId);
+            const count = reactions.length;
+            
+            return (
+              <button
+  key={emoji}
+  onClick={() => toggleReaction(item.id, emoji)}
+  className={`px-2 py-1 text-lg transition-all ${
+    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
+  }`}
+>
+  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
+</button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
             {/* Comments Section for Individual Items */}
             <div className="ml-6 mt-4 border-t pt-4">
@@ -3416,31 +3551,75 @@ if (!revealed) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {sortedParticipants.map((participant) => (
                 <div
-                  key={participant.id}
-                  className={`rounded-lg p-3 text-center border-2 relative ${
-                    participant.isModerator 
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : participant.isObserver
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  {isModerator && participant.id !== currentUserId && (
-                    <button
-                      onClick={() => removeUser(participant.id)}
-                      className={`absolute top-1 right-1 p-1 rounded ${
-                        darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-                      } text-white`}
-                    >
-                      <UserX size={12} />
-                    </button>
-                  )}
-                  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
-                    {participant.name}
-                  </p>
-                  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
-                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
-                </div>
+  key={participant.id}
+  className={`rounded-lg p-3 text-center border-2 relative ${
+    participant.isModerator 
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : participant.isObserver
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+  }`}
+>
+  {isModerator && participant.id !== currentUserId && (
+    <>
+      <button
+        onClick={() => removeUser(participant.id)}
+        className={`absolute top-1 right-1 p-1 rounded ${
+          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+        } text-white`}
+      >
+        <UserX size={12} />
+      </button>
+      <button
+        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
+        className={`absolute top-1 left-1 p-1 rounded ${
+          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
+        } text-gray-700`}
+      >
+        <UserCog size={12} />
+      </button>
+      {showModeratorTypeMenu === participant.id && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setShowModeratorTypeMenu(null)}
+          />
+          <div className={`absolute left-1 top-8 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20 whitespace-nowrap`}>
+            <button
+              onClick={() => changeUserType('voter', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Voter
+            </button>
+            <button
+              onClick={() => changeUserType('observer', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Observer
+            </button>
+            <button
+              onClick={() => changeUserType('moderator', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Moderator
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  )}
+  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+    {participant.name}
+  </p>
+  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+</div>
               ))}
             </div>
           </div>
@@ -3461,17 +3640,25 @@ if (!revealed) {
                 Add Item
               </h3>
               <textarea
-                value={newInputText}
-                onChange={(e) => setNewInputText(e.target.value)}
-                placeholder="Enter your thoughts... (Anonymous)"
-                rows={4}
-                className={`w-full px-4 py-3 border ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
-                autoFocus
-              />
+  value={newInputText}
+  onChange={(e) => setNewInputText(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (newInputText.trim()) {
+        addRetroInput(selectedColumn);
+      }
+    }
+  }}
+  placeholder="Enter your thoughts... (Anonymous)"
+  rows={4}
+  className={`w-full px-4 py-3 border ${
+    darkMode 
+      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+      : 'bg-white border-gray-300 text-gray-900'
+  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
+  autoFocus
+/>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
@@ -3904,7 +4091,9 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
             {currentRetroFormat.columns.map(column => {
-              const columnItems = Object.values(retroItems).filter(item => item.columnId === column.id);
+              const columnItems = Object.values(retroItems)
+              .filter(item => item.columnId === column.id)
+              .sort((a, b) => (b.votes || 0) - (a.votes || 0));
               const sortedItems = columnItems.sort((a, b) => (b.votes || 0) - (a.votes || 0));
               
               return (
@@ -3994,32 +4183,75 @@ if (!revealed) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {sortedParticipants.map((participant) => (
                 <div
-                  key={participant.id}
-                  className={`rounded-lg p-3 text-center border-2 relative ${
-                    participant.isModerator 
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : participant.isObserver
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  {isModerator && participant.id !== currentUserId && (
-                    <button
-                      onClick={() => removeUser(participant.id)}
-                      className={`absolute top-1 right-1 p-1 rounded ${
-                        darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-                      } text-white transition-colors`}
-                      title="Remove user"
-                    >
-                      <UserX size={12} />
-                    </button>
-                  )}
-                  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
-                    {participant.name}
-                  </p>
-                  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
-                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
-                </div>
+  key={participant.id}
+  className={`rounded-lg p-3 text-center border-2 relative ${
+    participant.isModerator 
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : participant.isObserver
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+  }`}
+>
+  {isModerator && participant.id !== currentUserId && (
+    <>
+      <button
+        onClick={() => removeUser(participant.id)}
+        className={`absolute top-1 right-1 p-1 rounded ${
+          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+        } text-white`}
+      >
+        <UserX size={12} />
+      </button>
+      <button
+        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
+        className={`absolute top-1 left-1 p-1 rounded ${
+          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
+        } text-gray-700`}
+      >
+        <UserCog size={12} />
+      </button>
+      {showModeratorTypeMenu === participant.id && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setShowModeratorTypeMenu(null)}
+          />
+          <div className={`absolute left-1 top-8 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20 whitespace-nowrap`}>
+            <button
+              onClick={() => changeUserType('voter', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Voter
+            </button>
+            <button
+              onClick={() => changeUserType('observer', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Observer
+            </button>
+            <button
+              onClick={() => changeUserType('moderator', participant.id)}
+              className={`w-full px-4 py-2 text-left text-sm ${
+                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              Make Moderator
+            </button>
+          </div>
+        </>
+      )}
+    </>
+  )}
+  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+    {participant.name}
+  </p>
+  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+</div>
               ))}
             </div>
           </div>
@@ -4040,17 +4272,25 @@ if (!revealed) {
                 Add Item
               </h3>
               <textarea
-                value={newInputText}
-                onChange={(e) => setNewInputText(e.target.value)}
-                placeholder="Enter your thoughts..."
-                rows={4}
-                className={`w-full px-4 py-3 border ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
-                autoFocus
-              />
+  value={newInputText}
+  onChange={(e) => setNewInputText(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (newInputText.trim()) {
+        addRetroInput(selectedColumn);
+      }
+    }
+  }}
+  placeholder="Enter your thoughts... (Anonymous)"
+  rows={4}
+  className={`w-full px-4 py-3 border ${
+    darkMode 
+      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+      : 'bg-white border-gray-300 text-gray-900'
+  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
+  autoFocus
+/>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
@@ -4900,12 +5140,12 @@ if (!revealed) {
                     Export CSV
                   </button>
                   <button
-                    onClick={copyHistoryToClipboard}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#B96AE9] transition-colors"
-                  >
-                    <FileText size={16} />
-                    Copy to Clipboard
-                  </button>
+  onClick={copyHistoryToClipboard}
+  className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#D255EA] transition-colors"
+>
+  {historyCopied ? <Check size={16} /> : <FileText size={16} />}
+  {historyCopied ? 'Copied!' : 'Copy to Clipboard'}
+</button>
                 </div>
               </div>
               
