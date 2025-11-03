@@ -429,7 +429,7 @@ const HowItWorks = ({ darkMode, onClose }) => {  return (
               How It Works
             </h2>
             <button
-  onClick={() => setShowReleaseNotes(false)}
+  onClick={onClose}
   className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
     darkMode 
       ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
