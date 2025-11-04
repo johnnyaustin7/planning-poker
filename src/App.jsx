@@ -1277,13 +1277,13 @@ const handleDrop = async (e, targetItem, targetIsGroup) => {
   if (!draggedItem.isGroup && !targetIsGroup) {
     const groupId = Date.now().toString();
     const newGroup = {
-      id: groupId,
-      title: draggedItem.text.substring(0, 50) + (draggedItem.text.length > 50 ? '...' : ''),
-      items: [draggedItem, targetItem],
-      votes: 0,
-      voters: [],
-      timestamp: Date.now()
-    };
+  id: groupId,
+  title: draggedItem.text.substring(0, 50) + (draggedItem.text.length > 50 ? '...' : ''),
+  items: [draggedItem, targetItem],
+  votes: (draggedItem.votes || 0) + (targetItem.votes || 0),  // ← Sum the votes
+  voters: [...new Set([...(draggedItem.voters || []), ...(targetItem.voters || [])])],  // ← Combine voters (no duplicates)
+  timestamp: Date.now()
+};
 
     const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
     await dbModule.set(groupRef, newGroup);
@@ -1385,15 +1385,15 @@ const handleRenameGroup = async (groupId, newName) => {
   const item = retroInputs.find(i => i.id === itemId);
   if (!item) return;
 
-  const groupId = Date.now().toString();
-  const newGroup = {
-    id: groupId,
-    title: item.text.substring(0, 50) + (item.text.length > 50 ? '...' : ''),
-    items: [item],
-    votes: 0,
-    voters: [],
-    timestamp: Date.now()
-  };
+const groupId = Date.now().toString();
+const newGroup = {
+  id: groupId,
+  title: item.text.substring(0, 50) + (item.text.length > 50 ? '...' : ''),
+  items: [item],
+  votes: item.votes || 0,
+  voters: item.voters || [],
+  timestamp: Date.now()
+};
 
   const groupRef = dbModule.ref(db, `sessions/${sessionId}/retroGroups/${groupId}`);
   await dbModule.set(groupRef, newGroup);
@@ -1487,7 +1487,20 @@ const allEmojis = new Set();
 Object.values(retroReactions).forEach(itemReactions => {
   Object.keys(itemReactions).forEach(emoji => allEmojis.add(emoji));
 });
-const emojiList = Array.from(allEmojis);
+
+// Define the standard emoji order
+const emojiOrder = ['👍', '👎', '❤️', '💡', '⚠️', '❓'];
+
+// Sort emojis by the standard order, then any additional emojis alphabetically
+const emojiList = Array.from(allEmojis).sort((a, b) => {
+  const aIndex = emojiOrder.indexOf(a);
+  const bIndex = emojiOrder.indexOf(b);
+  
+  if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+  if (aIndex !== -1) return -1;
+  if (bIndex !== -1) return 1;
+  return a.localeCompare(b);
+});
 
 // Calculate last column dynamically
 const lastColNum = 5 + emojiList.length + 1;
