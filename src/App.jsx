@@ -1465,6 +1465,255 @@ const hasReacted = (groupId, emoji) => {
     await dbModule.update(sessionRef, { retroPhase: nextPhase });
   };
 
+  const exportRetroToExcel = async () => {
+  try {
+    // Load ExcelJS via script tag if not already loaded
+if (!window.ExcelJS) {
+  await new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js';
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+const ExcelJS = window.ExcelJS;
+    
+    const workbook = new ExcelJS.Workbook();
+const worksheet = workbook.addWorksheet('Retrospective Data');
+
+// Get all unique emoji types used FIRST
+const allEmojis = new Set();
+Object.values(retroReactions).forEach(itemReactions => {
+  Object.keys(itemReactions).forEach(emoji => allEmojis.add(emoji));
+});
+const emojiList = Array.from(allEmojis);
+
+// Calculate last column dynamically
+const lastColNum = 5 + emojiList.length + 1;
+const lastColLetter = String.fromCharCode(64 + lastColNum);
+
+let currentRow = 1;
+    
+    // Session Information Section
+    worksheet.mergeCells(`A${currentRow}:${lastColLetter}${currentRow}`);
+    const sessionInfoHeader = worksheet.getCell(`A${currentRow}`);
+    sessionInfoHeader.value = 'SESSION INFORMATION';
+    sessionInfoHeader.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    sessionInfoHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF9B7FE5' } };
+    sessionInfoHeader.alignment = { vertical: 'middle', horizontal: 'left' };
+    currentRow++;
+    
+    worksheet.addRow(['Date', new Date().toLocaleDateString()]);
+    worksheet.addRow(['Session ID', sessionId]);
+    worksheet.addRow(['Format', RETRO_FORMATS[retroFormat]?.name || '']);
+    worksheet.addRow(['Facilitator', participants.find(p => p.isModerator)?.name || 'Unknown']);
+    worksheet.addRow(['Participants', participants.length]);
+    currentRow += 6;
+    worksheet.addRow([]);
+    currentRow++;
+    
+    // Summary Statistics Section
+    const totalItems = retroGroups.reduce((sum, g) => sum + g.items.length, 0) + retroInputs.length;
+    const totalVotes = retroGroups.reduce((sum, g) => sum + (g.votes || 0), 0) + 
+                       retroInputs.reduce((sum, i) => sum + (i.votes || 0), 0);
+    const totalComments = Object.values(retroComments).reduce((sum, comments) => sum + Object.keys(comments).length, 0);
+    
+    let totalReactions = 0;
+    Object.values(retroReactions).forEach(itemReactions => {
+      Object.values(itemReactions).forEach(users => {
+        totalReactions += users.length;
+      });
+    });
+    
+    worksheet.mergeCells(`A${currentRow}:${lastColLetter}${currentRow}`);
+    const summaryHeader = worksheet.getCell(`A${currentRow}`);
+    summaryHeader.value = 'SUMMARY STATISTICS';
+    summaryHeader.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    summaryHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF9B7FE5' } };
+    summaryHeader.alignment = { vertical: 'middle', horizontal: 'left' };
+    currentRow++;
+    
+    worksheet.addRow(['Total Items', totalItems]);
+    worksheet.addRow(['Total Groups', retroGroups.length]);
+    worksheet.addRow(['Total Votes', totalVotes]);
+    worksheet.addRow(['Total Comments', totalComments]);
+    worksheet.addRow(['Total Emoji Reactions', totalReactions]);
+    currentRow += 6;
+    worksheet.addRow([]);
+    currentRow++;
+      
+    // Retrospective Data Section
+const dataHeaderEndCol = String.fromCharCode(71 + emojiList.length); // G + number of emoji columns
+worksheet.mergeCells(`A${currentRow}:${lastColLetter}${currentRow}`);
+const dataHeader = worksheet.getCell(`A${currentRow}`);
+dataHeader.value = 'RETROSPECTIVE DATA';
+    dataHeader.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+    dataHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF9B7FE5' } };
+    dataHeader.alignment = { vertical: 'middle', horizontal: 'left' };
+    currentRow++;
+    
+    // Add header row
+    const headerRow = ['Type', 'Group/Theme', 'Column', 'Item Text', 'Votes'];
+    emojiList.forEach(emoji => headerRow.push(emoji));
+    headerRow.push('Comments');
+    
+    const tableHeaderRow = worksheet.addRow(headerRow);
+    tableHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    tableHeaderRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF5FC4C3' } };
+    tableHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    tableHeaderRow.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    });
+    
+    const headerRowNum = currentRow;
+    currentRow++;
+    
+    // Add grouped items
+    retroGroups.sort((a, b) => (b.votes || 0) - (a.votes || 0)).forEach(group => {
+      group.items.forEach((item, idx) => {
+        const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
+        const rowData = [
+          idx === 0 ? 'GROUP' : '',
+          idx === 0 ? group.title : '',
+          column?.label || '',
+          item.text,
+          idx === 0 ? (group.votes || 0) : ''
+        ];
+        
+        if (idx === 0) {
+          emojiList.forEach(emoji => {
+            const count = retroReactions[group.id]?.[emoji]?.length || 0;
+            rowData.push(count);
+          });
+          
+          const comments = retroComments[group.id] || {};
+          const commentTexts = Object.values(comments).map(c => `${c.author}: ${c.text}`).join(' | ');
+          rowData.push(commentTexts || '');
+        } else {
+          emojiList.forEach(() => rowData.push(''));
+          rowData.push('');
+        }
+        
+        const dataRow = worksheet.addRow(rowData);
+        
+        // Style data row
+        dataRow.eachCell((cell, colNum) => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+            right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+          };
+          
+          // Center align votes and emoji columns
+          if (colNum === 5 || (colNum > 5 && colNum <= 5 + emojiList.length)) {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          }
+          // Wrap text for item text and comments
+          else if (colNum === 4 || colNum === 6 + emojiList.length) {
+            cell.alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+          } else {
+            cell.alignment = { vertical: 'top', horizontal: 'left' };
+          }
+          
+          // Alternate row colors
+          if (currentRow % 2 === 0) {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9F9F9' } };
+          }
+        });
+        
+        currentRow++;
+      });
+      worksheet.addRow([]);
+      currentRow++;
+    });
+    
+    // Add individual items
+    const sortedInputs = [...retroInputs].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    sortedInputs.forEach(item => {
+      const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
+      const rowData = [
+        'ITEM',
+        '',
+        column?.label || '',
+        item.text,
+        item.votes || 0
+      ];
+      
+      emojiList.forEach(emoji => {
+        const count = retroReactions[item.id]?.[emoji]?.length || 0;
+        rowData.push(count);
+      });
+      
+      const comments = retroComments[item.id] || {};
+      const commentTexts = Object.values(comments).map(c => `${c.author}: ${c.text}`).join(' | ');
+      rowData.push(commentTexts || '');
+      
+      const dataRow = worksheet.addRow(rowData);
+      
+      dataRow.eachCell((cell, colNum) => {
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          left: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          bottom: { style: 'thin', color: { argb: 'FFCCCCCC' } },
+          right: { style: 'thin', color: { argb: 'FFCCCCCC' } }
+        };
+        
+        if (colNum === 5 || (colNum > 5 && colNum <= 5 + emojiList.length)) {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        } else if (colNum === 4 || colNum === 6 + emojiList.length) {
+          cell.alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+        } else {
+          cell.alignment = { vertical: 'top', horizontal: 'left' };
+        }
+        
+        if (currentRow % 2 === 0) {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF9F9F9' } };
+        }
+      });
+      
+      currentRow++;
+    });
+    
+    // Set column widths
+worksheet.getColumn(1).width = 20;  // Type (wider for labels)
+worksheet.getColumn(2).width = 30;  // Group/Theme
+    worksheet.getColumn(3).width = 20;  // Column
+    worksheet.getColumn(4).width = 60;  // Item Text
+    worksheet.getColumn(5).width = 8;   // Votes
+    
+    for (let i = 0; i < emojiList.length; i++) {
+      worksheet.getColumn(6 + i).width = 6;
+    }
+    worksheet.getColumn(6 + emojiList.length).width = 50; // Comments
+    
+    // Freeze the header row
+    worksheet.views = [
+      { state: 'frozen', xSplit: 0, ySplit: headerRowNum }
+    ];
+    
+    // Generate and download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `retrospective-${sessionId}-${Date.now()}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+  } catch (error) {
+    console.error('Export failed:', error);
+    alert('Export failed. Check console for details.');
+  }
+};
+
   const exportRetroToCSV = () => {
     let csv = 'Retrospective Export\n\n';
     csv += `Session: ${sessionId}\n`;
@@ -2612,14 +2861,14 @@ if (!revealed) {
                   </button>
                   
                   {isModerator && retroPhase === 'discussion' && (
-                    <button
-                      onClick={exportRetroToCSV}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                    >
-                      <Download size={18} />
-                      Export
-                    </button>
-                  )}
+  <button
+    onClick={exportRetroToExcel}
+    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+  >
+    <Download size={18} />
+    Export
+  </button>
+)}
                   
                   <div className={`flex items-center gap-1.5 ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-sm`}>
                     <Users size={18} />
@@ -4835,7 +5084,7 @@ if (!revealed) {
                     Session History
                   </h2>
                   <button
-  onClick={() => setShowReleaseNotes(false)}
+  onClick={() => setShowHistory(false)}
   className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${
     darkMode 
       ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
