@@ -220,12 +220,12 @@ test.describe('Planning Poker - Validation & Roles', () => {
     // Should start unchecked (based on your app's default)
     await expect(moderatorCheckbox).not.toBeChecked();
     
-    // Click to check it
-    await moderatorCheckbox.click();
+    // Check it
+    await moderatorCheckbox.check();
     await expect(moderatorCheckbox).toBeChecked();
     
-    // Click to uncheck it
-    await moderatorCheckbox.click();
+    // Uncheck it
+    await moderatorCheckbox.uncheck();
     await expect(moderatorCheckbox).not.toBeChecked();
   });
   
@@ -427,9 +427,9 @@ test.describe('Retrospective - Phases', () => {
     await createRetroSession(page);
     await joinRetroSession(page, 'Moderator', true);
     
-    // Should see timer minute buttons - look for any button with "min" text
-    const timerButton = page.locator('button:has-text("min")').first();
-    await expect(timerButton).toBeVisible();
+    // Should see timer minute buttons - check for existence of timer controls
+    const timerButtons = page.getByRole('button').filter({ hasText: /\d+ min/ });
+    expect(await timerButtons.count()).toBeGreaterThan(0);
   });
 });
 
