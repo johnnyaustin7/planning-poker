@@ -3311,17 +3311,34 @@ if (!revealed) {
               const userHasReacted = hasReacted(item.id, emoji);
               return (
                 <button
-                  key={emoji}
-                  onClick={() => toggleReaction(item.id, emoji)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-sm transition-all ${
-                    userHasReacted
-                      ? 'bg-[#B96AE9] text-white scale-110'
-                      : darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  <span>{emoji}</span>
-                  {reactions.length > 0 && <span className="text-xs font-semibold">{reactions.length}</span>}
-                </button>
+  key={emoji}
+  onClick={() => toggleReaction(item.id, emoji)}
+  className={`relative inline-flex items-center transition-all ${
+    userHasReacted ? 'scale-110' : 'opacity-60 hover:opacity-100 hover:scale-105'
+  }`}
+  style={{ paddingLeft: reactions.length > 1 ? `${reactions.length * 8}px` : '0' }}
+>
+  <div className="relative" style={{ width: '28px', height: '28px' }}>
+    {reactions.slice(0, Math.min(5, reactions.length)).map((_, index) => (
+      <span
+        key={index}
+        className="absolute text-2xl"
+        style={{
+          left: `${index * 6}px`,
+          zIndex: reactions.length - index,
+          opacity: index === 0 ? 1 : 0.7
+        }}
+      >
+        {emoji}
+      </span>
+    ))}
+  </div>
+  {reactions.length > 5 && (
+    <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+      +{reactions.length - 5}
+    </span>
+  )}
+</button>
               );
             })}
           </div>
@@ -3424,17 +3441,34 @@ if (!revealed) {
               const userHasReacted = hasReacted(item.id, emoji);
               return (
                 <button
-                  key={emoji}
-                  onClick={() => toggleReaction(item.id, emoji)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-sm transition-all ${
-                    userHasReacted
-                      ? 'bg-[#B96AE9] text-white scale-110'
-                      : darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  <span>{emoji}</span>
-                  {reactions.length > 0 && <span className="text-xs font-semibold">{reactions.length}</span>}
-                </button>
+  key={emoji}
+  onClick={() => toggleReaction(item.id, emoji)}
+  className={`relative inline-flex items-center transition-all ${
+    userHasReacted ? 'scale-110' : 'opacity-60 hover:opacity-100 hover:scale-105'
+  }`}
+  style={{ paddingLeft: reactions.length > 1 ? `${reactions.length * 8}px` : '0' }}
+>
+  <div className="relative" style={{ width: '28px', height: '28px' }}>
+    {reactions.slice(0, Math.min(5, reactions.length)).map((_, index) => (
+      <span
+        key={index}
+        className="absolute text-2xl"
+        style={{
+          left: `${index * 6}px`,
+          zIndex: reactions.length - index,
+          opacity: index === 0 ? 1 : 0.7
+        }}
+      >
+        {emoji}
+      </span>
+    ))}
+  </div>
+  {reactions.length > 5 && (
+    <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+      +{reactions.length - 5}
+    </span>
+  )}
+</button>
               );
             })}
           </div>
@@ -3498,15 +3532,98 @@ if (!revealed) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {sortedParticipants.map((participant) => (
                 <div
-                  key={participant.id}
-                  className={`rounded-lg p-3 text-center border-2 relative ${
-                    participant.isModerator 
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : participant.isObserver
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
+  key={participant.id}
+  className={`rounded-lg p-3 text-center border-2 relative ${
+    participant.isModerator 
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : participant.isObserver
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+  }`}
+>
+  {isModerator && participant.id !== currentUserId && (
+    <div className="absolute top-1 right-1 flex gap-1">
+      <button
+        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
+        className={`p-1 rounded ${
+          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
+        } text-white transition-colors`}
+        title="Change role"
+      >
+        <UserCog size={10} />
+      </button>
+      <button
+        onClick={() => removeUser(participant.id)}
+        className={`p-1 rounded ${
+          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+        } text-white transition-colors`}
+        title="Remove user"
+      >
+        <UserX size={10} />
+      </button>
+    </div>
+  )}
+  
+  {/* Role change dropdown */}
+  {isModerator && showModeratorTypeMenu === participant.id && (
+    <>
+      <div 
+        className="fixed inset-0 z-20" 
+        onClick={() => setShowModeratorTypeMenu(null)}
+      />
+      <div className={`absolute top-8 right-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-30 whitespace-nowrap`}>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            !participant.isModerator && !participant.isObserver
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Participant
+        </button>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: true });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            participant.isObserver
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Observer
+        </button>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: true, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            participant.isModerator
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Moderator
+        </button>
+      </div>
+    </>
+  )}
+  
+  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+    {participant.name}
+  </p>
+  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+</div>
                   {isModerator && participant.id !== currentUserId && (
                     <button
                       onClick={() => removeUser(participant.id)}
@@ -4082,15 +4199,98 @@ if (!revealed) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {sortedParticipants.map((participant) => (
                 <div
-                  key={participant.id}
-                  className={`rounded-lg p-3 text-center border-2 relative ${
-                    participant.isModerator 
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : participant.isObserver
-                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
+  key={participant.id}
+  className={`rounded-lg p-3 text-center border-2 relative ${
+    participant.isModerator 
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : participant.isObserver
+      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+  }`}
+>
+  {isModerator && participant.id !== currentUserId && (
+    <div className="absolute top-1 right-1 flex gap-1">
+      <button
+        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
+        className={`p-1 rounded ${
+          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
+        } text-white transition-colors`}
+        title="Change role"
+      >
+        <UserCog size={10} />
+      </button>
+      <button
+        onClick={() => removeUser(participant.id)}
+        className={`p-1 rounded ${
+          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+        } text-white transition-colors`}
+        title="Remove user"
+      >
+        <UserX size={10} />
+      </button>
+    </div>
+  )}
+  
+  {/* Role change dropdown */}
+  {isModerator && showModeratorTypeMenu === participant.id && (
+    <>
+      <div 
+        className="fixed inset-0 z-20" 
+        onClick={() => setShowModeratorTypeMenu(null)}
+      />
+      <div className={`absolute top-8 right-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-30 whitespace-nowrap`}>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            !participant.isModerator && !participant.isObserver
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Participant
+        </button>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: true });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            participant.isObserver
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Observer
+        </button>
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: true, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            participant.isModerator
+              ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
+              : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Moderator
+        </button>
+      </div>
+    </>
+  )}
+  
+  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+    {participant.name}
+  </p>
+  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+</div>
                   {isModerator && participant.id !== currentUserId && (
                     <button
                       onClick={() => removeUser(participant.id)}
