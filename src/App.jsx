@@ -3540,7 +3540,7 @@ if (!revealed) {
               ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
               : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
           }`}
-        >
+        > 
           {isModerator && participant.id !== currentUserId && (
             <div className="absolute top-1 right-1 flex gap-1">
               <button
