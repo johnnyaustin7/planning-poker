@@ -60,252 +60,61 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "3.3.0";
+const APP_VERSION = "2.1.0";
 const RELEASE_NOTES = {
-  "3.3.0": {
+  "2.1.0": {
+    date: "November 4, 2025",
+    type: "Minor Release",
+    changes: [
+      "🎨 Improved emoji reaction visibility and styling",
+      "⚙️ Enhanced role management UI with clearer controls",
+      "🔧 Fixed UserCog icon rendering issues",
+      "🎯 Simplified role switching (Moderator/Participant toggle only)",
+      "✨ Better visual feedback for selected emoji reactions"
+    ]
+  },
+  "2.0.0": {
     date: "October 31, 2025",
-    type: "Minor Release",
+    type: "Major Release - Retrospectives",
     changes: [
-      "🎨 Updated color palette",
-      "🔒 Voting interface hides completely when votes are revealed",
+      "🔄 Added Phased Retrospective (Input → Grouping → Discussion)",
+      "🎯 Drag-and-drop grouping with flexible item management",
+      "⏱️ Moderator-controlled countdown timer",
+      "💬 Comments and emoji reactions on grouped items",
+      "🗳️ Anonymous voting on items and groups",
+      "🎨 Four retrospective formats (Start/Stop/Continue, WWW/WDGW, Sailboat, 4Qs)",
+      "📊 CSV export of retrospective data",
+      "✏️ Editable group names and real-time collaboration",
+      "📍 Visual tracking of item origins across phases"
     ]
   },
-  "3.2.0": {
-    date: "October 27, 2025",
-    type: "Minor Release",
-    changes: [
-      "🎯 Phase 2 now uses drag-and-drop for intuitive grouping",
-      "🗳️ Vote on both individual items and groups in Phase 2",
-      "✏️ Click group names to rename them (anyone can edit)",
-      "↩️ Drag items out of groups to separate them",
-      "🔄 Drag groups onto each other to merge them",
-      "🎨 Groups stay organized within their original columns",
-      "👆 Items from different columns can be grouped together"
-    ]
-  },
-  "3.1.0": {
-    date: "October 27, 2025",
-    type: "Minor Release",
-    changes: [
-      "✨ Phase 1 now displays retro format columns (Start/Stop/Continue, etc.)",
-      "🎨 Column colors persist through all 3 phases for easy tracking",
-      "🏷️ Items maintain their column identity with color-coded borders and icons",
-      "📍 Visual indicators show which column each item originated from"
-    ]
-  },
-  "3.0.0": {
-    date: "October 23, 2025",
-    type: "Major Release",
-    changes: [
-      "🔄 Added Phased Retrospective with 3 phases: Input → Grouping → Discussion",
-      "⏱️ Moderator-controlled countdown timer (1-15 minutes)",
-      "🔗 Session sharing with QR codes and copy link",
-      "🗳️ Anonymous inputs with voting capability",
-      "👥 Collaborative grouping - anyone can create or add to groups",
-      "💬 Discussion phase with comments on grouped items",
-      "📊 CSV export of complete retrospective data",
-      "🎨 Four retrospective formats available"
-    ]
-  },
-  "2.9.0": {
+  "1.1.0": {
     date: "October 23, 2025",
     type: "Minor Release",
     changes: [
-      "🔄 Added Retrospective functionality",
-      "🎨 Rebranded to 'Scrumptious: Agile Ceremonies, Simplified",
-      "📋 Four retrospective formats: Start/Stop/Continue, WWW/WDGW, Sailboat, 4Qs",
-      "🎯 Unified session creation - choose ceremony type from landing page",
-      "🔗 Auto-detection of session type when joining"
+      "🎨 Updated color palette with improved gradient backgrounds",
+      "🔒 Voting interface now hides completely when votes are revealed",
+      "🎴 Added card flip animations on reveal",
+      "🌙 Enhanced dark mode with better contrast and glassmorphism effects",
+      "✨ Smooth transitions and polished modal animations"
     ]
   },
-  "2.8.3": {
-    date: "October 23, 2025",
-    type: "Patch Release",
+  "1.0.0": {
+    date: "October 6, 2025",
+    type: "Major Release - Planning Poker Launch",
     changes: [
-      "Fixed session persistence behavior on browser refresh",
-      "Always show home screen with 'Create' and 'Join' options after refresh",
-      "QR code and session links still work to auto-join sessions",
-      "Improved user control over session joining"
+      "🎯 Planning Poker with Fibonacci and T-shirt sizing",
+      "⚖️ Confidence-weighted voting system",
+      "📊 Vote distribution charts and consensus detection",
+      "🎫 Ticket tracking and voting history",
+      "👥 Role management (Moderator, Participant, Observer)",
+      "🌙 Dark mode with system preference detection",
+      "📱 Mobile-responsive design with QR code joining",
+      "💾 Session persistence and auto-cleanup",
+      "🎬 Animated UI with confetti celebrations",
+      "🧪 Automated end-to-end testing"
     ]
-  },
-  "2.8.2": {
-  date: "October 22, 2025",
-  type: "Patch Release",
-  changes: [
-    "Added automated end-to-end testing with Playwright",
-    "Configured GitHub Actions for continuous integration",
-    "Tests run automatically on every code push",
-    "Multi-browser testing across Chrome, Firefox, and Safari",
-    "Critical user flows now validated before deployment"
-  ]
-},
-"2.8.1": {
-  date: "October 22, 2025",
-  type: "Patch Release",
-  changes: [
-    "Fixed console error when confidence voting is disabled",
-    "Improved confidence field handling in vote submissions"
-  ]
-},
-"2.8.0": {
-  date: "October 22, 2025",
-  type: "Minor Release",
-  changes: [
-    "🎴 Added card flip animations when votes are revealed",
-    "🌙 Enhanced dark mode with better contrast and brighter accent colors",
-    "❄️ Added glassmorphism effects to modals (frosted glass blur)",
-    "✨ Smooth fade-in transitions for all screens",
-    "🎬 Modal slide-up animations for polished interactions",
-    "🎨 Improved gradient backgrounds in both light and dark modes"
-  ]
-},
-"2.7.3": {
-  date: "October 22, 2025",
-  type: "Patch Release",
-  changes: [
-    "Expanded session ID pool from 42 to 100 unique words",
-    "Added collision detection - checks if session exists before creating",
-    "Auto-cleanup: Sessions older than 24 hours are automatically deleted",
-    "Prevents accidental overwriting of active sessions"
-  ]
-},
-"2.7.2": {
-  date: "October 21, 2025",
-  type: "Patch Release",
-  changes: [
-    "Removed '55' card from Fibonacci scale (now 10 cards)",
-    "Confidence buttons can now be toggled on/off by clicking (like vote buttons)",
-    "Added hover scale effect to confidence buttons for consistency",
-    "Toggling confidence off now clears the vote if already submitted"
-  ]
-},
-"2.7.1": {
-  date: "October 17, 2025",
-  type: "Patch Release",
-  changes: [
-    "Fixed duplicate variable declaration causing build failure",
-    "Fixed flicker animation to stop once user has voted",
-    "Adjusted flicker thresholds: 60% for 3 or fewer voters, 75% for 4+ voters",
-    "Flicker now respects confidence voting state"
-  ]
-},
-"2.7.0": {
-  date: "October 17, 2025",
-  type: "Minor Release",
-  changes: [
-    "⚖️ Enhanced confidence weighting - low confidence now 0.25x (was 0.5x)",
-    "📊 Added median calculation and display for more robust estimates",
-    "⚠️ Smart warnings: Team Uncertainty, High Disagreement, Limited Confidence",
-    "🎯 Suggested estimate uses median when spread is very high (>8)",
-    "💡 Warnings appear automatically to guide moderator decisions",
-    "🎓 More accurate estimates with diverse team experience levels"
-  ]
-},
-"2.6.0": {
-  date: "October 17, 2025",
-  type: "Minor Release",
-  changes: [
-    "🎚️ Added Confidence-Weighted Voting system (moderator can enable/disable)",
-    "💭 Voters can indicate High/Medium/Low confidence in their estimates",
-    "⚖️ Weighted average calculation gives more weight to high-confidence votes",
-    "📈 Shows both traditional and confidence-weighted averages when enabled",
-    "🏷️ Confidence indicators displayed on participant cards after reveal",
-    "📊 Confidence breakdown in statistics panel",
-    "💾 Setting persists throughout session"
-  ]
-},
-"2.5.0": {
-  date: "October 17, 2025",
-  type: "Minor Release",
-  changes: [
-    "📊 Added Vote Distribution Chart in statistics panel",
-    "📉 Visual bar chart shows vote clustering and patterns",
-    "👀 Helps identify consensus and outliers at a glance",
-    "🔢 Automatically sorts votes from lowest to highest",
-    "🎬 Animated bars with vote counts displayed"
-  ]
-},
-"2.4.1": {
-  date: "October 17, 2025",
-  type: "Patch Release",
-  changes: [
-    "Fixed Leave Session button - no longer shows 'removed by moderator' warning",
-    "Fixed ticket ID clearing - now syncs removal across all participants",
-    "Moved ticket display to 'Select Your Estimate' section header",
-    "Cleaned up duplicate ticket displays",
-    "Fixed beforeunload handler performance issue"
-  ]
-},
-"2.4.0": {
-  date: "October 17, 2025",
-  type: "Minor Release",
-  changes: [
-    "📊 Enhanced average display with consensus strength indicators (tight/moderate/wide)",
-    "🎯 Renamed 'Closest' to 'Suggested Estimate' with improved prominence",
-    "💾 Added session persistence - automatically resume session on page refresh",
-    "🔗 Updated tooltip from 'Copy Session ID' to 'Copy Session Link'",
-    "📱 Optimized voting cards for mobile - 4 columns on small screens, 6 on desktop",
-    "⚠️ Added warning to prevent accidental close during active voting (moderators)",
-    "📳 Added haptic feedback on mobile devices for votes, reveals, resets, and consensus"
-  ]
-},
-"2.3.0": {
-  date: "October 17, 2025",
-  type: "Minor Release",
-  changes: [
-    "✨ Added flickering animation when 75% of voters have cast their vote",
-    "✏️ Made ticket names editable in session history (click to edit)",
-    "🎯 Added 'Final Estimate' field for moderators to set determined points",
-    "🔒 First round now requires manual reveal (prevents late joiners from seeing votes)",
-    "⏱️ Timer now stops when all votes are cast or reveal is clicked",
-    "✏️ Final estimates in history are now editable (click to edit)",
-    "🎫 Ticket number now visible to all participants (not just moderator)",
-    "📊 Removed voting scale column from CSV export",
-    "📋 Added clickable release notes - click version number to view",
-    "📄 Release notes accessible from all screens"
-  ]
-},
-"2.2.0": {
-  date: "October 16, 2025",
-  type: "Minor Release",
-  changes: [
-    "📱 Added QR code generation for easy session joining",
-    "🌙 Implemented dark mode with system preference detection",
-    "👕 Added T-shirt sizing scale (XS, S, M, L, XL, XXL)",
-    "🔄 Added ability to switch between Fibonacci and T-shirt sizing",
-    "🎉 Consensus detection with confetti animation",
-    "👁️ Added Observer role alongside Moderator and Voter",
-    "🔀 Users can switch between voter and observer roles",
-    "✨ Click-outside-to-close for dropdowns and modals"
-  ]
-},
-"2.1.0": {
-  date: "October 16, 2025",
-  type: "Minor Release",
-  changes: [
-    "🎫 Added ticket number input for moderators",
-    "📜 Automatic voting history tracking",
-    "🗂️ Session history viewer modal",
-    "📥 CSV export functionality",
-    "📋 Copy history to clipboard feature",
-    "⏱️ Duration tracking per voting round",
-    "💾 History persists in Firebase throughout session"
-  ]
-},
-"2.0.0": {
-  date: "October 16, 2025",
-  type: "Major Release",
-  changes: [
-    "🔢 Added version display on login and session screens",
-    "📊 User cards now sorted by role and alphabetically",
-    "🗳️ Added Voter badge display",
-    "🚪 Users auto-removed when closing tab/browser",
-    "🔄 Users can rejoin with same ID using same name",
-    "❌ Moderators can remove users with X button",
-    "⚠️ Removal notification when kicked by moderator",
-    "📱 Mobile-responsive header layout"
-  ]
-}
+  }
 };
 
 const PieChart = ({ stats, darkMode }) => {
@@ -745,8 +554,7 @@ export default function App() {
   const [showTypeMenu, setShowTypeMenu] = useState(false);
   const [showModeratorTypeMenu, setShowModeratorTypeMenu] = useState(null);
   const [historyCopied, setHistoryCopied] = useState(false);
-  const [retroReactions, setRetroReactions] = useState({});
-  
+
   // Session type state
   const [sessionType, setSessionType] = useState(null);
   const [retroFormat, setRetroFormat] = useState(null);
@@ -757,6 +565,7 @@ export default function App() {
   const [retroInputs, setRetroInputs] = useState([]);
   const [retroGroups, setRetroGroups] = useState([]);
   const [retroComments, setRetroComments] = useState({});
+  const [retroReactions, setRetroReactions] = useState({});
   const [newInputText, setNewInputText] = useState('');
   const [newCommentText, setNewCommentText] = useState({});
   const [timer, setTimer] = useState(null);
@@ -1249,39 +1058,9 @@ useEffect(() => {
     await dbModule.remove(participantRef);
   };
 
-  const changeUserType = async (newType, targetUserId = null) => {
-  if (!db || !dbModule) return;
-  
-  // If moderator is changing someone else's type
-  if (isModerator && targetUserId) {
-    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${targetUserId}`);
+  const changeUserType = async (newType) => {
+    if (!currentUserId || isModerator || !db || !dbModule) return;
     
-    if (newType === 'voter') {
-      await dbModule.update(participantRef, { 
-        isObserver: false,
-        isModerator: false,
-        points: null
-      });
-    } else if (newType === 'observer') {
-      await dbModule.update(participantRef, { 
-        isObserver: true,
-        isModerator: false,
-        points: null
-      });
-    } else if (newType === 'moderator') {
-      await dbModule.update(participantRef, { 
-        isObserver: false,
-        isModerator: true,
-        points: null
-      });
-    }
-    
-    setShowModeratorTypeMenu(null);
-    return;
-  }
-  
-  // Original code for users changing their own type
-  if (currentUserId && !isModerator) {
     const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${currentUserId}`);
     
     if (newType === 'voter') {
@@ -1300,8 +1079,7 @@ useEffect(() => {
     }
     
     setShowTypeMenu(false);
-  }
-};
+  };
 
   const copySessionId = () => {
     const sessionUrl = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
@@ -1643,20 +1421,17 @@ const handleRenameGroup = async (groupId, newName) => {
   await dbModule.remove(inputRef);
 };
   const addRetroComment = async (groupId) => {
-    if (!newCommentText[groupId]?.trim() || !db || !dbModule || isObserver) return;
-
-    const comment = {
-      id: Date.now().toString(),
-      text: newCommentText[groupId],
-      author: userName,
-      timestamp: Date.now()
-    };
-
-    const commentRef = dbModule.ref(db, `sessions/${sessionId}/retroComments/${groupId}/${comment.id}`);
-    await dbModule.set(commentRef, comment);
-
-    setNewCommentText({ ...newCommentText, [groupId]: '' });
+  if (!newCommentText[groupId]?.trim() || !db || !dbModule || isObserver) return;
+  const comment = {
+    id: Date.now().toString(),
+    text: newCommentText[groupId],
+    author: userName,
+    timestamp: Date.now()
   };
+  const commentRef = dbModule.ref(db, `sessions/${sessionId}/retroComments/${groupId}/${comment.id}`);
+  await dbModule.set(commentRef, comment);
+  setNewCommentText({ ...newCommentText, [groupId]: '' });
+};
 
 const toggleReaction = async (groupId, emoji) => {
   if (!db || !dbModule || isObserver || !currentUserId) return;
@@ -1676,6 +1451,12 @@ const toggleReaction = async (groupId, emoji) => {
   await dbModule.set(reactionRef, users);
 };
 
+const hasReacted = (groupId, emoji) => {
+  if (!retroReactions || !retroReactions[groupId] || !retroReactions[groupId][emoji]) {
+    return false;
+  }
+  return retroReactions[groupId][emoji].includes(currentUserId);
+};
   const advanceRetroPhase = async () => {
     if (!isModerator || !db || !dbModule) return;
     
@@ -1685,70 +1466,38 @@ const toggleReaction = async (groupId, emoji) => {
   };
 
   const exportRetroToCSV = () => {
-  const currentFormat = RETRO_FORMATS[retroFormat];
-  let csv = 'Retrospective Export - Scrumptious\n\n';
-  
-  // SESSION DETAILS
-  csv += 'SESSION DETAILS\n';
-  csv += `Session Code,${sessionId}\n`;
-  csv += `Format,${currentFormat?.name || 'Unknown'}\n`;
-  csv += `Date,${new Date().toLocaleString()}\n`;
-  csv += `Participants,${participants.length}\n`;
-  csv += `Total Groups,${retroGroups.length}\n`;
-  csv += `Total Individual Items,${retroInputs.length}\n`;
-  csv += '\n';
-  
-  // GROUPS AND THEIR ITEMS
-  csv += 'GROUPED ITEMS\n';
-  csv += 'Group Title,Group Votes,Item Text,Item Category,Item Author\n';
-  
-  retroGroups.forEach(group => {
-    group.items.forEach((item, idx) => {
-      const column = currentFormat?.columns.find(c => c.id === item.columnId);
-      const groupTitle = idx === 0 ? group.title : '';
-      const groupVotes = idx === 0 ? (group.votes || 0) : '';
-      csv += `"${groupTitle}",${groupVotes},"${item.text}","${column?.label || 'Unknown'}","Anonymous"\n`;
-    });
-    csv += '\n'; // Empty line between groups
-  });
-  
-  // INDIVIDUAL (UNGROUPED) ITEMS
-  if (retroInputs.length > 0) {
-    csv += 'INDIVIDUAL ITEMS\n';
-    csv += 'Item Text,Category,Votes,Author\n';
+    let csv = 'Retrospective Export\n\n';
+    csv += `Session: ${sessionId}\n`;
+    csv += `Format: ${RETRO_FORMATS[retroFormat]?.name}\n`;
+    csv += `Date: ${new Date().toLocaleString()}\n\n`;
+
+    csv += 'Groups and Items\n';
+    csv += 'Group Title,Item,Votes\n';
     
-    retroInputs.forEach(item => {
-      const column = currentFormat?.columns.find(c => c.id === item.columnId);
-      csv += `"${item.text}","${column?.label || 'Unknown'}",${item.votes || 0},"Anonymous"\n`;
+    retroGroups.forEach(group => {
+      group.items.forEach((item, idx) => {
+        csv += `"${idx === 0 ? group.title : ''}","${item.text}",${item.votes}\n`;
+      });
+      csv += `,,Total: ${group.votes}\n\n`;
     });
-    csv += '\n';
-  }
-  
-  // COMMENTS
-  const hasComments = Object.keys(retroComments).length > 0;
-  if (hasComments) {
-    csv += 'COMMENTS\n';
-    csv += 'Associated With,Comment,Author,Timestamp\n';
+
+    csv += '\nComments\n';
+    csv += 'Group,Comment,Author,Timestamp\n';
     
-    Object.entries(retroComments).forEach(([itemId, comments]) => {
-      const group = retroGroups.find(g => g.id === itemId);
-      const item = retroInputs.find(i => i.id === itemId);
-      const associatedWith = group ? `Group: ${group.title}` : item ? `Item: ${item.text.substring(0, 30)}...` : 'Unknown';
-      
+    Object.entries(retroComments).forEach(([groupId, comments]) => {
+      const group = retroGroups.find(g => g.id === groupId);
       Object.values(comments).forEach(comment => {
-        csv += `"${associatedWith}","${comment.text}","${comment.author}","${new Date(comment.timestamp).toLocaleString()}"\n`;
+        csv += `"${group?.title || ''}","${comment.text}",${comment.author},${new Date(comment.timestamp).toLocaleString()}\n`;
       });
     });
-  }
 
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `retro-${sessionId}-${Date.now()}.csv`;
-  a.click();
-  window.URL.revokeObjectURL(url);
-};
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `retro-${sessionId}-${Date.now()}.csv`;
+    a.click();
+  };
 
   // Column-based retrospective functions
   const handleAddRetroItem = async (columnId) => {
@@ -2049,7 +1798,7 @@ if (!revealed) {
 
   navigator.clipboard.writeText(text);
   setHistoryCopied(true);
-  setTimeout(() => setHistoryCopied(false), 2000);
+  setTimeout(() => setHistoryCoped(false), 2000);
 };
   const calculateAverage = () => {
     const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
@@ -2340,18 +2089,18 @@ if (!revealed) {
             
             <div>
               <input
-  type="text"
-  value={sessionIdInput}
-  onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
-  onKeyPress={handleKeyPress}
-  placeholder="Enter Session ID"
-  className={`w-full px-4 py-3 border ${
-    darkMode 
-      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-      : 'bg-white border-gray-300 text-gray-900'
-  } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
-  maxLength={20}
-/>
+                type="text"
+                value={sessionIdInput}
+                onChange={(e) => setSessionIdInput(e.target.value.toUpperCase())}
+                onKeyPress={handleKeyPress}
+                placeholder="Enter Session ID"
+                className={`w-full px-4 py-3 border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
+                maxLength={6}
+              />
               <button
                 onClick={handleJoinSession}
                 disabled={!sessionIdInput.trim()}
@@ -2921,28 +2670,28 @@ if (!revealed) {
                   {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
                   {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Participant</span>}
                   
-                  {!isModerator && sessionType !== 'retrospective' && (
+                  {isModerator && sessionType === 'planning-poker' && (
   <span className="relative inline-block">
     <button
       onClick={() => setShowTypeMenu(!showTypeMenu)}
       className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
       title="Change user type"
     >
-      <UserCog size={12} />
+      <UserCog size={16} />
       <span className="hidden sm:inline">Change Type</span>
     </button>
     {showTypeMenu && (
       <>
-        <div 
-          className="fixed inset-0 z-10" 
+        <div
+          className="fixed inset-0 z-10"
           onClick={() => setShowTypeMenu(false)}
         />
         <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
           <button
             onClick={() => changeUserType('voter')}
-            disabled={!isObserver}
+            disabled={isObserver}
             className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-              !isObserver 
+              isObserver
                 ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
                 : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
             }`}
@@ -2953,7 +2702,7 @@ if (!revealed) {
             onClick={() => changeUserType('observer')}
             disabled={isObserver}
             className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-              isObserver 
+              isObserver
                 ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
                 : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
             }`}
@@ -3051,9 +2800,7 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
     {currentRetroFormat.columns.map(column => {
-      const columnItems = retroInputs
-      .filter(item => item.columnId === column.id)
-      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const columnItems = retroInputs.filter(item => item.columnId === column.id);
       
       return (
         <div
@@ -3137,9 +2884,7 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
     {currentRetroFormat.columns.map(column => {
-      const columnItems = retroInputs
-      .filter(item => item.columnId === column.id)
-      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      const columnItems = retroInputs.filter(item => item.columnId === column.id);
       const columnGroups = retroGroups.filter(group => {
         // A group belongs to a column if its first item is from that column
         return group.items.length > 0 && group.items[0].columnId === column.id;
@@ -3189,14 +2934,16 @@ if (!revealed) {
                   </span>
                   {!isObserver && (
                     <button
-  key={emoji}
-  onClick={() => toggleReaction(group.id, emoji)}
-  className={`px-2 py-1 text-lg transition-all ${
-    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
-  }`}
->
-  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
-</button>
+                      onClick={() => toggleRetroVote(item.id)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-all ${
+                        item.voters?.includes(currentUserId)
+                          ? 'bg-[#B96AE9] text-white scale-110' 
+                          : darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300'
+                      }`}
+                    >
+                      <ThumbsUp size={12} />
+                      {item.votes || 0}
+                    </button>
                   )}
                 </div>
               </div>
@@ -3320,370 +3067,395 @@ if (!revealed) {
       Discussion
     </h2>
     <div className="space-y-6">
-      {/* Show Groups */}
-      {[...retroGroups].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(group => (
-        <div key={group.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
-          <div className="flex items-center gap-3 mb-3">
-  <span className="text-2xl font-bold text-[#B96AE9]">{group.votes || 0}</span>
-  <div className="flex-1">
-    {editingGroupId === group.id ? (
-      <input
-        type="text"
-        value={editingGroupName}
-        onChange={(e) => setEditingGroupName(e.target.value)}
-        onBlur={() => handleRenameGroup(group.id, editingGroupName)}
-        onKeyPress={(e) => {
-          if (e.key === 'Enter') handleRenameGroup(group.id, editingGroupName);
-          if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
-        }}
-        className={`w-full px-2 py-1 border ${
-          darkMode 
-            ? 'bg-gray-700 border-[#B96AE9] text-white' 
-            : 'bg-white border-[#B96AE9]'
-        } rounded text-sm font-bold`}
-        autoFocus
-      />
-    ) : (
-      <h3 
-        className={`font-bold text-lg cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
-        onClick={() => {
-          if (!isObserver) {
-            setEditingGroupId(group.id);
-            setEditingGroupName(group.title);
-          }
-        }}
-        title="Click to rename"
-      >
-        {group.title}
-      </h3>
-    )}
-    {!isObserver && (
-      <div className="flex gap-1 mt-2">
-        {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
-          const reactions = retroReactions[group.id]?.[emoji] || [];
-          const hasReacted = reactions.includes(currentUserId);
-          const count = reactions.length;
-          
-          return (
-            <button
-  key={emoji}
-  onClick={() => toggleReaction(group.id, emoji)}
-  className={`px-2 py-1 text-lg transition-all ${
-    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
-  }`}
->
-  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
-</button>
-          );
-        })}
-      </div>
-    )}
-  </div>
-</div>
-          
-          <div className="space-y-2 ml-6 mb-4">
-            {group.items.map(item => {
-              const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
-              return (
-                <div 
-                  key={item.id} 
-                  className={`text-sm p-2 rounded flex items-start gap-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-l-4`}
-                  style={{ borderLeftColor: column?.color || '#6b7280' }}
-                >
-                  {column && (
-                    <span className="text-xs shrink-0 mt-0.5" style={{ color: column.color }}>
-                      {column.icon}
-                    </span>
-                  )}
-                  <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{item.text}</span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="ml-6 mt-4 border-t pt-4">
-            <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              <MessageSquare size={16} />
-              Comments ({Object.keys(retroComments[group.id] || {}).length})
-            </h4>
-            
-            <div className="space-y-2 mb-3">
-              {Object.values(retroComments[group.id] || {}).map(comment => (
-                <div key={comment.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-2 rounded text-sm`}>
-                  <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
-                  <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                    {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {!isObserver && (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCommentText[group.id] || ''}
-                  onChange={(e) => setNewCommentText({ ...newCommentText, [group.id]: e.target.value })}
-                  onKeyPress={(e) => e.key === 'Enter' && addRetroComment(group.id)}
-                  placeholder="Add a comment..."
-                  className={`flex-1 px-3 py-2 border ${
-                    darkMode 
-                      ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
-                      : 'bg-white border-gray-300'
-                  } rounded text-sm`}
-                />
-                <button 
-                  onClick={() => addRetroComment(group.id)}
-                  className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
-                >
-                  Comment
-                </button>
-              </div>
-            )}
-          </div>
+  {/* Combine and sort all items (groups + individuals) by votes */}
+  {[
+    ...retroGroups.map(g => ({ ...g, isGroup: true })),
+    ...retroInputs.map(i => ({ ...i, isGroup: false }))
+  ].sort((a, b) => (b.votes || 0) - (a.votes || 0)).map(item => (
+    item.isGroup ? (
+      // GROUP RENDERING
+      <div key={item.id} className={`border-2 ${darkMode ? 'border-purple-700 bg-purple-900/20' : 'border-purple-200'} rounded-lg p-4`}>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
+          {editingGroupId === item.id ? (
+            <input
+              type="text"
+              value={editingGroupName}
+              onChange={(e) => setEditingGroupName(e.target.value)}
+              onBlur={() => handleRenameGroup(item.id, editingGroupName)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') handleRenameGroup(item.id, editingGroupName);
+                if (e.key === 'Escape') { setEditingGroupId(null); setEditingGroupName(''); }
+              }}
+              className={`flex-1 px-2 py-1 border ${
+                darkMode 
+                  ? 'bg-gray-700 border-[#B96AE9] text-white' 
+                  : 'bg-white border-[#B96AE9]'
+              } rounded text-sm font-bold`}
+              autoFocus
+            />
+          ) : (
+            <h3 
+              className={`font-bold text-lg cursor-pointer hover:text-[#B96AE9] ${darkMode ? 'text-white' : 'text-gray-800'}`}
+              onClick={() => {
+                if (!isObserver) {
+                  setEditingGroupId(item.id);
+                  setEditingGroupName(item.title);
+                }
+              }}
+              title="Click to rename"
+            >
+              {item.title}
+            </h3>
+          )}
         </div>
-      ))}
-
-      {/* Show Ungrouped Items */}
-      {retroInputs.map(item => {
-        const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
-        return (
-          <div 
-            key={item.id} 
-            className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
+        
+        {/* Emoji Reactions for grouped items */}
+{!isObserver && (
+  <div className="flex flex-wrap gap-1 mb-1 ml-6">
+    {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map((emoji) => {
+      const reactions = retroReactions[item.id]?.[emoji] || [];
+      const userHasReacted = hasReacted(item.id, emoji);
+      
+      return (
+  <button
+    key={emoji}
+    onClick={() => toggleReaction(item.id, emoji)}
+    className={`flex items-center transition-all ${
+      userHasReacted ? 'scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'
+    }`}
+  >
+          <span 
+            className="relative text-lg"
+            style={{
+              left: `${reactions.length > 1 ? (reactions.length - 1) * -6 : 0}px`,
+              filter: userHasReacted ? 'none' : 'grayscale(50%)'
+            }}
           >
-            <div className="flex items-center gap-3 mb-3">
-  <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
-  <div className="flex items-start gap-2 flex-1">
-    {column && (
-      <span className="text-lg shrink-0" style={{ color: column.color }}>
-        {column.icon}
-      </span>
-    )}
-    <div className="flex-1">
-      <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
-        {item.text}
-      </p>
-      <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-        {column?.label || 'Unknown'}
-      </p>
-      {!isObserver && (
-        <div className="flex gap-1 mt-2">
-          {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
-            const reactions = retroReactions[item.id]?.[emoji] || [];
-            const hasReacted = reactions.includes(currentUserId);
-            const count = reactions.length;
-            
+            {emoji}
+          </span>
+          {reactions.length > 0 && (
+            <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {reactions.length}
+            </span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+)}
+        
+        <div className="space-y-2 ml-6 mb-4">
+          {item.items.map(subItem => {
+            const column = currentRetroFormat.columns.find(c => c.id === subItem.columnId);
             return (
-              <button
-  key={emoji}
-  onClick={() => toggleReaction(item.id, emoji)}
-  className={`px-2 py-1 text-lg transition-all ${
-    hasReacted ? 'scale-125' : 'opacity-60 hover:opacity-100 hover:scale-110'
-  }`}
->
-  {emoji} {count > 0 && <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{count}</span>}
-</button>
+              <div 
+                key={subItem.id} 
+                className={`text-sm p-2 rounded flex items-start gap-2 ${darkMode ? 'bg-gray-800' : 'bg-gray-50'} border-l-4`}
+                style={{ borderLeftColor: column?.color || '#6b7280' }}
+              >
+                {column && (
+                  <span className="text-xs shrink-0 mt-0.5" style={{ color: column.color }}>
+                    {column.icon}
+                  </span>
+                )}
+                <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{subItem.text}</span>
+              </div>
             );
           })}
         </div>
-      )}
-    </div>
-  </div>
-</div>
 
-            {/* Comments Section for Individual Items */}
-            <div className="ml-6 mt-4 border-t pt-4">
-              <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                <MessageSquare size={16} />
-                Comments ({Object.keys(retroComments[item.id] || {}).length})
-              </h4>
-              
-              <div className="space-y-2 mb-3">
-                {Object.values(retroComments[item.id] || {}).map(comment => (
-                  <div key={comment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 rounded text-sm`}>
-                    <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
-                    <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                      {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
-                    </p>
-                  </div>
-                ))}
+        <div className="ml-6 mt-4 border-t pt-4">
+          <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            <MessageSquare size={16} />
+            Comments ({Object.keys(retroComments[item.id] || {}).length})
+          </h4>
+          
+          <div className="space-y-2 mb-3">
+            {Object.values(retroComments[item.id] || {}).map(comment => (
+              <div key={comment.id} className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} p-2 rounded text-sm`}>
+                <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                  {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
+                </p>
               </div>
+            ))}
+          </div>
 
-              {!isObserver && (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newCommentText[item.id] || ''}
-                    onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
-                    onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
-                    placeholder="Add a comment..."
-                    className={`flex-1 px-3 py-2 border ${
-                      darkMode 
-                        ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
-                        : 'bg-white border-gray-300'
-                    } rounded text-sm`}
-                  />
-                  <button 
-                    onClick={() => addRetroComment(item.id)}
-                    className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
-                  >
-                    Comment
-                  </button>
-                </div>
-              )}
+          {!isObserver && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newCommentText[item.id] || ''}
+                onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
+                onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
+                placeholder="Add a comment..."
+                className={`flex-1 px-3 py-2 border ${
+                  darkMode 
+                    ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300'
+                } rounded text-sm`}
+              />
+              <button 
+                onClick={() => addRetroComment(item.id)}
+                className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
+              >
+                Comment
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      // INDIVIDUAL ITEM RENDERING
+      <div 
+        key={item.id} 
+        className={`border-2 ${darkMode ? 'border-gray-600 bg-gray-700/50' : 'border-gray-200 bg-gray-50'} rounded-lg p-4`}
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-2xl font-bold text-[#B96AE9]">{item.votes || 0}</span>
+          <div className="flex items-start gap-2 flex-1">
+            {(() => {
+              const column = currentRetroFormat.columns.find(c => c.id === item.columnId);
+              return column && (
+                <span className="text-lg shrink-0" style={{ color: column.color }}>
+                  {column.icon}
+                </span>
+              );
+            })()}
+            <div className="flex-1">
+              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
+                {item.text}
+              </p>
+              <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                {currentRetroFormat.columns.find(c => c.id === item.columnId)?.label || 'Unknown'}
+              </p>
             </div>
           </div>
-        );
-      })}
-    </div>
+        </div>
+
+        {/* Emoji Reactions for individual items */}
+{!isObserver && (
+  <div className="flex flex-wrap gap-1 mb-3 ml-6">
+    {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map((emoji) => {
+      const reactions = retroReactions[item.id]?.[emoji] || [];
+      const userHasReacted = hasReacted(item.id, emoji);
+      
+      return (
+        <button
+          key={emoji}
+          onClick={() => toggleReaction(item.id, emoji)}
+          className={`flex items-center transition-all ${
+            userHasReacted ? 'scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'
+          }`}
+        >
+          <span 
+            className="text-lg"
+            style={{
+              filter: userHasReacted ? 'none' : 'grayscale(50%)'
+            }}
+          >
+            {emoji}
+          </span>
+          {reactions.length > 0 && (
+            <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {reactions.length}
+            </span>
+          )}
+        </button>
+      );
+    })}
+  </div>
+)}
+
+        <div className="ml-6 mt-4 border-t pt-4">
+          <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+            <MessageSquare size={16} />
+            Comments ({Object.keys(retroComments[item.id] || {}).length})
+          </h4>
+          
+          <div className="space-y-2 mb-3">
+            {Object.values(retroComments[item.id] || {}).map(comment => (
+              <div key={comment.id} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 rounded text-sm`}>
+                <p className={darkMode ? 'text-gray-200' : 'text-gray-800'}>{comment.text}</p>
+                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                  {comment.author} • {new Date(comment.timestamp).toLocaleTimeString()}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {!isObserver && (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newCommentText[item.id] || ''}
+                onChange={(e) => setNewCommentText({ ...newCommentText, [item.id]: e.target.value })}
+                onKeyPress={(e) => e.key === 'Enter' && addRetroComment(item.id)}
+                placeholder="Add a comment..."
+                className={`flex-1 px-3 py-2 border ${
+                  darkMode 
+                    ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300'
+                } rounded text-sm`}
+              />
+              <button 
+                onClick={() => addRetroComment(item.id)}
+                className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] text-sm"
+              >
+                Comment
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  ))}
+</div>
   </div>
 )}
     </div>
   </div>
 
           {/* Participants List */}
-  <div className="max-w-7xl mx-auto">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mt-6`}>
-            <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              Participants ({participants.length})
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {sortedParticipants.map((participant) => (
-                <div
-  key={participant.id}
-  className={`rounded-lg p-3 text-center border-2 relative ${
-    participant.isModerator 
-      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-      : participant.isObserver
-      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-  }`}
->
-  {isModerator && participant.id !== currentUserId && (
-    <>
-      <button
-        onClick={() => removeUser(participant.id)}
-        className={`absolute top-1 right-1 p-1 rounded ${
-          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-        } text-white`}
-      >
-        <UserX size={12} />
-      </button>
-      <button
-        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
-        className={`absolute top-1 left-1 p-1 rounded ${
-          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
-        } text-gray-700`}
-      >
-        <UserCog size={12} />
-      </button>
-      {showModeratorTypeMenu === participant.id && (
-        <>
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setShowModeratorTypeMenu(null)}
-          />
-          <div className={`absolute left-1 top-8 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20 whitespace-nowrap`}>
-            <button
-              onClick={() => changeUserType('voter', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Voter
-            </button>
-            <button
-              onClick={() => changeUserType('observer', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Observer
-            </button>
-            <button
-              onClick={() => changeUserType('moderator', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Moderator
-            </button>
-          </div>
-        </>
-      )}
-    </>
-  )}
-  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
-    {participant.name}
-  </p>
-  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
-  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+<div className="max-w-7xl mx-auto">
+  <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mt-6`}>
+    <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+      Participants ({participants.length})
+    </h2>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      {sortedParticipants.map((participant) => (
+        <div
+          key={participant.id}
+          className={`rounded-lg p-3 text-center border-2 relative ${
+            participant.isModerator 
+              ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+              : participant.isObserver
+              ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+              : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+          }`}
+        >
+          {isModerator && participant.id !== currentUserId && (
+            <div className="absolute top-1 right-1 flex gap-1">
+              <button
+                onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
+                className={`p-1 rounded ${
+                  darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
+                } text-white transition-colors`}
+                title="Change role"
+              >
+                <UserCog size={16} />
+</button>
 </div>
-              ))}
-            </div>
-          </div>
-          </div>
+)}
 
-        {/* Add Item Modal */}
-        {selectedColumn && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
-            <div 
-              className="absolute inset-0" 
-              onClick={() => {
-                setSelectedColumn(null);
-                setNewInputText('');
-              }}
-            />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[10000] modal-enter`}>
-              <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
-                Add Item
-              </h3>
-              <textarea
-  value={newInputText}
-  onChange={(e) => setNewInputText(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (newInputText.trim()) {
-        addRetroInput(selectedColumn);
-      }
-    }
-  }}
-  placeholder="Enter your thoughts... (Anonymous)"
-  rows={4}
-  className={`w-full px-4 py-3 border ${
-    darkMode 
-      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-      : 'bg-white border-gray-300 text-gray-900'
-  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
-  autoFocus
-/>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => {
-                    setSelectedColumn(null);
-                    setNewInputText('');
-                  }}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    darkMode 
-                      ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => addRetroInput(selectedColumn)}
-                  disabled={!newInputText.trim()}
-                  className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  Add Item
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+{/* Role change dropdown */}
+{isModerator && showModeratorTypeMenu === participant.id && (
+  <>
+    <div
+      className="fixed inset-0 z-20"
+      onClick={() => setShowModeratorTypeMenu(null)}
+    />
+    <div className={`absolute top-8 right-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-30 whitespace-nowrap`}>
+      {participant.isModerator ? (
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Participant
+        </button>
+      ) : (
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: true, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Moderator
+        </button>
+      )}
+    </div>
+  </>
+)}
+          
+          <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+            {participant.name}
+          </p>
+          {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+          {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+{/* Add Item Modal */}
+{selectedColumn && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+    <div 
+      className="absolute inset-0" 
+      onClick={() => {
+        setSelectedColumn(null);
+        setNewInputText('');
+      }}
+    />
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-[10000] modal-enter`}>
+      <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>
+        Add Item
+      </h3>
+      <textarea
+        value={newInputText}
+        onChange={(e) => setNewInputText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            addRetroInput(selectedColumn);
+          }
+        }}
+        placeholder="Enter your thoughts... (Anonymous)"
+        rows={4}
+        className={`w-full px-4 py-3 border ${
+          darkMode 
+            ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+            : 'bg-white border-gray-300 text-gray-900'
+        } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
+        autoFocus
+      />
+      <div className="flex gap-3 justify-end">
+        <button
+          onClick={() => {
+            setSelectedColumn(null);
+            setNewInputText('');
+          }}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            darkMode 
+              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() => addRetroInput(selectedColumn)}
+          disabled={!newInputText.trim()}
+          className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Add Item
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Share Modal */}
         {showShareModal && (
@@ -4047,37 +3819,34 @@ if (!revealed) {
                         <span className="hidden sm:inline">Change Type</span>
                       </button>
                       {showTypeMenu && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-10" 
-                            onClick={() => setShowTypeMenu(false)}
-                          />
-                          <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
-                            <button
-                              onClick={() => changeUserType('voter')}
-                              disabled={!isObserver}
-                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                                !isObserver 
-                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              Switch to Participant
-                            </button>
-                            <button
-                              onClick={() => changeUserType('observer')}
-                              disabled={isObserver}
-                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                                isObserver 
-                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              Switch to Observer
-                            </button>
-                          </div>
-                        </>
-                      )}
+  <>
+    <div
+      className="fixed inset-0 z-10"
+      onClick={() => setShowTypeMenu(false)}
+    />
+    <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
+      {isModerator ? (
+        <button
+          onClick={() => changeUserType('voter')}
+          className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Switch to Participant
+        </button>
+      ) : (
+        <button
+          onClick={() => changeUserType('moderator')}
+          className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Switch to Moderator
+        </button>
+      )}
+    </div>
+  </>
+)}
                     </span>
                   )}
                 </div>
@@ -4091,9 +3860,7 @@ if (!revealed) {
   'md:grid-cols-2'
 }`}>
             {currentRetroFormat.columns.map(column => {
-              const columnItems = Object.values(retroItems)
-              .filter(item => item.columnId === column.id)
-              .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+              const columnItems = Object.values(retroItems).filter(item => item.columnId === column.id);
               const sortedItems = columnItems.sort((a, b) => (b.votes || 0) - (a.votes || 0));
               
               return (
@@ -4183,75 +3950,32 @@ if (!revealed) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {sortedParticipants.map((participant) => (
                 <div
-  key={participant.id}
-  className={`rounded-lg p-3 text-center border-2 relative ${
-    participant.isModerator 
-      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-      : participant.isObserver
-      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
-      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
-  }`}
->
-  {isModerator && participant.id !== currentUserId && (
-    <>
-      <button
-        onClick={() => removeUser(participant.id)}
-        className={`absolute top-1 right-1 p-1 rounded ${
-          darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-        } text-white`}
-      >
-        <UserX size={12} />
-      </button>
-      <button
-        onClick={() => setShowModeratorTypeMenu(showModeratorTypeMenu === participant.id ? null : participant.id)}
-        className={`absolute top-1 left-1 p-1 rounded ${
-          darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'
-        } text-gray-700`}
-      >
-        <UserCog size={12} />
-      </button>
-      {showModeratorTypeMenu === participant.id && (
-        <>
-          <div 
-            className="fixed inset-0 z-10" 
-            onClick={() => setShowModeratorTypeMenu(null)}
-          />
-          <div className={`absolute left-1 top-8 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20 whitespace-nowrap`}>
-            <button
-              onClick={() => changeUserType('voter', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Voter
-            </button>
-            <button
-              onClick={() => changeUserType('observer', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Observer
-            </button>
-            <button
-              onClick={() => changeUserType('moderator', participant.id)}
-              className={`w-full px-4 py-2 text-left text-sm ${
-                darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Make Moderator
-            </button>
-          </div>
-        </>
-      )}
-    </>
-  )}
-  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
-    {participant.name}
-  </p>
-  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
-  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
-</div>
+                  key={participant.id}
+                  className={`rounded-lg p-3 text-center border-2 relative ${
+                    participant.isModerator 
+                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+                      : participant.isObserver
+                      ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
+                      : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  {isModerator && participant.id !== currentUserId && (
+                    <button
+                      onClick={() => removeUser(participant.id)}
+                      className={`absolute top-1 right-1 p-1 rounded ${
+                        darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
+                      } text-white transition-colors`}
+                      title="Remove user"
+                    >
+                      <UserX size={12} />
+                    </button>
+                  )}
+                  <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
+                    {participant.name}
+                  </p>
+                  {participant.isModerator && <span className="text-xs block text-[#9B7FE5]">Moderator</span>}
+                  {participant.isObserver && <span className={`text-xs block ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>Observer</span>}
+                </div>
               ))}
             </div>
           </div>
@@ -4272,25 +3996,17 @@ if (!revealed) {
                 Add Item
               </h3>
               <textarea
-  value={newInputText}
-  onChange={(e) => setNewInputText(e.target.value)}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (newInputText.trim()) {
-        addRetroInput(selectedColumn);
-      }
-    }
-  }}
-  placeholder="Enter your thoughts... (Anonymous)"
-  rows={4}
-  className={`w-full px-4 py-3 border ${
-    darkMode 
-      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-      : 'bg-white border-gray-300 text-gray-900'
-  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
-  autoFocus
-/>
+                value={newInputText}
+                onChange={(e) => setNewInputText(e.target.value)}
+                placeholder="Enter your thoughts..."
+                rows={4}
+                className={`w-full px-4 py-3 border ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
+                autoFocus
+              />
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
@@ -4776,7 +4492,6 @@ if (!revealed) {
         </button>
       ))}
     </div>
-    )}
     
     {confidenceVotingEnabled && (
       <div className="mt-6">
@@ -5141,7 +4856,7 @@ if (!revealed) {
                   </button>
                   <button
   onClick={copyHistoryToClipboard}
-  className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#D255EA] transition-colors"
+  className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#B96AE9] transition-colors"
 >
   {historyCopied ? <Check size={16} /> : <FileText size={16} />}
   {historyCopied ? 'Copied!' : 'Copy to Clipboard'}
