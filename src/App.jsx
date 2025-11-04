@@ -724,7 +724,7 @@ const initializeFirebase = async () => {
 export default function App() {
   // Core state
   const [userName, setUserName] = useState('');
-  const [isModerator, setIsModerator] = useState(true);
+  const [isModerator, setIsModerator] = useState(false);
   const [isObserver, setIsObserver] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
   const [sessionId, setSessionId] = useState('');
@@ -743,7 +743,9 @@ export default function App() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [showTypeMenu, setShowTypeMenu] = useState(false);
-  
+  const [showModeratorTypeMenu, setShowModeratorTypeMenu] = useState(null);
+  const [historyCopied, setHistoryCopied] = useState(false);
+
   // Session type state
   const [sessionType, setSessionType] = useState(null);
   const [retroFormat, setRetroFormat] = useState(null);
@@ -1975,22 +1977,22 @@ if (!revealed) {
   };
 
   const copyHistoryToClipboard = () => {
-    if (sessionHistory.length === 0) {
-      alert('No history to copy yet!');
-      return;
-    }
+  if (sessionHistory.length === 0) {
+    return;
+  }
 
-    const text = sessionHistory.map(entry => {
-      const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
-      const date = new Date(entry.timestamp).toLocaleString();
-      const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
-      
-      return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
-    }).join('\n');
+  const text = sessionHistory.map(entry => {
+    const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
+    const date = new Date(entry.timestamp).toLocaleString();
+    const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
+    
+    return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
+  }).join('\n');
 
-    navigator.clipboard.writeText(text);
-    alert('History copied to clipboard!');
-  };
+  navigator.clipboard.writeText(text);
+  setHistoryCopied(true);
+  setTimeout(() => setHistoryCoped(false), 2000);
+};
   const calculateAverage = () => {
     const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
     
@@ -3541,17 +3543,19 @@ if (!revealed) {
                 Add Item
               </h3>
               <textarea
-                value={newInputText}
-                onChange={(e) => setNewInputText(e.target.value)}
-                placeholder="Enter your thoughts... (Anonymous)"
-                rows={4}
-                className={`w-full px-4 py-3 border ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
-                autoFocus
-              />
+  value={newInputText}
+  onChange={(e) => setNewInputText(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addRetroInput(selectedColumn);
+    }
+  }}
+  placeholder="Enter your thoughts... (Anonymous)"
+  rows={4}
+  className={...}
+  autoFocus
+/>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => {
@@ -4980,12 +4984,12 @@ if (!revealed) {
                     Export CSV
                   </button>
                   <button
-                    onClick={copyHistoryToClipboard}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#B96AE9] transition-colors"
-                  >
-                    <FileText size={16} />
-                    Copy to Clipboard
-                  </button>
+  onClick={copyHistoryToClipboard}
+  className="flex items-center gap-2 px-4 py-2 bg-[#B96AE9] text-white rounded-lg text-sm font-semibold hover:bg-[#B96AE9] transition-colors"
+>
+  {historyCopied ? <Check size={16} /> : <FileText size={16} />}
+  {historyCopied ? 'Copied!' : 'Copy to Clipboard'}
+</button>
                 </div>
               </div>
               
