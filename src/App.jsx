@@ -1612,20 +1612,18 @@ const handleRenameGroup = async (groupId, newName) => {
   await dbModule.remove(inputRef);
 };
   const addRetroComment = async (groupId) => {
-    if (!newCommentText[groupId]?.trim() || !db || !dbModule || isObserver) return;
-
-    const comment = {
-      id: Date.now().toString(),
-      text: newCommentText[groupId],
-      author: userName,
-      timestamp: Date.now()
-    };
-
-    const commentRef = dbModule.ref(db, `sessions/${sessionId}/retroComments/${groupId}/${comment.id}`);
-    await dbModule.set(commentRef, comment);
-
-    setNewCommentText({ ...newCommentText, [groupId]: '' });
+  if (!newCommentText[groupId]?.trim() || !db || !dbModule || isObserver) return;
+  const comment = {
+    id: Date.now().toString(),
+    text: newCommentText[groupId],
+    author: userName,
+    timestamp: Date.now()
   };
+  const commentRef = dbModule.ref(db, `sessions/${sessionId}/retroComments/${groupId}/${comment.id}`);
+  await dbModule.set(commentRef, comment);
+  setNewCommentText({ ...newCommentText, [groupId]: '' });
+};
+
 const toggleReaction = async (groupId, emoji) => {
   if (!db || !dbModule || isObserver || !currentUserId) return;
   
@@ -2863,28 +2861,28 @@ if (!revealed) {
                   {isObserver && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded">Observer</span>}
                   {!isModerator && !isObserver && <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded">Participant</span>}
                   
-                  {!isModerator && sessionType !== 'retrospective' && (
+                  {isModerator && sessionType === 'retrospective' && (
   <span className="relative inline-block">
     <button
       onClick={() => setShowTypeMenu(!showTypeMenu)}
       className={`px-2 py-0.5 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} text-xs rounded transition-colors flex items-center gap-1`}
       title="Change user type"
     >
-      <UserCog size={12} />
+      <UserCog size={16} />
       <span className="hidden sm:inline">Change Type</span>
     </button>
     {showTypeMenu && (
       <>
-        <div 
-          className="fixed inset-0 z-10" 
+        <div
+          className="fixed inset-0 z-10"
           onClick={() => setShowTypeMenu(false)}
         />
         <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
           <button
             onClick={() => changeUserType('voter')}
-            disabled={!isObserver}
+            disabled={isObserver}
             className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-              !isObserver 
+              isObserver
                 ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
                 : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
             }`}
@@ -2895,7 +2893,7 @@ if (!revealed) {
             onClick={() => changeUserType('observer')}
             disabled={isObserver}
             className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-              isObserver 
+              isObserver
                 ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
                 : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
             }`}
@@ -3303,46 +3301,40 @@ if (!revealed) {
           )}
         </div>
         
-        {/* Emoji Reactions */}
-        {!isObserver && (
-          <div className="flex flex-wrap gap-2 mb-3 ml-6">
-            {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
-              const reactions = retroReactions[item.id]?.[emoji] || [];
-              const userHasReacted = hasReacted(item.id, emoji);
-              return (
-                <button
-  key={emoji}
-  onClick={() => toggleReaction(item.id, emoji)}
-  className={`relative inline-flex items-center transition-all ${
-    userHasReacted ? 'scale-110' : 'opacity-60 hover:opacity-100 hover:scale-105'
-  }`}
-  style={{ paddingLeft: reactions.length > 1 ? `${reactions.length * 8}px` : '0' }}
->
-  <div className="relative" style={{ width: '28px', height: '28px' }}>
-    {reactions.slice(0, Math.min(5, reactions.length)).map((_, index) => (
-      <span
-        key={index}
-        className="absolute text-2xl"
-        style={{
-          left: `${index * 6}px`,
-          zIndex: reactions.length - index,
-          opacity: index === 0 ? 1 : 0.7
-        }}
-      >
-        {emoji}
-      </span>
-    ))}
+        {/* Emoji Reactions for grouped items */}
+{!isObserver && (
+  <div className="flex flex-wrap gap-1 mb-1 ml-6">
+    {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map((emoji) => {
+      const reactions = retroReactions[item.id]?.[emoji] || [];
+      const userHasReacted = hasReacted(item.id, emoji);
+      
+      return (
+  <button
+    key={emoji}
+    onClick={() => toggleReaction(item.id, emoji)}
+    className={`flex items-center transition-all ${
+      userHasReacted ? 'scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'
+    }`}
+  >
+          <span 
+            className="relative text-lg"
+            style={{
+              left: `${reactions.length > 1 ? (reactions.length - 1) * -6 : 0}px`,
+              filter: userHasReacted ? 'none' : 'grayscale(50%)'
+            }}
+          >
+            {emoji}
+          </span>
+          {reactions.length > 0 && (
+            <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {reactions.length}
+            </span>
+          )}
+        </button>
+      );
+    })}
   </div>
-  {reactions.length > 5 && (
-    <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-      +{reactions.length - 5}
-    </span>
-  )}
-</button>
-              );
-            })}
-          </div>
-        )}
+)}
         
         <div className="space-y-2 ml-6 mb-4">
           {item.items.map(subItem => {
@@ -3434,45 +3426,38 @@ if (!revealed) {
         </div>
 
         {/* Emoji Reactions for individual items */}
-        {!isObserver && (
-          <div className="flex flex-wrap gap-2 mb-3 ml-6">
-            {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map(emoji => {
-              const reactions = retroReactions[item.id]?.[emoji] || [];
-              const userHasReacted = hasReacted(item.id, emoji);
-              return (
-                <button
-  key={emoji}
-  onClick={() => toggleReaction(item.id, emoji)}
-  className={`relative inline-flex items-center transition-all ${
-    userHasReacted ? 'scale-110' : 'opacity-60 hover:opacity-100 hover:scale-105'
-  }`}
-  style={{ paddingLeft: reactions.length > 1 ? `${reactions.length * 8}px` : '0' }}
->
-  <div className="relative" style={{ width: '28px', height: '28px' }}>
-    {reactions.slice(0, Math.min(5, reactions.length)).map((_, index) => (
-      <span
-        key={index}
-        className="absolute text-2xl"
-        style={{
-          left: `${index * 6}px`,
-          zIndex: reactions.length - index,
-          opacity: index === 0 ? 1 : 0.7
-        }}
-      >
-        {emoji}
-      </span>
-    ))}
+{!isObserver && (
+  <div className="flex flex-wrap gap-1 mb-3 ml-6">
+    {['👍', '👎', '❤️', '💡', '⚠️', '❓'].map((emoji) => {
+      const reactions = retroReactions[item.id]?.[emoji] || [];
+      const userHasReacted = hasReacted(item.id, emoji);
+      
+      return (
+        <button
+          key={emoji}
+          onClick={() => toggleReaction(item.id, emoji)}
+          className={`flex items-center transition-all ${
+            userHasReacted ? 'scale-110' : 'opacity-70 hover:opacity-100 hover:scale-105'
+          }`}
+        >
+          <span 
+            className="text-lg"
+            style={{
+              filter: userHasReacted ? 'none' : 'grayscale(50%)'
+            }}
+          >
+            {emoji}
+          </span>
+          {reactions.length > 0 && (
+            <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              {reactions.length}
+            </span>
+          )}
+        </button>
+      );
+    })}
   </div>
-  {reactions.length > 5 && (
-    <span className={`text-xs ml-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-      +{reactions.length - 5}
-    </span>
-  )}
-</button>
-              );
-            })}
-          </div>
-        )}
+)}
 
         <div className="ml-6 mt-4 border-t pt-4">
           <h4 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
@@ -3540,7 +3525,7 @@ if (!revealed) {
               ? darkMode ? 'bg-purple-900 border-purple-700' : 'bg-purple-50 border-purple-200'
               : darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
           }`}
-        > 
+        >
           {isModerator && participant.id !== currentUserId && (
             <div className="absolute top-1 right-1 flex gap-1">
               <button
@@ -3550,73 +3535,49 @@ if (!revealed) {
                 } text-white transition-colors`}
                 title="Change role"
               >
-                <UserCog size={10} />
-              </button>
-              <button
-                onClick={() => removeUser(participant.id)}
-                className={`p-1 rounded ${
-                  darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
-                } text-white transition-colors`}
-                title="Remove user"
-              >
-                <UserX size={10} />
-              </button>
-            </div>
-          )}
-          
-          {/* Role change dropdown */}
-          {isModerator && showModeratorTypeMenu === participant.id && (
-            <>
-              <div 
-                className="fixed inset-0 z-20" 
-                onClick={() => setShowModeratorTypeMenu(null)}
-              />
-              <div className={`absolute top-8 right-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-30 whitespace-nowrap`}>
-                <button
-                  onClick={async () => {
-                    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
-                    await dbModule.update(participantRef, { isModerator: false, isObserver: false });
-                    setShowModeratorTypeMenu(null);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-xs ${
-                    !participant.isModerator && !participant.isObserver
-                      ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                      : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Make Participant
-                </button>
-                <button
-                  onClick={async () => {
-                    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
-                    await dbModule.update(participantRef, { isModerator: false, isObserver: true });
-                    setShowModeratorTypeMenu(null);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-xs ${
-                    participant.isObserver
-                      ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                      : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Make Observer
-                </button>
-                <button
-                  onClick={async () => {
-                    const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
-                    await dbModule.update(participantRef, { isModerator: true, isObserver: false });
-                    setShowModeratorTypeMenu(null);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-xs ${
-                    participant.isModerator
-                      ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                      : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  Make Moderator
-                </button>
-              </div>
-            </>
-          )}
+                <UserCog size={16} />
+</button>
+</div>
+)}
+
+{/* Role change dropdown */}
+{isModerator && showModeratorTypeMenu === participant.id && (
+  <>
+    <div
+      className="fixed inset-0 z-20"
+      onClick={() => setShowModeratorTypeMenu(null)}
+    />
+    <div className={`absolute top-8 right-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-30 whitespace-nowrap`}>
+      {participant.isModerator ? (
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: false, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Participant
+        </button>
+      ) : (
+        <button
+          onClick={async () => {
+            const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${participant.id}`);
+            await dbModule.update(participantRef, { isModerator: true, isObserver: false });
+            setShowModeratorTypeMenu(null);
+          }}
+          className={`w-full px-3 py-2 text-left text-xs ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Make Moderator
+        </button>
+      )}
+    </div>
+  </>
+)}
           
           <p className={`font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'} text-sm break-words`}>
             {participant.name}
@@ -4049,37 +4010,34 @@ if (!revealed) {
                         <span className="hidden sm:inline">Change Type</span>
                       </button>
                       {showTypeMenu && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-10" 
-                            onClick={() => setShowTypeMenu(false)}
-                          />
-                          <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
-                            <button
-                              onClick={() => changeUserType('voter')}
-                              disabled={!isObserver}
-                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                                !isObserver 
-                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              Switch to Participant
-                            </button>
-                            <button
-                              onClick={() => changeUserType('observer')}
-                              disabled={isObserver}
-                              className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
-                                isObserver 
-                                  ? darkMode ? 'text-gray-500' : 'text-gray-400 cursor-not-allowed'
-                                  : darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              Switch to Observer
-                            </button>
-                          </div>
-                        </>
-                      )}
+  <>
+    <div
+      className="fixed inset-0 z-10"
+      onClick={() => setShowTypeMenu(false)}
+    />
+    <div className={`absolute left-0 mt-1 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg shadow-lg border ${darkMode ? 'border-gray-600' : 'border-gray-200'} py-1 z-20`}>
+      {isModerator ? (
+        <button
+          onClick={() => changeUserType('voter')}
+          className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Switch to Participant
+        </button>
+      ) : (
+        <button
+          onClick={() => changeUserType('moderator')}
+          className={`w-full px-4 py-2 text-left text-sm whitespace-nowrap ${
+            darkMode ? 'text-gray-200 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          Switch to Moderator
+        </button>
+      )}
+    </div>
+  </>
+)}
                     </span>
                   )}
                 </div>
