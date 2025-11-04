@@ -3553,7 +3553,11 @@ if (!revealed) {
   }}
   placeholder="Enter your thoughts... (Anonymous)"
   rows={4}
-  className={...}
+  className={`w-full px-4 py-3 border ${
+    darkMode 
+      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+      : 'bg-white border-gray-300 text-gray-900'
+  } rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none mb-4`}
   autoFocus
 />
               <div className="flex gap-3 justify-end">
