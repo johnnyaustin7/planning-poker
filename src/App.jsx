@@ -1542,7 +1542,7 @@ let currentRow = 1;
     currentRow += 6;
     worksheet.addRow([]);
     currentRow++;
-      
+       
     // Retrospective Data Section
 const dataHeaderEndCol = String.fromCharCode(71 + emojiList.length); // G + number of emoji columns
 worksheet.mergeCells(`A${currentRow}:${lastColLetter}${currentRow}`);
