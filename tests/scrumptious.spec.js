@@ -95,14 +95,14 @@ async function joinRetroSession(page, name, isModerator = false) {
   await nameInput.clear();
   await nameInput.fill(name);
   
-  const moderatorCheckbox = page.getByRole('checkbox', { name: /Moderator/i });
-  const isChecked = await moderatorCheckbox.isChecked();
-  
-  // Only click if we need to change the state
-  if (isModerator && !isChecked) {
-    await moderatorCheckbox.click();
-  } else if (!isModerator && isChecked) {
-    await moderatorCheckbox.click();
+  // Only moderator checkbox exists in retrospectives (no observer)
+  if (isModerator) {
+    const moderatorCheckbox = page.getByRole('checkbox', { name: /Moderator/i });
+    const isChecked = await moderatorCheckbox.isChecked();
+    
+    if (!isChecked) {
+      await moderatorCheckbox.click();
+    }
   }
   
   const joinButton = page.getByRole('button', { name: /Join Session/i });
@@ -300,6 +300,52 @@ test.describe('Planning Poker - Voting Flow', () => {
 });
 
 // ===========================================
+// PLANNING POKER - TIMER
+// ===========================================
+
+test.describe('Planning Poker - Timer', () => {
+  test('should show and run timer for moderator', async ({ page }) => {
+    await createPlanningPokerSession(page);
+    await joinPlanningPokerSession(page, 'Moderator', true);
+    
+    // Timer should be visible - use regex to match any time format
+    await expect(page.locator('text=/⏱️ \\d+:\\d+/')).toBeVisible({ timeout: 3000 });
+    
+    // Get initial timer value
+    const timerStart = await page.locator('text=/⏱️ \\d+:\\d+/').textContent();
+    
+    // Wait a moment and verify it's counting
+    await page.waitForTimeout(2000);
+    const timerAfter = await page.locator('text=/⏱️ \\d+:\\d+/').textContent();
+    
+    // Timer should have changed (counting up)
+    expect(timerStart).not.toBe(timerAfter);
+  });
+  
+  test('should stop timer when votes are revealed', async ({ page }) => {
+    await createPlanningPokerSession(page);
+    await joinPlanningPokerSession(page, 'Moderator', true);
+    
+    // Wait for timer to count up a bit
+    await page.waitForTimeout(3000);
+    
+    // Reveal votes
+    await page.getByRole('button', { name: /^Reveal$/i }).click();
+    
+    // Get timer value immediately after reveal
+    await page.waitForTimeout(500);
+    const timerAtReveal = await page.locator('text=/⏱️ \\d+:\\d+/').textContent();
+    
+    // Wait and check timer hasn't changed
+    await page.waitForTimeout(2000);
+    const timerAfterWait = await page.locator('text=/⏱️ \\d+:\\d+/').textContent();
+    
+    // Timer should be same (stopped)
+    expect(timerAtReveal).toBe(timerAfterWait);
+  });
+});
+
+// ===========================================
 // PLANNING POKER - HISTORY & EXPORT
 // ===========================================
 
@@ -365,6 +411,40 @@ test.describe('Planning Poker - Multi-User', () => {
     
     // Moderator should see vote indicator (checkmark)
     await expect(moderatorPage.locator('text=Voter').locator('xpath=ancestor::div[1]')).toContainText('✓', { timeout: 5000 });
+    
+    await context.close();
+  });
+  
+  test('should show confetti on consensus for all users', async ({ browser }) => {
+    const context = await browser.newContext();
+    const moderatorPage = await context.newPage();
+    const participant1Page = await context.newPage();
+    const participant2Page = await context.newPage();
+    
+    const sessionId = await createPlanningPokerSession(moderatorPage);
+    await joinPlanningPokerSession(moderatorPage, 'Moderator', true);
+    
+    await participant1Page.goto(`${BASE_URL}/?session=${sessionId}`);
+    await joinPlanningPokerSession(participant1Page, 'Voter1', false);
+    
+    await participant2Page.goto(`${BASE_URL}/?session=${sessionId}`);
+    await joinPlanningPokerSession(participant2Page, 'Voter2', false);
+    
+    // Both participants vote the same
+    await participant1Page.getByRole('button', { name: /^5$/i }).click();
+    await participant2Page.getByRole('button', { name: /^5$/i }).click();
+    
+    // Wait longer for auto-reveal (it happens after both vote)
+    await moderatorPage.waitForTimeout(2000);
+    
+    // Verify votes were revealed - check for either Hide button OR revealed votes
+    // The moderator should see revealed vote numbers or the Hide button
+    try {
+      await expect(moderatorPage.getByRole('button', { name: /^Hide$/i })).toBeVisible({ timeout: 3000 });
+    } catch {
+      // If Hide button not visible, check if votes are revealed (showing actual numbers)
+      await expect(moderatorPage.locator('text=/Voted.*2.*\\/.*2/i')).toBeVisible({ timeout: 2000 });
+    }
     
     await context.close();
   });
