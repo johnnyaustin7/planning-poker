@@ -117,7 +117,7 @@ const RELEASE_NOTES = {
   }
 };
 
-const PieChart = ({ stats, darkMode }) => {
+const PieChart = ({ stats, darkMode, size = 320 }) => {
   if (!stats || !stats.distribution) return null;
   
   const total = stats.distribution.reduce((sum, [_, count]) => sum + count, 0);
@@ -125,9 +125,12 @@ const PieChart = ({ stats, darkMode }) => {
   
   const colors = ['#5FC4C3', '#6DC9CF', '#7FD0DA', '#92D8E5', '#A8DFEF', '#C0E6F8', '#9B7FE5'];
   
+  const viewBoxSize = 200;
+  const displaySize = size;
+  
   return (
     <div className="flex flex-col items-center gap-6">
-      <svg width="320" height="320" viewBox="0 0 200 200" className="drop-shadow-lg pie-chart-grow">
+      <svg width={displaySize} height={displaySize} viewBox="0 0 200 200" className="drop-shadow-lg pie-chart-grow">
         {stats.distribution.map(([vote, count], index) => {
           const percentage = (count / total) * 100;
           const angle = (percentage / 100) * 360;
@@ -795,6 +798,17 @@ useEffect(() => {
   };
 }, [timer?.active, timeRemaining, isModerator, db, dbModule, sessionId]);
 
+// Planning Poker elapsed time timer
+useEffect(() => {
+  if (!timerRunning || sessionType !== 'estimation') return;
+  
+  const interval = setInterval(() => {
+    setElapsedTime(Math.floor((Date.now() - resetTime) / 1000));
+  }, 1000);
+  
+  return () => clearInterval(interval);
+}, [timerRunning, resetTime, sessionType]);
+
 // QR Code generation useEffect
 useEffect(() => {
   if (sessionId) {
@@ -814,7 +828,6 @@ useEffect(() => {
   const allVoted = votingParticipants.every(p => {
     const hasVote = p.points !== null && p.points !== undefined && p.points !== '';
     
-    // If confidence voting is enabled, also check for confidence
     if (confidenceVotingEnabled) {
       const hasConfidence = p.confidence !== null && p.confidence !== undefined && p.confidence !== '';
       return hasVote && hasConfidence;
@@ -824,16 +837,37 @@ useEffect(() => {
   });
   
   if (allVoted && isModerator) {
-    // Auto-reveal after a short delay
     const timer = setTimeout(async () => {
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       await dbModule.update(sessionRef, { revealed: true });
       setShowPieChart(true);
+      setTimerRunning(false);
+      
+      // Check for consensus and trigger confetti
+      setTimeout(() => {
+        const stats = calculateAverage();
+        if (stats?.consensus) {
+          setShowConfetti(true);
+          setTimeout(() => setShowConfetti(false), 3000);
+        }
+      }, 300);
     }, 200);
     
     return () => clearTimeout(timer);
   }
 }, [participants, isFirstRound, revealed, sessionId, db, dbModule, isModerator, confidenceVotingEnabled]);
+
+// ADD THIS NEW EFFECT HERE - Trigger confetti on reveal for all users
+useEffect(() => {
+  if (revealed && sessionType === 'estimation') {
+    const stats = calculateAverage();
+    if (stats?.consensus) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  }
+}, [revealed, sessionType]);
+
 
   const generateSessionId = () => {
     const words = [
@@ -1364,7 +1398,6 @@ const handleRemoveFromGroup = async (groupId, itemToRemove) => {
     await dbModule.set(groupRef, updatedGroup);
   }
 
-  // Add removed item back to inputs
   const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${itemToRemove.id}`);
   await dbModule.set(inputRef, itemToRemove);
 };
@@ -1871,6 +1904,8 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
     navigator.vibrate(20);
   }
   
+  const wasRevealed = revealed;
+  
   const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
   const updates = { revealed: !revealed };
   
@@ -1878,14 +1913,24 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
     updates.isFirstRound = false;
   }
   
-  // Show pie chart when revealing, hide when hiding
-if (!revealed) {
-  setShowPieChart(true);
-} else {
-  setShowPieChart(false);
-}
+  if (!revealed) {
+    setTimerRunning(false);
+    setShowPieChart(true);
+  } else {
+    setShowPieChart(false);
+  }
   
   await dbModule.update(sessionRef, updates);
+  
+  if (!wasRevealed) {
+    setTimeout(() => {
+      const stats = calculateAverage();
+      if (stats?.consensus) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+    }, 200);
+  }
 };
 
   const handleReset = async () => {
@@ -4227,7 +4272,7 @@ if (!revealed) {
                       className={`absolute top-1 right-1 p-1 rounded ${
                         darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
                       } text-white transition-colors`}
-                      title="Remove user"
+                      title="Remove User"
                     >
                       <UserX size={12} />
                     </button>
@@ -4896,11 +4941,23 @@ if (!revealed) {
                   </div>
                 )}
               </div>
-              {revealed && showPieChart && stats ? (
-                <div className="flex items-center justify-center py-8">
-                  <PieChart stats={stats} darkMode={darkMode} />
-                </div>
-              ) : (
+              {revealed && showPieChart && stats && !isModerator ? (
+  <div className="py-8">
+    <h3 className={`text-center text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+      Vote Results
+    </h3>
+    {stats.consensus && (
+      <p className={`text-center mb-4 text-lg font-semibold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+        🎉 Team Consensus!
+      </p>
+    )}
+    <div className="flex items-center justify-center">
+      <PieChart stats={stats} darkMode={darkMode} />
+    </div>
+    <div className={`text-center mt-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+    </div>
+  </div>
+) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {sortedParticipants.map((participant) => {
                   const hasVoted = participant.points !== null && 
@@ -4930,7 +4987,7 @@ if (!revealed) {
                           className={`absolute top-2 right-2 p-0.5 rounded ${
                             darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-500 hover:bg-red-600'
                           } text-white transition-colors`}
-                          title="Remove user"
+                          title="Remove User"
                         >
                           <UserX size={9} />
                         </button>
@@ -5076,6 +5133,16 @@ if (!revealed) {
     </div>
   </div>
 )}
+                    {/* Pie Chart for moderator only */}
+{isModerator && revealed && showPieChart && stats && (
+  <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#9B7FE5' }}>
+    <p className="text-xs text-white mb-2 font-semibold">Vote Distribution</p>
+    <div className="flex justify-center">
+      <PieChart stats={stats} darkMode={darkMode} size={240} />
+    </div>
+  </div>
+)}
+
                   </>
                 )}
               </div>
