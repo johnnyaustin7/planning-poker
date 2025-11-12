@@ -2044,14 +2044,17 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
   };
 
   const updateHistoryEstimate = async (timestamp, newEstimate) => {
-    if (!db || !dbModule) return;
-    
-    const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
-    await dbModule.update(historyRef, { finalEstimate: newEstimate });
-    
-    setEditingEstimateId(null);
-    setEditingEstimateValue('');
-  };
+  if (!db || !dbModule || !newEstimate.trim()) return;
+  
+  const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
+  
+  // Clear editing state BEFORE the update
+  setEditingEstimateId(null);
+  setEditingEstimateValue('');
+  
+  // Then update Firebase
+  await dbModule.update(historyRef, { finalEstimate: newEstimate.trim() });
+};
 
   const exportToCSV = () => {
     if (sessionHistory.length === 0) {
