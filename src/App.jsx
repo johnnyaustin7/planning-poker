@@ -5195,14 +5195,16 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
               
               <div className="flex-1 overflow-y-auto p-6">
                 {sessionHistory.length === 0 ? (
-                  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
-                    No voting history yet. Complete a round to see it here!
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {sessionHistory.map((entry, index) => (
-                      <div
-                        key={entry.timestamp}
+  <p className={`text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'} py-8`}>
+    No voting history yet. Complete a round to see it here!
+  </p>
+) : (
+  <div className="space-y-4">
+    {sessionHistory
+      .filter(entry => entry && entry.votes && Array.isArray(entry.votes))
+      .map((entry, index) => (
+      <div
+        key={entry.timestamp}
                         className={`p-4 rounded-lg border ${
                           darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
                         }`}
@@ -5282,18 +5284,18 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                             </div>
                           )}
                         </div>
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {entry.votes.map((vote, vIndex) => (
-                            <span
-                              key={vIndex}
-                              className={`px-3 py-1 rounded text-sm ${
-                                darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700'
-                              }`}
-                            >
-                              {vote.name}: <strong>{vote.vote}</strong>
-                            </span>
-                          ))}
-                        </div>
+                       <div className="flex flex-wrap gap-2 mt-3">
+                        {(entry.votes && Array.isArray(entry.votes) ? entry.votes : []).map((vote, vIndex) => (
+                          <span
+      key={vIndex}
+      className={`px-3 py-1 rounded text-sm ${
+        darkMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-700'
+      }`}
+    >
+      {vote?.name || 'Unknown'}: <strong>{vote?.vote || '—'}</strong>
+    </span>
+  ))}
+</div>
                         <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                           {entry.participantCount} participants • {entry.votingScale}
                         </p>
