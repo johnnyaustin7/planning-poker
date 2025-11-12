@@ -2046,14 +2046,29 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
   const updateHistoryEstimate = async (timestamp, newEstimate) => {
   if (!db || !dbModule || !newEstimate.trim()) return;
   
-  const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
-  
-  // Clear editing state BEFORE the update
-  setEditingEstimateId(null);
-  setEditingEstimateValue('');
-  
-  // Then update Firebase
-  await dbModule.update(historyRef, { finalEstimate: newEstimate.trim() });
+  try {
+    // Update local state immediately for instant feedback
+    setSessionHistory(prevHistory => 
+      prevHistory.map(entry => 
+        entry.timestamp === timestamp 
+          ? { ...entry, finalEstimate: newEstimate.trim() }
+          : entry
+      )
+    );
+    
+    // Clear editing state
+    setEditingEstimateId(null);
+    setEditingEstimateValue('');
+    
+    // Then persist to Firebase
+    const historyRef = dbModule.ref(db, `sessions/${sessionId}/history/${timestamp}`);
+    await dbModule.update(historyRef, { finalEstimate: newEstimate.trim() });
+    
+    console.log('✅ Estimate updated successfully');
+  } catch (error) {
+    console.error('❌ Failed to update estimate:', error);
+    // Optionally: reload from Firebase on error
+  }
 };
 
   const exportToCSV = () => {
