@@ -2072,15 +2072,17 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
 };
 
   const exportToCSV = () => {
-    if (sessionHistory.length === 0) {
-      alert('No history to export yet!');
-      return;
-    }
+  if (sessionHistory.length === 0) {
+    alert('No history to export yet!');
+    return;
+  }
 
-    const headers = ['Ticket ID', 'Final Estimate', 'Participants', 'All Votes', 'Duration', 'Timestamp'];
-    const rows = sessionHistory.map(entry => {
-      const votes = entry.votes.map(v => `${v.name}:${v.vote}`).join('; ');
-      const allVotes = entry.votes.map(v => v.vote).join(',');
+  const headers = ['Ticket ID', 'Final Estimate', 'Participants', 'All Votes', 'Duration', 'Timestamp'];
+  const rows = sessionHistory
+    .filter(entry => entry && entry.votes && Array.isArray(entry.votes))
+    .map(entry => {
+      const votes = entry.votes.map(v => `${v?.name || 'Unknown'}:${v?.vote || '—'}`).join('; ');
+      const allVotes = entry.votes.map(v => v?.vote || '—').join(',');
       const date = new Date(entry.timestamp).toLocaleString();
       const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
       
@@ -2094,36 +2096,38 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
       ];
     });
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+  ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `planning-poker-${sessionId}-${Date.now()}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `planning-poker-${sessionId}-${Date.now()}.csv`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
 
   const copyHistoryToClipboard = () => {
   if (sessionHistory.length === 0) {
     return;
   }
 
-  const text = sessionHistory.map(entry => {
-    const votes = entry.votes.map(v => `${v.name}: ${v.vote}`).join(', ');
-    const date = new Date(entry.timestamp).toLocaleString();
-    const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
-    
-    return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
-  }).join('\n');
+  const text = sessionHistory
+    .filter(entry => entry && entry.votes && Array.isArray(entry.votes))
+    .map(entry => {
+      const votes = entry.votes.map(v => `${v?.name || 'Unknown'}: ${v?.vote || '—'}`).join(', ');
+      const date = new Date(entry.timestamp).toLocaleString();
+      const duration = `${Math.floor(entry.duration / 60)}:${(entry.duration % 60).toString().padStart(2, '0')}`;
+      
+      return `${entry.ticketId} | Estimate: ${entry.finalEstimate} | Votes: ${votes} | Duration: ${duration} | ${date}`;
+    }).join('\n');
 
   navigator.clipboard.writeText(text);
   setHistoryCopied(true);
-  setTimeout(() => setHistoryCoped(false), 2000);
+  setTimeout(() => setHistoryCopied(false), 2000);
 };
   const calculateAverage = () => {
     const votingParticipants = participants.filter(p => !p.isModerator && !p.isObserver);
