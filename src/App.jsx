@@ -1011,21 +1011,22 @@ useEffect(() => {
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await dbModule.get(sessionRef);
       
-      let userId = null;
+      // ====== NEW: Auto-append numbers for duplicate names ======
+      let uniqueName = userName.trim();
+      let counter = 2;
       
       if (sessionSnapshot.exists() && sessionSnapshot.val().participants) {
-        const existingUser = Object.entries(sessionSnapshot.val().participants).find(
-          ([id, participant]) => participant.name === userName.trim()
-        );
+        const existingNames = Object.values(sessionSnapshot.val().participants).map(p => p.name);
         
-        if (existingUser) {
-          userId = existingUser[0];
+        // Keep incrementing counter until we find a unique name
+        while (existingNames.includes(uniqueName)) {
+          uniqueName = `${userName.trim()} (${counter})`;
+          counter++;
         }
       }
+      // ====== END NEW CODE ======
       
-      if (!userId) {
-        userId = currentUserId || Date.now().toString();
-      }
+      let userId = currentUserId || Date.now().toString();
       
       setCurrentUserId(userId);
       setWasRemoved(false);
@@ -1044,7 +1045,7 @@ useEffect(() => {
       
       const newParticipant = {
         id: userId,
-        name: userName.trim(),
+        name: uniqueName,
         points: null,
         isModerator: isModerator,
         isObserver: isObserver
