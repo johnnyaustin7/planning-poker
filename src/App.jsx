@@ -1093,6 +1093,8 @@ useEffect(() => {
   setWasRemoved(false);
   setCurrentUserId(null);
   setShowReleaseNotes(false);
+  setResetTime(Date.now());
+  setElapsedTime(0);
 };
 
   const removeUser = async (userId) => {
