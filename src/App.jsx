@@ -60,8 +60,17 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.0";
+const APP_VERSION = "2.1.1";
 const RELEASE_NOTES = {
+  "2.1.1": {
+    date: "November 25, 2025",
+    type: "Patch Release",
+    changes: [
+      "🔧 Fixed session ID input to allow longer IDs (e.g., NEXUS-1234)",
+      "👀 All participants now see individual votes after reveal (not just moderators)",
+      "📊 Pie chart moved to statistics sidebar for all users"
+    ]
+  },
   "2.1.0": {
     date: "November 4, 2025",
     type: "Minor Release",
@@ -4964,23 +4973,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                   </div>
                 )}
               </div>
-              {revealed && showPieChart && stats && !isModerator ? (
-  <div className="py-8">
-    <h3 className={`text-center text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-      Vote Results
-    </h3>
-    {stats.consensus && (
-      <p className={`text-center mb-4 text-lg font-semibold ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-        🎉 Team Consensus!
-      </p>
-    )}
-    <div className="flex items-center justify-center">
-      <PieChart stats={stats} darkMode={darkMode} />
-    </div>
-    <div className={`text-center mt-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-    </div>
-  </div>
-) : (
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {sortedParticipants.map((participant) => {
                   const hasVoted = participant.points !== null && 
@@ -5048,7 +5041,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                   );
                 })}
               </div>
-              )}
+
             </div>
           </div>
 
@@ -5156,8 +5149,8 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
     </div>
   </div>
 )}
-                    {/* Pie Chart for moderator only */}
-{isModerator && revealed && showPieChart && stats && (
+                    {/* Pie Chart */}
+{revealed && showPieChart && stats && (
   <div className="rounded-lg p-3 shadow-md" style={{ backgroundColor: '#9B7FE5' }}>
     <p className="text-xs text-white mb-2 font-semibold">Vote Distribution</p>
     <div className="flex justify-center">
