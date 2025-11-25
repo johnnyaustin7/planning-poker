@@ -60,8 +60,16 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.1";
+const APP_VERSION = "2.1.2";
 const RELEASE_NOTES = {
+  "2.1.2": {
+    date: "November 25, 2025",
+    type: "Patch Release",
+    changes: [
+      "⏱️ Fixed timer to start at 0:00 when joining a session",
+      "⏱️ Fixed timer persisting across sessions when leaving and rejoining"
+    ]
+  },
   "2.1.1": {
     date: "November 25, 2025",
     type: "Patch Release",
