@@ -1033,12 +1033,14 @@ useEffect(() => {
           counter++;
         }
       }
-      // ====== END NEW CODE ======
-      
+           
       let userId = currentUserId || Date.now().toString();
       
       setCurrentUserId(userId);
       setWasRemoved(false);
+
+      setResetTime(Date.now());
+      setElapsedTime(0);
       
       if (!sessionSnapshot.exists()) {
         await dbModule.set(sessionRef, {
