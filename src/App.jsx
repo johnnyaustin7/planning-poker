@@ -2429,7 +2429,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 text-gray-900'
                 } rounded-lg focus:ring-2 focus:ring-[#B96AE9] focus:border-transparent outline-none mb-3`}
-                maxLength={6}
+                maxLength={20}
               />
               <button
                 onClick={handleJoinSession}
