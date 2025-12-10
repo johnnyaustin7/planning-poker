@@ -60,8 +60,17 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.2";
+const APP_VERSION = "2.1.3";
 const RELEASE_NOTES = {
+  "2.1.3": {
+    date: "December 10, 2025",
+    type: "Patch Release",
+    changes: [
+      "🔒 Fixed bug allowing users to join the same session multiple times from one workstation",
+      "🔄 Added automatic rejoin detection - if you try to join a session you're already in, you'll rejoin with your existing participant entry",
+      "🆔 Implemented persistent device identification to prevent duplicate joins while still allowing multiple users from different devices"
+    ]
+  },
   "2.1.2": {
     date: "November 25, 2025",
     type: "Patch Release",
@@ -1028,7 +1037,39 @@ useEffect(() => {
       const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
       const sessionSnapshot = await dbModule.get(sessionRef);
       
-      // ====== NEW: Auto-append numbers for duplicate names ======
+      // Generate or retrieve a persistent device ID
+      let deviceId = localStorage.getItem('scrumptious_device_id');
+      if (!deviceId) {
+        deviceId = `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('scrumptious_device_id', deviceId);
+      }
+      
+      // Check if this device is already in the session
+      if (sessionSnapshot.exists() && sessionSnapshot.val().participants) {
+        const existingParticipants = Object.entries(sessionSnapshot.val().participants);
+        const existingEntry = existingParticipants.find(([_, p]) => p.deviceId === deviceId);
+        
+        if (existingEntry) {
+          // User is already in session from this device - rejoin with same ID
+          const [existingUserId, existingParticipant] = existingEntry;
+          setCurrentUserId(existingUserId);
+          setHasJoined(true);
+          setWasRemoved(false);
+          setResetTime(Date.now());
+          setElapsedTime(0);
+          
+          // Update their role if changed
+          const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${existingUserId}`);
+          await dbModule.update(participantRef, {
+            isModerator: isModerator,
+            isObserver: isObserver
+          });
+          
+          return; // Exit early - already joined
+        }
+      }
+      
+      // ====== Auto-append numbers for duplicate names ======
       let uniqueName = userName.trim();
       let counter = 2;
       
@@ -1067,7 +1108,8 @@ useEffect(() => {
         name: uniqueName,
         points: null,
         isModerator: isModerator,
-        isObserver: isObserver
+        isObserver: isObserver,
+        deviceId: deviceId
       };
 
       const participantRef = dbModule.ref(db, `sessions/${sessionId}/participants/${userId}`);
