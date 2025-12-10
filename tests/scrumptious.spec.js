@@ -6,22 +6,38 @@ const { test, expect } = require('@playwright/test');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173';
 
+// Clear all storage before each test
+test.beforeEach(async ({ page }) => {
+  await page.goto(BASE_URL);
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+});
+
 // ===========================================
 // HELPER FUNCTIONS
 // ===========================================
 
+// tests/scrumptious.spec.js
+
 async function clearLocalStorage(page) {
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => {
+    localStorage.clear();
+    // Also clear session storage to be thorough
+    sessionStorage.clear();
+  });
 }
 
 async function gotoHome(page) {
   await page.goto(BASE_URL);
+  // Clear storage AFTER navigation but BEFORE any app interaction
+  await clearLocalStorage(page);
   await expect(page.getByRole('heading', { name: /scrumptious/i })).toBeVisible();
 }
 
 async function createPlanningPokerSession(page) {
-  await gotoHome(page);
-  await clearLocalStorage(page);
+  await gotoHome(page); // This now clears storage
   await page.getByRole('button', { name: /Planning Poker/i }).click();
   
   // Wait for session ID to appear
@@ -36,6 +52,12 @@ async function createPlanningPokerSession(page) {
 }
 
 async function joinPlanningPokerSession(page, name, isModerator = false) {
+  // Generate a unique device ID for this test join to avoid conflicts
+  await page.evaluate(() => {
+    const uniqueId = `test_device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('scrumptious_device_id', uniqueId);
+  });
+  
   const nameInput = page.getByPlaceholder(/Your name/i);
   await nameInput.clear();
   await nameInput.fill(name);
@@ -63,8 +85,7 @@ async function joinPlanningPokerSession(page, name, isModerator = false) {
 }
 
 async function createRetroSession(page, format = 'start-stop-continue') {
-  await gotoHome(page);
-  await clearLocalStorage(page);
+  await gotoHome(page); // This now clears storage
   await page.getByRole('button', { name: /Retrospective/i }).click();
   
   // Wait for format selector
@@ -91,6 +112,12 @@ async function createRetroSession(page, format = 'start-stop-continue') {
 }
 
 async function joinRetroSession(page, name, isModerator = false) {
+  // Generate a unique device ID for this test join
+  await page.evaluate(() => {
+    const uniqueId = `test_device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('scrumptious_device_id', uniqueId);
+  });
+  
   const nameInput = page.getByPlaceholder(/Your name/i);
   await nameInput.clear();
   await nameInput.fill(name);
