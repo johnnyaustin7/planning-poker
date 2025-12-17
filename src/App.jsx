@@ -60,8 +60,19 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.3";
+const APP_VERSION = "2.1.4";
 const RELEASE_NOTES = {
+  "2.1.4": {
+    date: "December 17, 2025",
+    type: "Patch Release",
+    changes: [
+      "✏️ Added ability to edit your own comments in Phase 1 of retrospectives",
+      "🗑️ Added ability to delete your own comments in Phase 1 of retrospectives",
+      "👤 Comments now show 'You' instead of 'Anonymous' for items you created",
+      "🖱️ Click on your items to edit them inline",
+      "⌨️ Press Enter to save edits, Escape to cancel"
+    ]
+  },
   "2.1.3": {
     date: "December 10, 2025",
     type: "Patch Release",
@@ -606,7 +617,9 @@ export default function App() {
   const [dragOverItem, setDragOverItem] = useState(null);
   const [editingGroupId, setEditingGroupId] = useState(null);
   const [editingGroupName, setEditingGroupName] = useState('');
-  
+  const [editingInputId, setEditingInputId] = useState(null);
+  const [editingInputText, setEditingInputText] = useState('');
+
   // Column-based retrospective state
   const [retroItems, setRetroItems] = useState({});
   const [selectedColumn, setSelectedColumn] = useState(null);
@@ -1255,6 +1268,7 @@ const addRetroInput = async (columnId) => {
     id: inputId,
     text: newInputText.trim(),
     author: 'Anonymous',
+    authorId: currentUserId,
     columnId: columnId,  
     votes: 0,
     voters: [],
@@ -1266,6 +1280,23 @@ const addRetroInput = async (columnId) => {
   
   setNewInputText('');
   setSelectedColumn(null);  
+};
+
+const updateRetroInput = async (inputId, newText) => {
+  if (!newText.trim() || !db || !dbModule) return;
+  
+  const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${inputId}`);
+  await dbModule.update(inputRef, { text: newText.trim() });
+  
+  setEditingInputId(null);
+  setEditingInputText('');
+};
+
+const deleteRetroInput = async (inputId) => {
+  if (!db || !dbModule) return;
+  
+  const inputRef = dbModule.ref(db, `sessions/${sessionId}/retroInputs/${inputId}`);
+  await dbModule.remove(inputRef);
 };
 
   const toggleRetroVote = async (inputId) => {
@@ -3236,17 +3267,64 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                 key={item.id}
                 className={`p-3 rounded-lg ${
                   darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                } border-l-4`}
+                } border-l-4 group`}
                 style={{ borderLeftColor: column.color }}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <p className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    {item.text}
-                  </p>
+                  {editingInputId === item.id ? (
+                    <textarea
+                      value={editingInputText}
+                      onChange={(e) => setEditingInputText(e.target.value)}
+                      onBlur={() => updateRetroInput(item.id, editingInputText)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          updateRetroInput(item.id, editingInputText);
+                        }
+                        if (e.key === 'Escape') {
+                          setEditingInputId(null);
+                          setEditingInputText('');
+                        }
+                      }}
+                      className={`flex-1 px-2 py-1 border ${
+                        darkMode 
+                          ? 'bg-gray-600 border-purple-400 text-white' 
+                          : 'bg-white border-purple-400'
+                      } rounded text-sm resize-none`}
+                      rows={3}
+                      autoFocus
+                    />
+                  ) : (
+                    <p 
+                      className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} ${
+                        item.authorId === currentUserId ? 'cursor-pointer hover:text-purple-500' : ''
+                      }`}
+                      onClick={() => {
+                        if (item.authorId === currentUserId && !isObserver) {
+                          setEditingInputId(item.id);
+                          setEditingInputText(item.text);
+                        }
+                      }}
+                      title={item.authorId === currentUserId ? 'Click to edit' : ''}
+                    >
+                      {item.text}
+                    </p>
+                  )}
+                  {item.authorId === currentUserId && !isObserver && editingInputId !== item.id && (
+                    <button
+                      onClick={() => deleteRetroInput(item.id)}
+                      className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded ${
+                        darkMode ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500'
+                      }`}
+                      title="Delete"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-                    Anonymous
+                    {item.authorId === currentUserId ? 'You' : 'Anonymous'}
                   </span>
                   {!isObserver && (
                     <button
