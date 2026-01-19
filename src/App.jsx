@@ -60,8 +60,15 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.4";
+const APP_VERSION = "2.1.5";
 const RELEASE_NOTES = {
+  "2.1.5": {
+    date: "January 19, 2025",
+    type: "Patch Release",
+    changes: [
+      "⏰ Extended session retention from 24 hours to 72 hours",
+    ]
+  },
   "2.1.4": {
     date: "December 17, 2025",
     type: "Patch Release",
@@ -939,10 +946,10 @@ useEffect(() => {
     if (snapshot.exists()) {
       const sessions = snapshot.val();
       const now = Date.now();
-      const twentyFourHours = 24 * 60 * 60 * 1000;
+      const seventyTwoHours = 72 * 60 * 60 * 1000;
       
       Object.entries(sessions).forEach(async ([sessionId, sessionData]) => {
-        if (sessionData.createdAt && (now - sessionData.createdAt) > twentyFourHours) {
+        if (sessionData.createdAt && (now - sessionData.createdAt) > seventyTwoHours) {
           const oldSessionRef = dbModule.ref(db, `sessions/${sessionId}`);
           await dbModule.remove(oldSessionRef);
         }
