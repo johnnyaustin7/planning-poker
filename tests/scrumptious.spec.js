@@ -577,22 +577,80 @@ test.describe('Retrospective - Items', () => {
 // ===========================================
 
 test.describe('Retrospective - Share', () => {
-  test('should show share button', async ({ page }) => {
+  test('should show inline session code with copy button in header', async ({ page }) => {
     await createRetroSession(page);
     await joinRetroSession(page, 'Moderator', true);
     
-    const shareButton = page.getByRole('button', { name: /^Share$/i });
-    await expect(shareButton).toBeVisible();
+    // Session code should be visible inline (like planning poker)
+    const sessionChip = page.locator('code').first();
+    await expect(sessionChip).toBeVisible();
+    
+    // Copy button should be next to session code
+    const copyButton = page.getByTitle(/Copy Session Link/i);
+    await expect(copyButton).toBeVisible();
   });
   
-  test('should open share modal', async ({ page }) => {
+  test('should not have a separate share modal', async ({ page }) => {
     await createRetroSession(page);
     await joinRetroSession(page, 'Moderator', true);
     
-    await page.getByRole('button', { name: /^Share$/i }).click();
+    // The old Share button should no longer exist
+    await expect(page.getByRole('button', { name: /^Share$/i })).not.toBeVisible();
+  });
+});
+
+// ===========================================
+// RETROSPECTIVE - HIDE ITEMS
+// ===========================================
+
+test.describe('Retrospective - Hide Items', () => {
+  test('should show hide items toggle for moderator in input phase', async ({ page }) => {
+    await createRetroSession(page);
+    await joinRetroSession(page, 'Moderator', true);
     
-    await expect(page.getByRole('heading', { name: /Share Retrospective/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Show QR Code/i })).toBeVisible();
+    // Moderator should see the visibility toggle button
+    await expect(page.getByRole('button', { name: /Hide items from participants/i })).toBeVisible();
+  });
+  
+  test('should not show hide items toggle for non-moderator', async ({ browser }) => {
+    const context = await browser.newContext();
+    const moderatorPage = await context.newPage();
+    const participantPage = await context.newPage();
+    
+    const sessionId = await createRetroSession(moderatorPage);
+    await joinRetroSession(moderatorPage, 'Moderator', true);
+    
+    await participantPage.goto(`${BASE_URL}/?session=${sessionId}`);
+    await joinRetroSession(participantPage, 'Participant', false);
+    
+    // Participant should NOT see the toggle
+    await expect(participantPage.getByRole('button', { name: /Hide items from participants/i })).not.toBeVisible();
+    await expect(participantPage.getByRole('button', { name: /Show items to participants/i })).not.toBeVisible();
+    
+    await context.close();
+  });
+  
+  test('should hide other participants items when toggled on', async ({ browser }) => {
+    const context = await browser.newContext();
+    const moderatorPage = await context.newPage();
+    const participantPage = await context.newPage();
+    
+    const sessionId = await createRetroSession(moderatorPage);
+    await joinRetroSession(moderatorPage, 'Moderator', true);
+    
+    await participantPage.goto(`${BASE_URL}/?session=${sessionId}`);
+    await joinRetroSession(participantPage, 'Participant', false);
+    
+    // Moderator clicks the toggle to hide items
+    await moderatorPage.getByRole('button', { name: /Hide items from participants/i }).click();
+    
+    // Verify toggle changed - aria-label should now say "Show items"
+    await expect(moderatorPage.getByRole('button', { name: /Show items to participants/i })).toBeVisible({ timeout: 5000 });
+    
+    // Participant should see the hidden notice
+    await expect(participantPage.locator('text=/Other items hidden until next phase/i').first()).toBeVisible({ timeout: 5000 });
+    
+    await context.close();
   });
 });
 
