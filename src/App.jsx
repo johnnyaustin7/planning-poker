@@ -67,7 +67,7 @@ const RELEASE_NOTES = {
     type: "Minor Release",
     changes: [
       "🔗 Retro sharing now matches Planning Poker — inline session code with copy button in the header",
-      "👁️ Moderators can now hide retro items from other participants during Phase 1",
+      "👁️ Moderators can now hide retro items from other participants during Phase 1 (Brainstorming)",
       "📝 Fixed long URLs and text overflowing retro cards — text now wraps properly in all phases"
     ]
   },
@@ -3245,9 +3245,12 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
           {retroPhase === 'input' && isModerator && (
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 mb-6`}>
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <button 
+                  onClick={toggleHideRetroItems}
+                  className="flex items-center gap-2 cursor-pointer bg-transparent border-none p-0"
+                  aria-label={hideRetroItems ? 'Show items to participants' : 'Hide items from participants'}
+                >
                   <div 
-                    onClick={toggleHideRetroItems}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       hideRetroItems ? 'bg-[#B96AE9]' : darkMode ? 'bg-gray-600' : 'bg-gray-300'
                     }`}
@@ -3259,7 +3262,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                   <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                     {hideRetroItems ? <><EyeOff size={16} className="inline mr-1" />Items hidden from participants</> : <><Eye size={16} className="inline mr-1" />Items visible to all participants</>}
                   </span>
-                </label>
+                </button>
               </div>
             </div>
           )}
