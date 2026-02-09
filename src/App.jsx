@@ -60,8 +60,17 @@ const FIREBASE_CONFIG = {
   appId: "1:149415726941:web:46bab0f7861e880d1ba2b4"
 };
 
-const APP_VERSION = "2.1.5";
+const APP_VERSION = "2.2.0";
 const RELEASE_NOTES = {
+  "2.2.0": {
+    date: "February 9, 2026",
+    type: "Minor Release",
+    changes: [
+      "🔗 Retro sharing now matches Planning Poker — inline session code with copy button in the header",
+      "👁️ Moderators can now hide retro items from other participants during Phase 1",
+      "📝 Fixed long URLs and text overflowing retro cards — text now wraps properly in all phases"
+    ]
+  },
   "2.1.5": {
     date: "January 19, 2025",
     type: "Patch Release",
@@ -626,7 +635,7 @@ export default function App() {
   const [editingGroupName, setEditingGroupName] = useState('');
   const [editingInputId, setEditingInputId] = useState(null);
   const [editingInputText, setEditingInputText] = useState('');
-
+  const [hideRetroItems, setHideRetroItems] = useState(false);
   // Column-based retrospective state
   const [retroItems, setRetroItems] = useState({});
   const [selectedColumn, setSelectedColumn] = useState(null);
@@ -760,6 +769,9 @@ useEffect(() => {
             const remaining = Math.max(0, data.timer.duration * 60 - elapsed);
             setTimeRemaining(remaining);
           }
+        }
+        if (data.hideRetroItems !== undefined) {
+          setHideRetroItems(data.hideRetroItems);
         }
         // Load column-based retro items
         if (data.retroItems) {
@@ -1598,6 +1610,12 @@ const hasReacted = (groupId, emoji) => {
     const nextPhase = retroPhase === 'input' ? 'grouping' : 'discussion';
     const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
     await dbModule.update(sessionRef, { retroPhase: nextPhase });
+  };
+
+  const toggleHideRetroItems = async () => {
+    if (!isModerator || !db || !dbModule) return;
+    const sessionRef = dbModule.ref(db, `sessions/${sessionId}`);
+    await dbModule.update(sessionRef, { hideRetroItems: !hideRetroItems });
   };
 
   const exportRetroToExcel = async () => {
@@ -3015,14 +3033,9 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 mb-6`}>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    Retrospective: {currentRetroFormat.name}
-                  </h1>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Session: <code className={`font-mono ${darkMode ? 'text-purple-400' : 'text-[#B96AE9]'}`}>{sessionId}</code>
-                  </p>
-                </div>
+                <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  scrumptious: Retrospective
+                </h1>
                 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -3030,17 +3043,21 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                     className={`p-2 rounded-lg transition-colors ${
                       darkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
+                    title="Toggle dark mode"
                   >
                     {darkMode ? <Sun size={18} /> : <Moon size={18} />}
                   </button>
-                  
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="px-4 py-2 bg-[#B96AE9] text-white rounded-lg hover:bg-[#D255EA] flex items-center gap-2"
-                  >
-                    <Share2 size={18} />
-                    Share
-                  </button>
+                  <div className={`flex items-center gap-2 ${darkMode ? 'bg-gray-700' : 'bg-[#B8E0DC]'} px-2 sm:px-3 py-2 rounded text-sm`}>
+                    <span className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} hidden sm:inline`}>Session:</span>
+                    <code className={`font-mono font-bold ${darkMode ? 'text-[#B8E0DC]' : 'text-blue-800'}`}>{sessionId}</code>
+                    <button
+                      onClick={copySessionId}
+                      className={`p-1 rounded transition-colors ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-[#9DD5D1]'}`}
+                      title="Copy Session Link"
+                    >
+                      {showCopied ? <Check size={14} className="text-green-600" /> : <Copy size={14} className={darkMode ? 'text-[#7DC9C8]' : 'text-[#5CBDC0]'} />}
+                    </button>
+                  </div>
                   
                   {isModerator && retroPhase === 'discussion' && (
   <button
@@ -3064,8 +3081,9 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                         ? 'bg-red-900 text-red-200 hover:bg-red-800' 
                         : 'bg-red-100 text-red-700 hover:bg-red-200'
                     }`}
+                    title="Leave session"
                   >
-                    Leave
+                    Leave Session
                   </button>
                 </div>
               </div>
@@ -3224,6 +3242,27 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
           )}
 
           {/* Phase Content */}
+          {retroPhase === 'input' && isModerator && (
+            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 mb-6`}>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <div 
+                    onClick={toggleHideRetroItems}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      hideRetroItems ? 'bg-[#B96AE9]' : darkMode ? 'bg-gray-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      hideRetroItems ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </div>
+                  <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {hideRetroItems ? <><EyeOff size={16} className="inline mr-1" />Items hidden from participants</> : <><Eye size={16} className="inline mr-1" />Items visible to all participants</>}
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
           {retroPhase === 'input' && (
   <div className={`grid grid-cols-1 gap-4 ${
   currentRetroFormat.columns.length === 2 ? 'md:grid-cols-2' :
@@ -3231,7 +3270,10 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
   'md:grid-cols-2'
 }`}>
     {currentRetroFormat.columns.map(column => {
-      const columnItems = retroInputs.filter(item => item.columnId === column.id);
+      const allColumnItems = retroInputs.filter(item => item.columnId === column.id);
+      const columnItems = hideRetroItems && !isModerator 
+        ? allColumnItems.filter(item => item.authorId === currentUserId)
+        : allColumnItems;
       
       return (
         <div
@@ -3249,6 +3291,15 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-4 italic`}>
             {column.prompt}
           </p>
+
+          {hideRetroItems && !isModerator && (
+            <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-lg text-xs ${
+              darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
+            }`}>
+              <EyeOff size={14} />
+              <span>Other items hidden until next phase</span>
+            </div>
+          )}
 
           {/* Add Item Button */}
           {!isObserver && (
@@ -3274,10 +3325,10 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                 key={item.id}
                 className={`p-3 rounded-lg ${
                   darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                } border-l-4 group`}
+                } border-l-4 group overflow-hidden`}
                 style={{ borderLeftColor: column.color }}
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-2 min-w-0">
                   {editingInputId === item.id ? (
                     <textarea
                       value={editingInputText}
@@ -3303,9 +3354,10 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                     />
                   ) : (
                     <p 
-                      className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} ${
+                      className={`flex-1 text-sm min-w-0 ${darkMode ? 'text-gray-200' : 'text-gray-800'} ${
                         item.authorId === currentUserId ? 'cursor-pointer hover:text-purple-500' : ''
                       }`}
+                      style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
                       onClick={() => {
                         if (item.authorId === currentUserId && !isObserver) {
                           setEditingInputId(item.id);
@@ -3403,7 +3455,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                 } border-l-4`}
                 style={{ borderLeftColor: column.color }}
               >
-                <p className={`text-sm mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                <p className={`text-sm mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                   {item.text}
                 </p>
                 <div className="flex items-center justify-between">
@@ -3506,7 +3558,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                             {itemColumn.icon}
                           </span>
                         )}
-                        <span className={`flex-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <span className={`flex-1 min-w-0 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                           {item.text}
                         </span>
                         {!isObserver && (
@@ -3701,8 +3753,8 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                 </span>
               );
             })()}
-            <div className="flex-1">
-              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`}>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'} font-medium`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                 {item.text}
               </p>
               <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -3934,75 +3986,6 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
     </div>
   </div>
 )}
-
-        {/* Share Modal */}
-        {showShareModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div 
-              className="absolute inset-0" 
-              onClick={() => setShowShareModal(false)}
-            />
-            <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-6 max-w-md w-full relative z-10`}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  Share Retrospective
-                </h3>
-                <button 
-                  onClick={() => setShowShareModal(false)}
-                  className={`p-2 rounded ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                >
-                  <X size={24} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Session Code
-                  </label>
-                  <div className={`text-3xl font-bold text-center py-4 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded`}>
-                    {sessionId}
-                  </div>
-                </div>
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Share Link
-                  </label>
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={`${window.location.origin}${window.location.pathname}?session=${sessionId}`}
-                      readOnly 
-                      className={`flex-1 px-3 py-2 border ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white' 
-                          : 'bg-white border-gray-300'
-                      } rounded text-sm`}
-                    />
-                    <button 
-                      onClick={copySessionId}
-                      className="px-4 py-2 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] flex items-center gap-2"
-                    >
-                      <Copy size={16} />
-                      Copy
-                    </button>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowQR(!showQR)}
-                  className="w-full px-4 py-3 bg-[#B96AE9] text-white rounded hover:bg-[#D255EA] flex items-center justify-center gap-2"
-                >
-                  <Share2 size={20} />
-                  {showQR ? 'Hide' : 'Show'} QR Code
-                </button>
-                {showQR && qrCodeUrl && (
-                  <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded">
-                    <img src={qrCodeUrl} alt="QR Code" className="mx-auto border-2 border-gray-300 rounded" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Leave Confirmation Modal */}
         {showLeaveConfirm && (
@@ -4382,7 +4365,7 @@ worksheet.getColumn(2).width = 30;  // Group/Theme
                         } border ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <p className={`flex-1 text-sm ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                          <p className={`flex-1 text-sm min-w-0 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`} style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
                             {item.text}
                           </p>
                           {(isModerator || item.authorId === currentUserId) && (
